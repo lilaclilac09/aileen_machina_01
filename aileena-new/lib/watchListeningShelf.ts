@@ -10,7 +10,7 @@ function slugify(value: string): string {
 export type ShelfSection = 'listen' | 'watch' | 'read' | 'living' | 'gallery';
 export type ShelfType = 'podcast' | 'film' | 'interview' | 'book' | 'note' | 'video' | 'scent' | 'painting';
 export type ShelfObject = 'cover' | 'cassette' | 'spine' | 'slip';
-export type ShelfRow = 'listen' | 'watch' | 'notes' | 'video' | 'living' | 'scent' | 'gallery';
+export type ShelfRow = 'listen' | 'watch' | 'books' | 'notes' | 'video' | 'living' | 'scent' | 'gallery';
 export type ShelfCoverKind = 'poster' | 'still' | 'spine' | 'object' | 'cutout' | 'framed';
 
 export type ShelfItem = {
@@ -465,6 +465,174 @@ export const VIDEO_RECS = [
   },
 ];
 
+
+/** Reading desk — front covers + blurbs; same FoldRow/detail contract as /updates. */
+export const BOOK_RECS = [
+  {
+    title: 'The Year of Magical Thinking',
+    shelfTitle: 'Year of Magical Thinking',
+    author: 'Joan Didion',
+    label: 'featured · reading now',
+    image: '/shelf/book-year-of-magical-thinking.jpg',
+    note: 'The calibration text. Grief treated as structure, not sentiment.',
+    tags: ['grief', 'ritual', 'observation'],
+    featured: true,
+  },
+  {
+    title: 'Slouching Towards Bethlehem',
+    shelfTitle: 'Slouching Towards Bethlehem',
+    author: 'Joan Didion',
+    label: 'essays · 31% in',
+    image: '/shelf/book-slouching-towards-bethlehem.jpg',
+    note: 'the sentence as a measuring instrument',
+    tags: ['essays'],
+  },
+  {
+    title: 'The White Album',
+    shelfTitle: 'The White Album',
+    author: 'Joan Didion',
+    label: 'essays',
+    image: '/shelf/book-the-white-album.jpg',
+    note: 'fragmented america, fragmented self',
+    tags: ['essays'],
+  },
+  {
+    title: 'Play It As It Lays',
+    shelfTitle: 'Play It As It Lays',
+    author: 'Joan Didion',
+    label: 'novel',
+    image: '/shelf/book-play-it-as-it-lays.jpg',
+    note: 'california as a nervous system',
+    tags: ['novel'],
+  },
+  {
+    title: 'Notes to John',
+    shelfTitle: 'Notes to John',
+    author: 'Joan Didion',
+    label: 'archive',
+    image: '/shelf/book-notes-to-john.jpg',
+    note: 'private record, public discomfort',
+    tags: ['archive'],
+  },
+  {
+    title: 'Let Me Tell You What I Mean',
+    shelfTitle: 'Let Me Tell You What I Mean',
+    author: 'Joan Didion',
+    label: 'essays',
+    image: '/shelf/book-let-me-tell-you-what-i-mean.jpg',
+    note: 'later pieces, same steel',
+    tags: ['essays'],
+  },
+  {
+    title: 'Didion & Babitz',
+    shelfTitle: 'Didion & Babitz',
+    author: 'Lili Anolik',
+    label: 'biography',
+    image: '/shelf/book-didion-and-babitz.jpg',
+    note: 'two LA writers, one shared orbit',
+    tags: ['biography'],
+  },
+  {
+    title: 'My Early Life',
+    shelfTitle: 'My Early Life',
+    author: 'Winston Churchill',
+    label: 'memoir',
+    image: '/shelf/book-my-early-life.jpg',
+    note: 'Churchill on his own youth, before the legend',
+    tags: ['memoir'],
+  },
+  {
+    title: 'Churchill: Walking with Destiny',
+    shelfTitle: 'Walking with Destiny',
+    author: 'Andrew Roberts',
+    label: 'want to read · biography',
+    image: '/shelf/book-churchill-walking-with-destiny.jpg',
+    note: 'Widely seen as the best single-volume life; fresh sources, fluent prose. For readers who want the whole life properly.',
+    tags: ['biography'],
+  },
+  {
+    title: 'The Churchill Factor',
+    shelfTitle: 'The Churchill Factor',
+    author: 'Boris Johnson',
+    label: 'want to read · biography',
+    image: '/shelf/book-the-churchill-factor.jpg',
+    note: 'Lighter, funny, opinionated, and shorter. An easy way in.',
+    tags: ['biography'],
+  },
+  {
+    title: 'The Last Lion',
+    shelfTitle: 'The Last Lion',
+    author: 'William Manchester',
+    label: 'want to read · biography',
+    image: '/shelf/book-the-last-lion.jpg',
+    note: 'Strong storytelling; reads like a novel. For lovers of narrative.',
+    tags: ['biography'],
+  },
+  {
+    title: 'This Is Shakespeare',
+    shelfTitle: 'This Is Shakespeare',
+    author: 'Emma Smith',
+    label: 'want to read · criticism',
+    image: '/shelf/book-this-is-shakespeare.jpg',
+    note: 'An Oxford guide to the plays, one play per chapter.',
+    tags: ['criticism'],
+  },
+  {
+    title: 'The Land Where Lemons Grow: The Story of Italy and Its Citrus Fruit',
+    shelfTitle: 'Where Lemons Grow',
+    author: 'Helena Attlee',
+    label: 'want to read · history',
+    image: '/shelf/book-the-land-where-lemons-grow.jpg',
+    note: 'Italy told through its citrus.',
+    tags: ['history'],
+  },
+  {
+    title: 'Philosophy and Vulnerability',
+    shelfTitle: 'Philosophy and Vulnerability',
+    author: 'Matthew R. McLennan',
+    label: 'systems',
+    image: '/shelf/book-philosophy-and-vulnerability.jpg',
+    note: 'where exposure becomes a system problem',
+    tags: ['systems'],
+  },
+  {
+    title: 'Crying in H Mart',
+    shelfTitle: 'Crying in H Mart',
+    author: 'Michelle Zauner',
+    label: 'grief',
+    image: '/shelf/book-crying-in-h-mart.jpg',
+    note: 'loss through the grocery aisle',
+    tags: ['grief'],
+  },
+  {
+    title: 'Bad Feminist',
+    shelfTitle: 'Bad Feminist',
+    author: 'Roxane Gay',
+    label: 'essays',
+    image: '/shelf/book-bad-feminist.jpg',
+    note: 'contradictions left on the table',
+    tags: ['essays'],
+  },
+  {
+    title: 'On Earth We\u2019re Briefly Gorgeous',
+    shelfTitle: 'On Earth We\u2019re Briefly Gorgeous',
+    author: 'Ocean Vuong',
+    label: 'identity',
+    image: '/shelf/book-on-earth-we-re-briefly-gorgeous.jpg',
+    note: 'a letter that becomes a life',
+    tags: ['identity'],
+  },
+  {
+    title: 'Still Born',
+    shelfTitle: 'Still Born',
+    author: 'Guadalupe Nettel',
+    label: 'choice',
+    image: '/shelf/book-still-born.jpg',
+    note: 'what we owe, what we refuse',
+    tags: ['choice'],
+  },
+];
+
 export const SHELF_GROUPS: {
   section: ShelfSection;
   label: string;
@@ -472,7 +640,7 @@ export const SHELF_GROUPS: {
 }[] = [
   { section: 'listen', label: 'listen', anchors: ['featured-listen', 'podcasts'] },
   { section: 'watch', label: 'watch', anchors: ['watch', 'films', 'documentaries'] },
-  { section: 'read', label: 'read', anchors: ['channels', 'video'] },
+  { section: 'read', label: 'read', anchors: ['books', 'channels', 'video'] },
   { section: 'living', label: 'living', anchors: ['euro-life', 'lifestyle', 'duft'] },
   { section: 'gallery', label: 'online gallery', anchors: ['gallery'] },
 ];
@@ -536,6 +704,21 @@ export const SHELF_ITEMS: ShelfItem[] = [
     href: item.href,
     cover: item.image,
     coverKind: 'coverKind' in item && item.coverKind === 'still' ? ('still' as const) : ('poster' as const),
+    object: 'cover' as const,
+  })),
+  ...BOOK_RECS.map((item) => ({
+    id: slugify(item.shelfTitle),
+    title: item.shelfTitle,
+    type: 'book' as const,
+    section: 'read' as const,
+    row: 'books' as const,
+    creator: item.author,
+    source: item.title,
+    note: item.note,
+    tags: item.tags,
+    cover: item.image,
+    coverKind: 'poster' as const,
+    featured: Boolean(item.featured),
     object: 'cover' as const,
   })),
   ...CHANNEL_RECS.filter((item) => item.kind !== 'video').map((item) => ({
@@ -632,8 +815,9 @@ export const SHELF_HASH_ALIASES: Record<string, string> = {
   watch: 'joan-didion',
   documentaries: 'joan-didion',
   films: 'blue-is-the-warmest-color',
+  books: 'year-of-magical-thinking',
   channels: 'asymmetrical-bets',
-  read: 'asymmetrical-bets',
+  read: 'year-of-magical-thinking',
   video: 'cache',
   'euro-life': 'urban-roam-not-tourism',
   lifestyle: 'urban-drift-diary',
@@ -644,6 +828,7 @@ export const SHELF_HASH_ALIASES: Record<string, string> = {
 };
 
 export const SHELF_ROW_LABEL: Partial<Record<ShelfRow, string>> = {
+  books: 'books',
   notes: 'notes',
   video: 'video',
   scent: 'duft',

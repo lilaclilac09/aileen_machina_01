@@ -10,6 +10,7 @@ import {
   DOCUMENTARY_RECS,
   CANDLE_RECS,
   EURO_LIFE_GUIDE,
+  BOOK_RECS,
   FILM_RECS,
   GALLERY_RECS,
   LIFESTYLE_RECS,
@@ -112,6 +113,22 @@ function main() {
     'book ridge uses photo-real spines',
     notes.length >= 4 && notes.every((item) => item.coverKind === 'spine' && Boolean(item.cover)),
   );
+  const books = SHELF_ITEMS.filter((item) => item.row === 'books');
+  assert(
+    'reading books use front covers + notes',
+    books.length === BOOK_RECS.length &&
+      books.every(
+        (item) =>
+          item.type === 'book' &&
+          item.coverKind === 'poster' &&
+          typeof item.cover === 'string' &&
+          item.cover.startsWith('/shelf/book-') &&
+          Boolean(item.note),
+      ),
+    String(books.length),
+  );
+  assert('#books lands on Year of Magical Thinking', resolveShelfHash('#books') === 'year-of-magical-thinking');
+  assert('#read lands on Year of Magical Thinking', resolveShelfHash('#read') === 'year-of-magical-thinking');
   assert(
     'films stay posters except the Behind the Album still',
     SHELF_ITEMS.filter((item) => item.section === 'watch' && item.id !== 'behind-the-album').every(
@@ -125,7 +142,7 @@ function main() {
   const watchRows = shelfRowsInSection('watch').map((row) => row.row).join(',');
   const readRows = shelfRowsInSection('read').map((row) => row.row).join(',');
   assert('watch is one row', watchRows === 'watch');
-  assert('read rows are notes then video', readRows === 'notes,video');
+  assert('read rows are books then notes then video', readRows === 'books,notes,video');
   assert(
     'living ridge uses photo-real objects',
     living.length === EURO_LIFE_GUIDE.length + LIFESTYLE_RECS.length &&
