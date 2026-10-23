@@ -11,7 +11,7 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join, relative, sep } from 'node:path';
 import robots from '../../app/robots';
 import sitemap from '../../app/sitemap';
-import { DEFAULT_TITLE, EXTRA_POSTS, TITLE_BRAND, SITE_URL, blogPosts, postMetadata } from '../../lib/seo';
+import { DEFAULT_TITLE, EXTRA_POSTS, TITLE_BRAND, SITE_URL, STATIC_PATHS, blogPosts, postMetadata } from '../../lib/seo';
 
 type Row = { name: string; ok: boolean; detail?: string };
 const rows: Row[] = [];
@@ -57,7 +57,11 @@ for (const f of appFiles.filter((f) => /[\\/](page|layout)\.tsx$/.test(f))) {
   const route = routeOf(f);
   if (/index:\s*false|robots:\s*NOINDEX|\bNOINDEX\b\s*\}/.test(src)) excluded.push(route);
   if (/\b(permanentRedirect|redirect)\(/.test(src) && /[\\/]page\.tsx$/.test(f)) excluded.push(route);
-  if (/canonical:\s*'\/(?!blog\/)/.test(src)) excluded.push(route);
+  {
+    const cm = src.match(/canonical:\s*'(\/[^']*)'/);
+    // Self-canonical (/doors → /doors) is fine; only true elsewhere targets leave the sitemap.
+    if (cm && cm[1] !== route) excluded.push(route);
+  }
 }
 for (const must of ['/unlock', '/tools/pricing-slot', '/tools/chip-guess', '/tools/feed-flash', '/tools/inkling-clips', '/research']) {
   check(`excluded set covers ${must}`, excluded.includes(must));
@@ -89,6 +93,23 @@ for (const p of EXTRA_POSTS) {
 }
 const dispatchHtmlSource = readFileSync('app/dispatch/layout.tsx', 'utf8');
 check('dispatch index lists every post incl. off-rail (blogPosts())', dispatchHtmlSource.includes('blogPosts().map') && posts.length === new Set(posts.map((p) => p.href)).size);
+
+// ── STATIC_PATHS: every public page owns title + description (client pages via layout) ──
+const bareStatic: string[] = [];
+for (const route of STATIC_PATHS) {
+  if (route === '/') continue;
+  const candidates = [join('app', route.slice(1), 'layout.tsx'), join('app', route.slice(1), 'page.tsx')];
+  const own = candidates.some((f) => {
+    if (!existsSync(f)) return false;
+    const src = readFileSync(f, 'utf8');
+    return (
+      /toolMetadata\(/.test(src) ||
+      ((/export const metadata|generateMetadata/.test(src) && /title\s*:/.test(src) && /description\s*:/.test(src)))
+    );
+  });
+  if (!own) bareStatic.push(route);
+}
+check(`STATIC_PATHS: every page has own title+description (${STATIC_PATHS.length - 1} non-root)`, bareStatic.length === 0, bareStatic.join(', '));
 
 // ── one brand per title: template adds ' · Aileen', so no title may carry a site brand ──
 const BRAND = /AILEENA|Aileena|aileena\.xyz|\bAileen\b/;
