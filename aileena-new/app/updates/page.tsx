@@ -1,5 +1,6 @@
 'use client';
 
+import Image from 'next/image';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import { slugify } from '../_archive/ArchiveIndex';
 import ArchivePage from '../_archive/ArchivePage';
@@ -11,6 +12,8 @@ type Book = {
   tags: string[];
   body: string;
   status?: string;
+  /** Local cover under /public/shelf — shown when the row opens. */
+  cover?: string;
 };
 
 type FeaturedBook = Book & {
@@ -37,6 +40,7 @@ type UpdateNote = {
 const FEATURED: FeaturedBook = {
   title: 'The Year of Magical Thinking',
   author: 'Joan Didion',
+  cover: '/shelf/book-year-of-magical-thinking.jpg',
   tags: ['grief', 'ritual', 'observation'],
   status: 'reading now',
   mood: 'grief as structure',
@@ -57,6 +61,7 @@ const DIDION_SHELF: Book[] = [
   {
     title: 'Slouching Towards Bethlehem',
     author: 'Joan Didion',
+    cover: '/shelf/book-slouching-towards-bethlehem.jpg',
     tags: ['essays'],
     status: '31% in',
     body: 'the sentence as a measuring instrument',
@@ -64,30 +69,35 @@ const DIDION_SHELF: Book[] = [
   {
     title: 'The White Album',
     author: 'Joan Didion',
+    cover: '/shelf/book-the-white-album.jpg',
     tags: ['essays'],
     body: 'fragmented america, fragmented self',
   },
   {
     title: 'Play It As It Lays',
     author: 'Joan Didion',
+    cover: '/shelf/book-play-it-as-it-lays.jpg',
     tags: ['novel'],
     body: 'california as a nervous system',
   },
   {
     title: 'Notes to John',
     author: 'Joan Didion',
+    cover: '/shelf/book-notes-to-john.jpg',
     tags: ['archive'],
     body: 'private record, public discomfort',
   },
   {
     title: 'Let Me Tell You What I Mean',
     author: 'Joan Didion',
+    cover: '/shelf/book-let-me-tell-you-what-i-mean.jpg',
     tags: ['essays'],
     body: 'later pieces, same steel',
   },
   {
     title: 'Didion & Babitz',
     author: 'Lili Anolik',
+    cover: '/shelf/book-didion-and-babitz.jpg',
     tags: ['biography'],
     body: 'two LA writers, one shared orbit',
   },
@@ -97,6 +107,7 @@ const CHURCHILL_SHELF: Book[] = [
   {
     title: 'My Early Life',
     author: 'Winston Churchill',
+    cover: '/shelf/book-my-early-life.jpg',
     tags: ['memoir'],
     body: 'Churchill on his own youth, before the legend',
   },
@@ -106,30 +117,35 @@ const TO_READ: Book[] = [
   {
     title: 'Churchill: Walking with Destiny',
     author: 'Andrew Roberts',
+    cover: '/shelf/book-churchill-walking-with-destiny.jpg',
     tags: ['biography'],
     body: 'Widely seen as the best single-volume life; fresh sources, fluent prose. For readers who want the whole life properly.',
   },
   {
     title: 'The Churchill Factor',
     author: 'Boris Johnson',
+    cover: '/shelf/book-the-churchill-factor.jpg',
     tags: ['biography'],
     body: 'Lighter, funny, opinionated, and shorter. An easy way in.',
   },
   {
     title: 'The Last Lion',
     author: 'William Manchester',
+    cover: '/shelf/book-the-last-lion.jpg',
     tags: ['biography'],
     body: 'Strong storytelling; reads like a novel. For lovers of narrative.',
   },
   {
     title: 'This Is Shakespeare',
     author: 'Emma Smith',
+    cover: '/shelf/book-this-is-shakespeare.jpg',
     tags: ['criticism'],
     body: 'An Oxford guide to the plays, one play per chapter.',
   },
   {
     title: 'The Land Where Lemons Grow: The Story of Italy and Its Citrus Fruit',
     author: 'Helena Attlee',
+    cover: '/shelf/book-the-land-where-lemons-grow.jpg',
     tags: ['history'],
     body: 'Italy told through its citrus.',
   },
@@ -139,6 +155,7 @@ const SYSTEMS_SHELF: Book[] = [
   {
     title: 'Philosophy and Vulnerability',
     author: 'Matthew R. McLennan',
+    cover: '/shelf/book-philosophy-and-vulnerability.jpg',
     tags: ['systems'],
     body: 'where exposure becomes a system problem',
   },
@@ -148,24 +165,28 @@ const ADJACENT: Book[] = [
   {
     title: 'Crying in H Mart',
     author: 'Michelle Zauner',
+    cover: '/shelf/book-crying-in-h-mart.jpg',
     tags: ['grief'],
     body: 'loss through the grocery aisle',
   },
   {
     title: 'Bad Feminist',
     author: 'Roxane Gay',
+    cover: '/shelf/book-bad-feminist.jpg',
     tags: ['essays'],
     body: 'contradictions left on the table',
   },
   {
     title: 'On Earth We’re Briefly Gorgeous',
     author: 'Ocean Vuong',
+    cover: '/shelf/book-on-earth-we-re-briefly-gorgeous.jpg',
     tags: ['identity'],
     body: 'a letter that becomes a life',
   },
   {
     title: 'Still Born',
     author: 'Guadalupe Nettel',
+    cover: '/shelf/book-still-born.jpg',
     tags: ['choice'],
     body: 'what we owe, what we refuse',
   },
@@ -372,23 +393,27 @@ function FoldRow({
   );
 }
 
-/** One book standing on the shelf: the spine is the summary, the note opens as a caption under the planks. */
-function BookSpine({ book }: { book: Book }) {
-  const tag = book.status ?? book.tags[0];
+
+
+function BookOpen({ book, extra }: { book: Book; extra?: ReactNode }) {
   return (
-    <details id={slugify(book.title)} className="book" name="shelf-book">
-      <summary className="book-spine" title={`${book.title} — ${book.author}`}>
-        <span className="book-spine-title">{book.title}</span>
-        <span className="book-spine-author">{book.author}</span>
-      </summary>
-      <div className="book-caption">
-        <p className="book-caption-meta">
-          {book.author}
-          {tag ? ` · ${tag}` : null}
-        </p>
-        <p className="book-caption-note">{book.body}</p>
+    <div className="updates-book-open">
+      {book.cover ? (
+        <div className="updates-book-cover">
+          <Image
+            src={book.cover}
+            alt={`Cover of ${book.title}`}
+            width={120}
+            height={180}
+            className="updates-book-cover-img"
+          />
+        </div>
+      ) : null}
+      <div className="updates-book-copy">
+        {extra}
+        <p>{book.body}</p>
       </div>
-    </details>
+    </div>
   );
 }
 
@@ -464,18 +489,24 @@ export default function UpdatesPage() {
               meta={FEATURED.author}
               defaultOpen
             >
-              <p>{FEATURED.why}</p>
-              <p>{FEATURED.body}</p>
-              <dl className="updates-fields">
-                <div>
-                  <dt>mood</dt>
-                  <dd>{FEATURED.mood}</dd>
-                </div>
-                <div>
-                  <dt>thread</dt>
-                  <dd>{FEATURED.thread}</dd>
-                </div>
-              </dl>
+              <BookOpen
+                book={FEATURED}
+                extra={
+                  <>
+                    <p>{FEATURED.why}</p>
+                    <dl className="updates-fields">
+                      <div>
+                        <dt>mood</dt>
+                        <dd>{FEATURED.mood}</dd>
+                      </div>
+                      <div>
+                        <dt>thread</dt>
+                        <dd>{FEATURED.thread}</dd>
+                      </div>
+                    </dl>
+                  </>
+                }
+              />
             </FoldRow>
           </Drawer>
 
@@ -529,11 +560,17 @@ export default function UpdatesPage() {
                   {group.title}
                 </p>
                 <p className="updates-shelf-dek">{group.dek}</p>
-                <div className="bookshelf" data-testid={`bookshelf-${group.id}`}>
-                  {group.books.map((book) => (
-                    <BookSpine key={book.title} book={book} />
-                  ))}
-                </div>
+                {group.books.map((book) => (
+                  <FoldRow
+                    key={book.title}
+                    id={slugify(book.title)}
+                    title={book.title}
+                    tag={book.status ?? book.tags[0]}
+                    meta={book.author}
+                  >
+                    <BookOpen book={book} />
+                  </FoldRow>
+                ))}
               </div>
             ))}
           </Drawer>
