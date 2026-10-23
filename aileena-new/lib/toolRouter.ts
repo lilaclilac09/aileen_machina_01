@@ -66,6 +66,20 @@ export function isLatestUpdatesQuestion(q: string): boolean {
 
 export const LATEST_CONTENT_MEMORY_QUERY = 'latest content';
 
+/** "What's on her DJ set / setlist" — hit setlist.md, not a vague music TF-IDF miss. */
+export function isDjSetQuestion(q: string): boolean {
+  const t = q.toLowerCase().trim();
+  if (!t) return false;
+  return (
+    /曲库|歌单|dj\s*set|她在听什么|现在在播/.test(t) ||
+    /\b(dj(\s|-)?set|setlist|curated set|current set|what('s| is) (on |in )?(her |the )?(dj )?set|what (songs?|tracks?) (are )?(on |in )?(her |the )?(dj )?set)\b/.test(
+      t,
+    )
+  );
+}
+
+export const SETLIST_MEMORY_QUERY = 'setlist curated tracks Ion IONPST';
+
 function uniq(names: AgentToolName[]): AgentToolName[] {
   return [...new Set(names)];
 }
@@ -115,9 +129,20 @@ function hardRoute(q: string): ToolRoute | null {
     };
   }
 
+  // DJ set / setlist — force setlist.md (same pattern as latest_updates).
+  if (isDjSetQuestion(q)) {
+    return {
+      route: 'taste',
+      allowed: uniq([...MEMORY_TOOLS, ...ARTICLE_TOOLS]),
+      preferred: ['searchMemories'],
+      reason: 'dj set → setlist.md',
+      hint: `REQUIRED: call searchMemories with query exactly "${SETLIST_MEMORY_QUERY}". Answer with title + artist from the retrieved curated set (include Ion / IONPST when present). Point at /sound#dj-set. Never dump tool-call / DSML markup. Do not call queryChip / pricing / news.`,
+    };
+  }
+
   // Taste / music / shelf / painters — memories only (optional articles later via 'all' default).
   if (
-    /\b(music|dj(\s|-)set|techno|setlist|daydream|hockney|didion|podcast|documentary|listening shelf|what does she like|her taste)\b|音乐|品味|曲库|纪录片|画家/.test(
+    /\b(music|techno|daydream|hockney|didion|podcast|documentary|listening shelf|what does she like|her taste)\b|音乐|品味|纪录片|画家/.test(
       t,
     )
   ) {

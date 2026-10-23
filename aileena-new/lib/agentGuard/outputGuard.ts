@@ -7,7 +7,8 @@
  *   2. redact internal file paths, code module names, env/secret names, key-like strings;
  *   3. public / visitor-machina only: strip council layout and banners, and drop
  *      "private / unpublished" framing of her second-brain notes;
- *   4. public / visitor-machina only: ground chip and price figures (grounding.ts).
+ *   4. public / visitor-machina only: ground chip and price figures (grounding.ts);
+ *   5. strip raw tool-call / DSML markup the model dumped as text.
  */
 
 import type { AgentMode } from '../agentMode';
@@ -23,7 +24,8 @@ export type GuardAction =
   | 'council_format'
   | 'private_framing'
   | 'figure_corrected'
-  | 'figure_dropped';
+  | 'figure_dropped'
+  | 'tool_markup';
 
 export type OutputGuardContext = {
   mode: AgentMode;
@@ -136,23 +138,48 @@ function outsideUrls(text: string, fn: (t: string) => string): string {
   return fn(masked).replace(/\u0000(\d+)\u0000/g, (_, i) => urls[Number(i)]);
 }
 
+/**
+ * Models sometimes dump raw tool-call / DSML markup as text instead of using
+ * the SDK tool channel. Strip it so visitors never see invoke/parameter dumps.
+ */
+export function stripToolMarkup(input: string): { text: string; hit: boolean } {
+  if (!input) return { text: input, hit: false };
+  let text = input;
+  // Tags like <｜｜DSML｜｜ invoke …> or <|DSML|>… (half- or full-width pipes).
+  text = text.replace(/<\/?\s*[|｜]{0,4}\s*DSML\s*[|｜]{0,4}[^>]*>/gi, '');
+  text = text.replace(/<\/?tool_call\b[^>]*>/gi, '');
+  text = text.replace(/<\/?parameter\b[^>]*>/gi, '');
+  text = text.replace(/<\/?function\s*calls?\b[^>]*>/gi, '');
+  // Prose lines that are clearly tool DSL, not an answer.
+  text = text.replace(/^\s*invoke\s+name\s*=\s*["'][^"']+["'].*$/gim, '');
+  text = text.replace(/^\s*parameter\s+name\s*=\s*["'][^"']+["'].*$/gim, '');
+  text = text.replace(/^\s*(?:tool_calls?|function_calls?)\s*:?\s*$/gim, '');
+  text = text.replace(/\n{3,}/g, '\n\n');
+  return { text, hit: text !== input };
+}
+
 export type SentenceVerdict = { text: string; actions: GuardAction[] };
 
 export function guardSentence(sentence: string, ctx: OutputGuardContext): SentenceVerdict {
   const actions: GuardAction[] = [];
   if (!sentence.trim()) return { text: sentence, actions };
 
+  const stripped = stripToolMarkup(sentence);
+  let working = stripped.text;
+  if (stripped.hit) actions.push('tool_markup');
+  if (!working.trim()) return { text: '', actions };
+
   // 1. Leaks of the tail or the prompt drop the whole sentence.
-  if ((ctx.nonce && sentence.includes(ctx.nonce)) || /\[\s*\/?\s*session tail/i.test(sentence)) {
-    return { text: '', actions: ['tail_leak'] };
+  if ((ctx.nonce && working.includes(ctx.nonce)) || /\[\s*\/?\s*session tail/i.test(working)) {
+    return { text: '', actions: [...actions, 'tail_leak'] };
   }
-  if (PROMPT_CANARIES.some((c) => sentence.includes(c))) return { text: '', actions: ['prompt_echo'] };
-  const norm = normalize(sentence);
-  if (echoesPrompt(norm, ctx.protectedText)) return { text: '', actions: ['prompt_echo'] };
+  if (PROMPT_CANARIES.some((c) => working.includes(c))) return { text: '', actions: [...actions, 'prompt_echo'] };
+  const norm = normalize(working);
+  if (echoesPrompt(norm, ctx.protectedText)) return { text: '', actions: [...actions, 'prompt_echo'] };
 
   const publicSurface = ctx.mode !== 'council';
   const visitor = !ctx.isOwner;
-  let text = sentence;
+  let text = working;
 
   // 2. Redactions (all modes: even council must not print secrets).
   for (const re of SECRET_PATTERNS) {
@@ -200,7 +227,7 @@ export function guardSentence(sentence: string, ctx: OutputGuardContext): Senten
     }
   }
 
-  if (text.trim() === '' && sentence.trim() !== '') return { text: '', actions };
+  if (text.trim() === '' && working.trim() !== '') return { text: '', actions };
   return { text, actions };
 }
 
@@ -256,7 +283,9 @@ export function completePrefixLength(buf: string): number {
 
 export function guardText(text: string, ctx: OutputGuardContext): SentenceVerdict {
   const actions: GuardAction[] = [];
-  const parts = splitSentences(text).map((s) => {
+  const pre = stripToolMarkup(text);
+  if (pre.hit) actions.push('tool_markup');
+  const parts = splitSentences(pre.text).map((s) => {
     const v = guardSentence(s, ctx);
     actions.push(...v.actions);
     if (v.text === '' && s !== '') {
