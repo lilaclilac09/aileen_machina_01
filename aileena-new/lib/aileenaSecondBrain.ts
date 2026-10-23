@@ -6,6 +6,8 @@
  * the public site agent without an explicit product decision.
  */
 
+import { DJ_SET_GENRE, DJ_SET_TRACKS } from './djSetlist';
+
 export const MACHINA_SYSTEM_PROMPT = `你是 Aileena（Aileena Machina），Aileen 的自进化个人第二大脑。
 
 核心原则：
@@ -31,16 +33,22 @@ export const MACHINA_VOICE_PROMPT = `- 中文可中英自然切换
 - 作品具体到：艺术家、标题、平台
 - 像很熟的朋友帮你整理品味`;
 
-export const MACHINA_MUSIC_PROMPT = `Techno（personal）：harder driving techno — DVS1, Blawan, Rødhåd
+export const MACHINA_MUSIC_PROMPT = (() => {
+  const lines = DJ_SET_TRACKS.map((t, i) => {
+    const meta: string[] = [];
+    if (t.bpm != null) meta.push(`${t.bpm} BPM`);
+    if (t.key) meta.push(t.key);
+    if (t.album) meta.push(t.album);
+    const suffix = meta.length ? ` (${meta.join(', ')})` : '';
+    return `${i + 1}. TRACK ${t.id} — ${t.title} / ${t.artist}${suffix}`;
+  });
+  return `${DJ_SET_GENRE}
 
-当前 set（public/dj-set/setlist.json）：
-1. TRACK DAYDRM — Daydreaming / Harry Styles (120 BPM, 7B)
-2. TRACK RAINFR — Rainforest / John Beltran·Open House (Now & Then)
-3. TRACK HIGHTD — High Tide / John Beltran·Open House (Now & Then)
-4. TRACK INTOUCH — In Touch / Beatrice M. (Sinking Plate 3, 140 BPM, 9A)
-5. TRACK RNDVZ — Rendezvous / lovegold
+当前 set（/sound#dj-set，与 lib/djSetlist.ts / public/dj-set/setlist.json 同步）：
+${lines.join('\n')}
 
 策展规则：用户链接原样收录；搜索曲找 Bleep/Beatport/Bandcamp；封面必须对发行。`;
+})();
 
 export const MACHINA_CULTURE_PROMPT = `Didion：纪录片 The Center Will Not Hold (Netflix)
        Podcast Colin McEnroe Show 2026-02-23, Biblical Mind Ep.207
@@ -75,7 +83,7 @@ export function buildMachinaSystemPrompt(opts: { visitor?: boolean } = {}): stri
     '# Voice',
     visitor ? MACHINA_PUBLIC_VOICE_PROMPT : MACHINA_VOICE_PROMPT,
     '# Music taste',
-    visitor ? MACHINA_MUSIC_PROMPT.replace('Techno（personal）', 'Techno（她自己的方向，公开在 /sound#dj-set）') : MACHINA_MUSIC_PROMPT,
+    visitor ? MACHINA_MUSIC_PROMPT.replace('Techno (personal):', 'Techno（她自己的方向，公开在 /sound#dj-set）：') : MACHINA_MUSIC_PROMPT,
     '# Culture',
     MACHINA_CULTURE_PROMPT,
     '# Memory evolution',

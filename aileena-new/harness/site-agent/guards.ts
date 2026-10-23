@@ -4,7 +4,7 @@
  *   npx -y tsx harness/site-agent/guards.ts
  */
 import { neutralizeVisitorText, guardTranscript, wrapSessionTail, NEUTRALIZED } from '../../lib/agentGuard/inputGuard';
-import { splitSentences, completePrefixLength, PROMPT_CANARIES } from '../../lib/agentGuard/outputGuard';
+import { splitSentences, completePrefixLength, PROMPT_CANARIES, stripToolMarkup } from '../../lib/agentGuard/outputGuard';
 import { GroundingCorpus, groundSentence, extractFigures } from '../../lib/agentGuard/grounding';
 import { detectLocale, crisisReply } from '../../lib/agentGuard/locale';
 import { TurnGuard } from '../../lib/agentGuard/turnGuard';
@@ -14,7 +14,7 @@ import { SYSTEM_PROMPT } from '../../lib/agentContext';
 import { buildMachinaSystemPrompt } from '../../lib/aileenaSecondBrain';
 import { searchMemories } from '../../lib/memorySearch';
 import { queryChip } from '../../lib/data/sku';
-import { routeToolsForQuestion } from '../../lib/toolRouter';
+import { routeToolsForQuestion, isDjSetQuestion, SETLIST_MEMORY_QUERY } from '../../lib/toolRouter';
 import { convertToModelMessages, tool, type UIMessage, type TextStreamPart, type ToolSet } from 'ai';
 import { z } from 'zod';
 import { applyToolRoute } from '../../lib/toolRouter';
@@ -206,8 +206,9 @@ check('3: prompt forbids naming internal paths', /Never name internal file paths
   const visitorPrompt = buildMachinaSystemPrompt({ visitor: true });
   const ownerPrompt = buildMachinaSystemPrompt({ visitor: false });
   check('5: visitor machina prompt drops "她没公开发过，但我作为她的 agent 知道"', !/我作为她的 agent 知道/.test(visitorPrompt));
-  check('5: visitor machina prompt has no "(personal)" label', !/Techno（personal）/.test(visitorPrompt));
+  check('5: visitor machina prompt has no "(personal)" label', !/\(personal\)/.test(visitorPrompt) && !/Techno（personal）/.test(visitorPrompt));
   check('5: owner machina prompt unchanged', /我作为她的 agent 知道/.test(ownerPrompt));
+  check('5: machina music prompt syncs Ion from DJ_SET_TRACKS', /TRACK IONPST/.test(visitorPrompt) && /Ion/.test(visitorPrompt));
   const g = new TurnGuard({ mode: 'machina', isOwner: false, lastQuestion: 'what music does she like' });
   g.setSystem(visitorPrompt);
   const out = g.guardReply("Harder driving techno. That's the private one, the stuff she plays loud. Her set is at /sound#dj-set.");
@@ -236,6 +237,28 @@ check('7: de crisis → TelefonSeelsorge numbers + 112', /0800 111 0 111/.test(c
 check('7: en crisis → 988 + findahelpline', /988/.test(crisisReply('I want to end my life') ?? '') && /findahelpline\.com/.test(crisisReply('I want to end my life') ?? ''));
 check('7: non-crisis returns null', crisisReply('what is keyshield') === null);
 check('7: localized output note in zh', /删掉/.test(new TurnGuard({ mode: 'public', isOwner: false, lastQuestion: '芯片' }).guardReply('Rubin 有 288GB 内存。')));
+
+// ── DJ set / tool-markup leak ─────────────────────────────────────────────
+{
+  const dsml = `2. AGENT
+<｜｜DSML｜｜ calls>
+<｜｜DSML｜｜ invoke name="searchMemories">
+<｜｜DSML｜｜ parameter name="query" string="true">setlist track 4 Ion IONP track 5 track 6</｜｜DSML｜｜ parameter>
+</｜｜DSML｜｜ calls>
+The curated set opens with Acquiescence by Eden Aurelius.`;
+  const stripped = stripToolMarkup(dsml);
+  check('dj: stripToolMarkup removes DSML tags', stripped.hit && !/DSML/i.test(stripped.text) && !/invoke\s+name/i.test(stripped.text), stripped.text.slice(0, 200));
+  check('dj: stripToolMarkup keeps the spoken answer', /Acquiescence/.test(stripped.text), stripped.text.slice(0, 200));
+  const g = publicGuard("What's in her current DJ set?");
+  g.setSystem(SYSTEM_PROMPT);
+  const out = g.guardReply(dsml);
+  check('dj: output guard drops DSML / invoke dump', !/DSML/i.test(out) && !/invoke\s+name/i.test(out) && !/parameter\s+name/i.test(out), out);
+  check('dj: output guard keeps track names from the same reply', /Acquiescence/.test(out), out);
+  check('dj: isDjSetQuestion matches current-set ask', isDjSetQuestion("What's in her current DJ set?"));
+  check('dj: isDjSetQuestion ignores unrelated music taste', !isDjSetQuestion('what documentaries does she like?'));
+  const route = routeToolsForQuestion("What's in her current DJ set?");
+  check('dj: hard route prefers searchMemories + setlist query', route.route === 'taste' && route.preferred.includes('searchMemories') && route.hint.includes(SETLIST_MEMORY_QUERY), route.hint.slice(0, 160));
+}
 
 // ── (b)(c) Streaming transform ────────────────────────────────────────────
 async function runStream(g: TurnGuard, parts: TextStreamPart<ToolSet>[]): Promise<string> {
