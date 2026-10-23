@@ -9,7 +9,6 @@
 import {
   chooseVisitorStance,
   inferVisitorIntents,
-  type VisitorIntent,
   type VisitorSoftMemory,
 } from './visitorMemory';
 

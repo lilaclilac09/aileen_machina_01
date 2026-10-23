@@ -165,7 +165,7 @@ export function guardSentence(sentence: string, ctx: OutputGuardContext): Senten
   if (!sentence.trim()) return { text: sentence, actions };
 
   const stripped = stripToolMarkup(sentence);
-  let working = stripped.text;
+  const working = stripped.text;
   if (stripped.hit) actions.push('tool_markup');
   if (!working.trim()) return { text: '', actions };
 
