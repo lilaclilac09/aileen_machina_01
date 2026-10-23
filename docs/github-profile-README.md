@@ -27,14 +27,15 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-10-22T14:52:23.518Z -->
+<!-- profile:synced-at 2026-10-23T14:40:37.709Z -->
 <!-- profile:recently-updated:start -->
-* **[aileena.xyz](https://aileena.xyz) Console**: owner-only code mode (/code) — aileena-code loop on GitHub, draft PRs only, links stop at CJK/fullwidth punctuation and drop trailing punctuation, and Site agent: runtime guards, P0, console starters + owner analytics, public MCP endpoint.
+* **[aileena.xyz](https://aileena.xyz) Console**: owner-only code mode (/code) — aileena-code loop on GitHub, draft PRs only, unique titles for /doors /updates /prophecy, links stop at CJK/fullwidth punctuation and drop trailing punctuation, and Site agent: runtime guards, P0, console starters + owner analytics, public MCP endpoint.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
 <!-- profile:recently-updated:end -->
 
 ### Recently Added
 <!-- profile:recently-added:start -->
+* **Aileena summon + Prophecy Hall**: Voice summon pack and soft-oracle surface on the Console.
 * **Console voice-code**: Orb voice to DeepSeek propose-only patches without Cursor API tokens, with visitor quota and live eval gates.
 * **Machina memory**: Site memory loop and *[How the Site Remembers](https://aileena.xyz/blog/machina-memory)* dispatch — Dreaming reports plus watchlist-only RSS ingest.
 <!-- profile:recently-added:end -->
