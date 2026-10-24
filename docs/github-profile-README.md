@@ -27,7 +27,7 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-10-23T14:40:37.709Z -->
+<!-- profile:synced-at 2026-10-24T13:50:09.206Z -->
 <!-- profile:recently-updated:start -->
 * **[aileena.xyz](https://aileena.xyz) Console**: owner-only code mode (/code) — aileena-code loop on GitHub, draft PRs only, unique titles for /doors /updates /prophecy, links stop at CJK/fullwidth punctuation and drop trailing punctuation, and Site agent: runtime guards, P0, console starters + owner analytics, public MCP endpoint.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
