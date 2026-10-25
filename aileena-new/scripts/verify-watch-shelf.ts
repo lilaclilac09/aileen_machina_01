@@ -11,6 +11,7 @@ import {
   CANDLE_RECS,
   EURO_LIFE_GUIDE,
   BOOK_RECS,
+  BOOKMARK_RECS,
   FILM_RECS,
   GALLERY_RECS,
   LIFESTYLE_RECS,
@@ -113,7 +114,7 @@ function main() {
     'book ridge uses photo-real spines',
     notes.length >= 4 && notes.every((item) => item.coverKind === 'spine' && Boolean(item.cover)),
   );
-  const books = SHELF_ITEMS.filter((item) => item.row === 'books');
+  const books = SHELF_ITEMS.filter((item) => item.row === 'books' && item.type === 'book');
   assert(
     'reading books use front covers + notes',
     books.length === BOOK_RECS.length &&
@@ -126,6 +127,18 @@ function main() {
           Boolean(item.note),
       ),
     String(books.length),
+  );
+  const sage = SHELF_ITEMS.find((item) => item.id === 'sage-leaf-bookmark');
+  assert(
+    'sage leaf bookmark sits with books as a cutout',
+    sage?.section === 'read' &&
+      sage.row === 'books' &&
+      sage.type === 'note' &&
+      sage.coverKind === 'cutout' &&
+      sage.cover === '/shelf/sage-leaf-bookmark.png' &&
+      /still smells good/i.test(sage.note) &&
+      BOOKMARK_RECS.length === 1,
+    sage?.id,
   );
   assert('#books lands on Year of Magical Thinking', resolveShelfHash('#books') === 'year-of-magical-thinking');
   assert('#read lands on Year of Magical Thinking', resolveShelfHash('#read') === 'year-of-magical-thinking');
