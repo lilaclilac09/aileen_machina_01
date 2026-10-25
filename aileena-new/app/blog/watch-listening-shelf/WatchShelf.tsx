@@ -1,9 +1,14 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
   useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
   useSyncExternalStore,
   type KeyboardEvent,
   type ReactNode,
@@ -18,7 +23,15 @@ import {
   shelfRowsInSection,
   type ShelfItem,
 } from '../../../lib/watchListeningShelf';
+import type { ShelfProgress, ShelfReadingState } from '../../../lib/shelfReadingStore';
+import {
+  mergeReadingStates,
+  readLocalShelfReading,
+  writeLocalShelfReading,
+} from './shelfReadingLocal';
 import './watch-shelf.css';
+
+const OwnerEpubReader = dynamic(() => import('./OwnerEpubReader'), { ssr: false });
 
 function OpenHref({
   href,
@@ -93,6 +106,11 @@ function ShelfObject({ item }: { item: ShelfItem }) {
 }
 
 const HASH_EVENT = 'watch-shelf-hash';
+const EMPTY_READING: ShelfReadingState = {
+  favorites: [],
+  currentlyReading: null,
+  progress: {},
+};
 
 function subscribeShelfHash(onStoreChange: () => void) {
   const onChange = () => onStoreChange();
@@ -116,7 +134,16 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
   );
   const selected = shelfItemById(selectedId) ?? SHELF_ITEMS[0];
 
+  const [available, setAvailable] = useState<string[]>([]);
+  const [reading, setReading] = useState<ShelfReadingState>(() => {
+    if (typeof window === 'undefined') return EMPTY_READING;
+    return readLocalShelfReading();
+  });
+  const [readingSlug, setReadingSlug] = useState<string | null>(null);
+  const progressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
   const select = useCallback((id: string) => {
+    setReadingSlug((prev) => (prev && prev !== id ? null : prev));
     const url = `${window.location.pathname}${window.location.search}#${id}`;
     window.history.replaceState(null, '', url);
     window.dispatchEvent(new Event(HASH_EVENT));
@@ -134,6 +161,110 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
     select(next);
   };
 
+  useEffect(() => {
+    if (!owner) return;
+    let cancelled = false;
+
+    void (async () => {
+      try {
+        const res = await fetch('/api/owner/shelf/catalog', { credentials: 'same-origin' });
+        if (!res.ok || cancelled) return;
+        const data = (await res.json()) as {
+          available?: string[];
+          reading?: ShelfReadingState;
+        };
+        if (cancelled) return;
+        setAvailable(Array.isArray(data.available) ? data.available : []);
+        if (data.reading) {
+          const merged = mergeReadingStates(data.reading, readLocalShelfReading());
+          setReading(merged);
+          writeLocalShelfReading(merged);
+        }
+      } catch {
+        /* keep local */
+      }
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [owner]);
+
+
+  const persistReading = useCallback(async (next: ShelfReadingState) => {
+    setReading(next);
+    writeLocalShelfReading(next);
+    try {
+      await fetch('/api/owner/shelf/reading', {
+        method: 'PUT',
+        credentials: 'same-origin',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          favorites: next.favorites,
+          currentlyReading: next.currentlyReading,
+          progress: next.progress,
+        }),
+      });
+    } catch {
+      /* local already saved */
+    }
+  }, []);
+
+  const toggleFavorite = useCallback(() => {
+    if (!owner || selected.type !== 'book') return;
+    const on = reading.favorites.includes(selected.id);
+    const favorites = on
+      ? reading.favorites.filter((id) => id !== selected.id)
+      : [...reading.favorites, selected.id];
+    void persistReading({ ...reading, favorites });
+  }, [owner, selected, reading, persistReading]);
+
+  const setCurrentlyReading = useCallback(() => {
+    if (!owner || selected.type !== 'book') return;
+    const next =
+      reading.currentlyReading === selected.id ? null : selected.id;
+    void persistReading({ ...reading, currentlyReading: next });
+  }, [owner, selected, reading, persistReading]);
+
+  const onProgress = useCallback(
+    (slug: string, progress: ShelfProgress) => {
+      setReading((prev) => {
+        const next = {
+          ...prev,
+          currentlyReading: prev.currentlyReading ?? slug,
+          progress: { ...prev.progress, [slug]: progress },
+        };
+        writeLocalShelfReading(next);
+        if (progressTimer.current) clearTimeout(progressTimer.current);
+        progressTimer.current = setTimeout(() => {
+          void fetch('/api/owner/shelf/reading', {
+            method: 'PUT',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              progress: { [slug]: progress },
+              currentlyReading: next.currentlyReading,
+            }),
+          }).catch(() => undefined);
+        }, 400);
+        return next;
+      });
+    },
+    [],
+  );
+
+  const hasEpub = owner && selected.type === 'book' && available.includes(selected.id);
+  const showReader = Boolean(hasEpub && readingSlug === selected.id);
+  const isFavorite = reading.favorites.includes(selected.id);
+  const isCurrent = reading.currentlyReading === selected.id;
+  const progress = reading.progress[selected.id];
+  const progressPct =
+    progress && typeof progress.percent === 'number'
+      ? Math.round(progress.percent * 100)
+      : null;
+
+  const favoriteSet = useMemo(() => new Set(reading.favorites), [reading.favorites]);
+
   return (
     <ArchivePage
       room="shelf"
@@ -142,7 +273,7 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
       dek="things that tune the eye and ear"
     >
       <div className="watch-shelf">
-        <div className="watch-shelf-split">
+        <div className={`watch-shelf-split${showReader ? ' is-reading' : ''}`}>
           <nav
             className="watch-shelf-index"
             aria-label="shelf objects"
@@ -181,12 +312,14 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                         >
                           {row.items.map((item) => {
                             const on = item.id === selected.id;
+                            const fav = owner && favoriteSet.has(item.id);
+                            const cur = owner && reading.currentlyReading === item.id;
                             return (
                               <li key={item.id}>
                                 <button
                                   type="button"
                                   id={item.id}
-                                  className={`watch-shelf-item${on ? ' is-on' : ''}${item.featured ? ' is-featured' : ''}${coverKindClass(item.coverKind)}`}
+                                  className={`watch-shelf-item${on ? ' is-on' : ''}${item.featured ? ' is-featured' : ''}${coverKindClass(item.coverKind)}${fav ? ' is-favorite' : ''}${cur ? ' is-current' : ''}`}
                                   aria-pressed={on}
                                   aria-current={on ? 'true' : undefined}
                                   onClick={() => select(item.id)}
@@ -194,7 +327,10 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
                                   <ShelfObject item={item} />
                                   <span className="watch-shelf-item-copy">
                                     <span className="watch-shelf-item-title">{item.title}</span>
-                                    <span className="watch-shelf-item-type">{item.type}</span>
+                                    <span className="watch-shelf-item-type">
+                                      {item.type}
+                                      {cur ? ' · reading' : fav ? ' · ♥' : ''}
+                                    </span>
                                   </span>
                                 </button>
                               </li>
@@ -210,78 +346,133 @@ export default function WatchShelf({ owner }: { owner: boolean }) {
           </nav>
 
           <article className="watch-shelf-detail" aria-live="polite">
-            {selected.cover ? (
-              <div className="watch-shelf-detail-cover">
-                <Image
-                  src={selected.cover}
-                  alt=""
-                  width={
-                    selected.coverKind === 'framed'
-                      ? 880
-                      : selected.coverKind === 'still' || selected.coverKind === 'object'
-                        ? 320
-                        : selected.coverKind === 'cutout'
-                          ? 280
-                          : selected.coverKind === 'spine'
-                            ? 180
-                            : 220
-                  }
-                  height={
-                    selected.coverKind === 'framed'
-                      ? 714
-                      : selected.coverKind === 'still' || selected.coverKind === 'object'
-                        ? 180
-                        : selected.coverKind === 'cutout'
-                          ? 360
-                          : selected.coverKind === 'spine'
-                            ? 320
-                            : 320
-                  }
-                  className={`watch-shelf-detail-image${coverKindClass(selected.coverKind)}`}
-                  quality={selected.coverKind === 'framed' ? 90 : undefined}
-                  sizes={
-                    selected.coverKind === 'framed' ? '(min-width: 900px) 560px, 92vw' : undefined
-                  }
-                  style={{ objectFit: 'contain', background: 'transparent' }}
-                />
-              </div>
+            {showReader ? (
+              <OwnerEpubReader
+                slug={selected.id}
+                title={selected.title}
+                initialCfi={progress?.cfi ?? null}
+                onProgress={onProgress}
+                onClose={() => setReadingSlug(null)}
+              />
             ) : (
-              <div className="watch-shelf-detail-object" data-object={selected.object}>
-                <ShelfObject item={selected} />
-              </div>
+              <>
+                {selected.cover ? (
+                  <div className="watch-shelf-detail-cover">
+                    <Image
+                      src={selected.cover}
+                      alt=""
+                      width={
+                        selected.coverKind === 'framed'
+                          ? 880
+                          : selected.coverKind === 'still' || selected.coverKind === 'object'
+                            ? 320
+                            : selected.coverKind === 'cutout'
+                              ? 280
+                              : selected.coverKind === 'spine'
+                                ? 180
+                                : 220
+                      }
+                      height={
+                        selected.coverKind === 'framed'
+                          ? 714
+                          : selected.coverKind === 'still' || selected.coverKind === 'object'
+                            ? 180
+                            : selected.coverKind === 'cutout'
+                              ? 360
+                              : selected.coverKind === 'spine'
+                                ? 320
+                                : 320
+                      }
+                      className={`watch-shelf-detail-image${coverKindClass(selected.coverKind)}`}
+                      quality={selected.coverKind === 'framed' ? 90 : undefined}
+                      sizes={
+                        selected.coverKind === 'framed' ? '(min-width: 900px) 560px, 92vw' : undefined
+                      }
+                      style={{ objectFit: 'contain', background: 'transparent' }}
+                    />
+                  </div>
+                ) : (
+                  <div className="watch-shelf-detail-object" data-object={selected.object}>
+                    <ShelfObject item={selected} />
+                  </div>
+                )}
+                <p className="watch-shelf-detail-kicker">
+                  {selected.type}
+                  {selected.creator ? ` · ${selected.creator}` : ''}
+                </p>
+                <h2 className="watch-shelf-detail-title" data-testid="watch-shelf-detail-title">
+                  {selected.title}
+                </h2>
+                {selected.source ? <p className="watch-shelf-detail-source">{selected.source}</p> : null}
+                {selected.note ? (
+                  <dl className="watch-shelf-fields">
+                    <div>
+                      <dt>why it stays</dt>
+                      <dd>{selected.note}</dd>
+                    </div>
+                  </dl>
+                ) : owner ? (
+                  <dl className="watch-shelf-fields">
+                    <div>
+                      <dt>why it stays</dt>
+                      <dd className="watch-shelf-note-pending">drop a note later</dd>
+                    </div>
+                  </dl>
+                ) : null}
+                {selected.tags?.length ? (
+                  <p className="watch-shelf-tags">{selected.tags.join(' / ')}</p>
+                ) : null}
+                {selected.href ? (
+                  <OpenHref href={selected.href} className="watch-shelf-open">
+                    open ↗
+                  </OpenHref>
+                ) : null}
+
+                {owner && selected.type === 'book' ? (
+                  <div className="watch-shelf-owner-actions">
+                    <button
+                      type="button"
+                      className={`watch-shelf-owner-btn${isFavorite ? ' is-on' : ''}`}
+                      onClick={toggleFavorite}
+                      aria-pressed={isFavorite}
+                    >
+                      {isFavorite ? '♥ favorite' : '♡ favorite'}
+                    </button>
+                    <button
+                      type="button"
+                      className={`watch-shelf-owner-btn${isCurrent ? ' is-on' : ''}`}
+                      onClick={setCurrentlyReading}
+                      aria-pressed={isCurrent}
+                    >
+                      {isCurrent ? 'reading now' : 'mark reading'}
+                    </button>
+                    {hasEpub ? (
+                      <button
+                        type="button"
+                        className="watch-shelf-owner-btn watch-shelf-owner-btn--read"
+                        onClick={() => setReadingSlug(selected.id)}
+                        data-testid="owner-open-epub"
+                      >
+                        read
+                        {progressPct != null ? ` · ${progressPct}%` : ''}
+                      </button>
+                    ) : (
+                      <p className="watch-shelf-owner-hint">
+                        drop {selected.id}.epub into .data/shelf-epubs/ to read
+                      </p>
+                    )}
+                    {progressPct != null ? (
+                      <p className="watch-shelf-owner-progress" data-testid="owner-shelf-progress">
+                        {progressPct}%
+                        {progress?.page != null ? ` · p.${progress.page}` : ''}
+                      </p>
+                    ) : null}
+                  </div>
+                ) : null}
+
+                {owner ? <p className="watch-shelf-owner">owner · private shelf</p> : null}
+              </>
             )}
-            <p className="watch-shelf-detail-kicker">
-              {selected.type}
-              {selected.creator ? ` · ${selected.creator}` : ''}
-            </p>
-            <h2 className="watch-shelf-detail-title" data-testid="watch-shelf-detail-title">
-              {selected.title}
-            </h2>
-            {selected.source ? <p className="watch-shelf-detail-source">{selected.source}</p> : null}
-            {selected.note ? (
-              <dl className="watch-shelf-fields">
-                <div>
-                  <dt>why it stays</dt>
-                  <dd>{selected.note}</dd>
-                </div>
-              </dl>
-            ) : owner ? (
-              <dl className="watch-shelf-fields">
-                <div>
-                  <dt>why it stays</dt>
-                  <dd className="watch-shelf-note-pending">drop a note later</dd>
-                </div>
-              </dl>
-            ) : null}
-            {selected.tags?.length ? (
-              <p className="watch-shelf-tags">{selected.tags.join(' / ')}</p>
-            ) : null}
-            {selected.href ? (
-              <OpenHref href={selected.href} className="watch-shelf-open">
-                open ↗
-              </OpenHref>
-            ) : null}
-            {owner ? <p className="watch-shelf-owner">owner · edit later</p> : null}
           </article>
         </div>
       </div>
