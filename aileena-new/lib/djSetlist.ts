@@ -224,6 +224,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: 'FINAMS', title: 'Amsterdam', artist: 'Finlay Shakespeare', album: 'Domestic Economy', bpm: 120, key: '4A', dur: 364, thumb: '/dj-set/assets/covers/domestic-economy.jpg' },
   { id: '23OBmlZUnRpatDl4q2RoIQ', title: 'Absolutely', artist: 'Klein Zage', album: 'Womanhood EP', bpm: 130, key: '11A', dur: 241, thumb: '/dj-set/assets/covers/womanhood-ep.jpg' },
   { id: '1KrJHAYW5IomyHw7ly8Bdd', title: 'Vertigo', artist: 'U2', album: 'How To Dismantle An Atomic Bomb', bpm: 140, key: '10A', dur: 194, thumb: '/dj-set/assets/covers/vertigo.jpg' },
+  { id: '1JNsKjaCFgTxjP3EkKfYZo', title: 'LOOP (feat. Lil Cherry)', artist: 'Yves', bpm: 127, key: '4A', dur: 163, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02dff9c2cc0dfcc7271897679f' },
 ];
 
 /** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */
