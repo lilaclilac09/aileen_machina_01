@@ -2,13 +2,13 @@
  * Write a tiny placeholder EPUB under .data/shelf-epubs/{slug}.epub for local QA.
  * Not for production books — drop real EPUBs with the same filename.
  *
- * Usage: pnpm exec tsx scripts/make-shelf-epub-placeholder.ts didion-babitz
+ * Usage: pnpm exec tsx scripts/make-shelf-epub-placeholder.ts bad-feminist
  */
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 
-const slug = (process.argv[2] || 'didion-babitz').trim().toLowerCase();
+const slug = (process.argv[2] || 'bad-feminist').trim().toLowerCase();
 if (!/^[a-z0-9][a-z0-9-]{0,80}$/.test(slug)) {
   console.error('invalid slug');
   process.exit(1);
