@@ -633,6 +633,20 @@ export const BOOK_RECS = [
   },
 ];
 
+
+/** Object tucked with the books — dried sage leaf as a bookmark. */
+export const BOOKMARK_RECS = [
+  {
+    title: 'Sage leaf bookmark',
+    shelfTitle: 'Sage leaf bookmark',
+    label: 'dried Salvia · bookmark',
+    image: '/shelf/sage-leaf-bookmark.png',
+    note: 'A real dried sage leaf, from freshly dried green to aged olive-brown. Still smells good.',
+    body: 'A real dried sage leaf, from freshly dried green to aged olive-brown. Still smells good.',
+    tags: ['bookmark', 'sage'],
+  },
+];
+
 export const SHELF_GROUPS: {
   section: ShelfSection;
   label: string;
@@ -719,6 +733,20 @@ export const SHELF_ITEMS: ShelfItem[] = [
     cover: item.image,
     coverKind: 'poster' as const,
     featured: Boolean(item.featured),
+    object: 'cover' as const,
+  })),
+  ...BOOKMARK_RECS.map((item) => ({
+    id: slugify(item.shelfTitle),
+    title: item.shelfTitle,
+    type: 'note' as const,
+    section: 'read' as const,
+    row: 'books' as const,
+    creator: item.label,
+    source: item.title,
+    note: item.note,
+    tags: item.tags,
+    cover: item.image,
+    coverKind: 'cutout' as const,
     object: 'cover' as const,
   })),
   ...CHANNEL_RECS.filter((item) => item.kind !== 'video').map((item) => ({
