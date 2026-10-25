@@ -71,3 +71,6 @@ lib/dataDocIndex.json
 data/pricing.json
 data/news.json
 data/inkling-clips/
+
+# Owner private EPUBs (copyrighted; never commit / never under public/)
+.data/shelf-epubs/
