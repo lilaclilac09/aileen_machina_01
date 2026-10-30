@@ -1078,6 +1078,12 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
             body: 'Review as elimination, not corroboration — try to prove yourself wrong. Check signal reality, hypothesis falsifiers, whether the control also failed, fact gaps, necessity of each factor in a multi-cause story, and sources for every key claim. Agent repros need signal consistency (heap signature kept; clock-skew hang without matching PCAP/IPC rejected). Revoke closes the loop when a key or session fails the test.',
           },
           {
+            date: '2026.10.30',
+            href: '/blog/why-rust-is-hot',
+            title: 'Why Rust Is Hot',
+            body: '「为什么 Rust 吃香」 as quotes, not a thesis: Huntley on types as back pressure (Rust > Python for agents; compile errors auto-fix each loop; cheaper models when the language keeps the rails; simulator-first), Ralph on wheel speed vs correctness, dothings on stronger types → drive LLMs harder + fast compile/tests, Moss/Huntley on not wasting human time on missing imports, codecentric on sensors and pre-commit catching agents. Sources at the end.',
+          },
+          {
             date: '2026.06.02',
             href: '/blog/ai-pcb',
             title: 'The PCB Stack Inside an AI Rack',
@@ -2286,6 +2292,12 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
             href: '/blog/adversarial-review',
             title: 'Adversarial Review',
             body: 'Review als Elimination, nicht Bestätigung — versuche, dich selbst zu widerlegen. Signal echt? Hypothese falsifizierbar? Traf derselbe Bug die Kontrolle? Lücken in der Faktenlage? Ist jeder Faktor nötig? Quellen für jede Kernbehauptung. Agent-Repros brauchen Signal-Konsistenz. Revoke schließt den Kreis, wenn Key/Session den Test nicht besteht.',
+          },
+          {
+            date: '2026.10.30',
+            href: '/blog/why-rust-is-hot',
+            title: 'Why Rust Is Hot',
+            body: '「为什么 Rust 吃香」 als Zitate: Huntley — Types als Back Pressure (Rust > Python für Agents; Compile-Fehler jede Runde; günstigere Modelle; Simulator-first); Ralph — Raddrehzahl vs. Korrektheit; dothings — stärkere Types → LLM härter; Moss/Huntley — keine Menschenzeit für fehlende Imports; codecentric — Sensoren + Pre-Commit. Sources am Ende.',
           },
           {
             date: '2026.06.02',
