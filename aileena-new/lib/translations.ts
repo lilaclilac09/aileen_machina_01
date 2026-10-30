@@ -1084,6 +1084,18 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
             body: '「为什么 Rust 吃香」 as quotes, not a thesis: Huntley on types as back pressure (Rust > Python for agents; compile errors auto-fix each loop; cheaper models when the language keeps the rails; simulator-first), Ralph on wheel speed vs correctness, dothings on stronger types → drive LLMs harder + fast compile/tests, Moss/Huntley on not wasting human time on missing imports, codecentric on sensors and pre-commit catching agents. Sources at the end.',
           },
           {
+            date: '2026.10.30',
+            href: '/blog/run-sglang-and-vllm',
+            title: 'How to Quickly Run SGLang and vLLM',
+            body: 'Official-docs quotes only: SGLang quickstart (sglang serve + /v1/chat/completions), offline Engine without HTTP, native APIs beside OpenAI-compatible I/O, layer_boundary stage I/O; vLLM entrypoints (LLM offline / vllm serve), V1 API-server → engine-core busy loop → GPU workers, token-budget scheduler (no separate prefill/decode), LLMEngine input/schedule/execute/output + AsyncLLMEngine for OpenAI server. Sources at the end.',
+          },
+          {
+            date: '2026.10.30',
+            href: '/blog/prompts-to-shared-skills',
+            title: 'From Personal Prompts to Shared Skills',
+            body: 'One English essay (Ben Reed, Apr 2026): stop locking capability in personal prompt craft — move from ad-hoc prompts to structured skills, one shared skill library via symlinks (no tool drift), models as interchangeable execution layers. What scales is skill quality, not agent count. Quotes + Sources only.',
+          },
+          {
             date: '2026.06.02',
             href: '/blog/ai-pcb',
             title: 'The PCB Stack Inside an AI Rack',
@@ -2298,6 +2310,18 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
             href: '/blog/why-rust-is-hot',
             title: 'Why Rust Is Hot',
             body: '「为什么 Rust 吃香」 als Zitate: Huntley — Types als Back Pressure (Rust > Python für Agents; Compile-Fehler jede Runde; günstigere Modelle; Simulator-first); Ralph — Raddrehzahl vs. Korrektheit; dothings — stärkere Types → LLM härter; Moss/Huntley — keine Menschenzeit für fehlende Imports; codecentric — Sensoren + Pre-Commit. Sources am Ende.',
+          },
+          {
+            date: '2026.10.30',
+            href: '/blog/run-sglang-and-vllm',
+            title: 'How to Quickly Run SGLang and vLLM',
+            body: 'Nur Zitate aus den Offizial-Docs: SGLang Quickstart (sglang serve + /v1/chat/completions), Offline-Engine ohne HTTP, Native APIs neben OpenAI-I/O, layer_boundary; vLLM Entrypoints (LLM offline / vllm serve), V1 API-Server → Engine-Core Busy-Loop → GPU-Worker, Token-Budget-Scheduler, LLMEngine + AsyncLLMEngine. Sources am Ende.',
+          },
+          {
+            date: '2026.10.30',
+            href: '/blog/prompts-to-shared-skills',
+            title: 'From Personal Prompts to Shared Skills',
+            body: 'Ein englischer Essay (Ben Reed, Apr 2026): Prompt-Handwerk nicht in einer Person sperren — von Ad-hoc-Prompts zu strukturierten Skills, eine geteilte Skill-Library per Symlink (kein Tool-Drift), Modelle als austauschbare Ausführungsschicht. Skaliert Skill-Qualität, nicht Agentenzahl. Nur Zitate + Sources.',
           },
           {
             date: '2026.06.02',

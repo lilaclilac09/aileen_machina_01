@@ -95,6 +95,8 @@ const COVER_BY_SLUG: Record<string, string> = {
   'semi-basics-review': COVER_SILICON,
   'adversarial-review': COVER_CODE,
   'why-rust-is-hot': COVER_TERMINAL,
+  'run-sglang-and-vllm': COVER_TERMINAL,
+  'prompts-to-shared-skills': COVER_CODE,
   'semi-watch-tpu-cpo': COVER_SILICON,
   'ai-pcb': COVER_SILICON,
   broadcom: COVER_SILICON,
