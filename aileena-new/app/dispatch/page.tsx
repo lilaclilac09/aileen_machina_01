@@ -55,6 +55,7 @@ const SLUG_TOPIC: Record<string, string> = {
 
   // ── Investing ─────────────────────────────────────────────
   'semi-basics-review': 'AI hardware',
+  'adversarial-review': 'AI hardware',
   'semi-watch-tpu-cpo': 'AI hardware',
   'ai-pcb': 'AI hardware',
   broadcom: 'AI hardware',

@@ -93,6 +93,7 @@ const COVER_BY_SLUG: Record<string, string> = {
 
   // Investing — AI hardware silicon
   'semi-basics-review': COVER_SILICON,
+  'adversarial-review': COVER_CODE,
   'semi-watch-tpu-cpo': COVER_SILICON,
   'ai-pcb': COVER_SILICON,
   broadcom: COVER_SILICON,
