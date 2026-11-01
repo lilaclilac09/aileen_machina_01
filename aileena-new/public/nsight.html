@@ -285,6 +285,7 @@
             <div class="feed-row"><span class="fv">W4</span><span class="ft">Quant must clear the kernel</span><span class="fd">W4 can cut weight storage ~¾; W4A16 still moves 16-bit activations + unpack/scale/dequant. Accept = quality · mem · µs on muse_moe_w4a16, not bit-width math.</span><span class="fm">quant</span></div>
             <div class="feed-row"><span class="fv">SD</span><span class="ft">Speculative decode</span><span class="fd">Cheap draft + batch verify shortens serial steps; trade draft cost × accept rate × verify. Under high concurrency draft steals bandwidth — measure tokens/s at load. Not in Muse submit kernels.</span><span class="fm">serve</span></div>
             <div class="feed-row"><span class="fv">BE</span><span class="ft">Lifecycle break-even</span><span class="fd">Total ≈ train + N × infer. Prefer cuts to per-call IO/µs when N is large. Board practice: keep v6b when later kernels fail break-even on µs.</span><span class="fm">cost</span></div>
+            <div class="feed-row"><span class="fv">PP</span><span class="ft">Pipeline Parallelism</span><span class="fd">Layers/stages on different devices; microbatches keep the pipe full. Same overlap idea as advance schedule, across GPUs — gain = fill bubbles; cost = activation/KV handoff. Single-GPU OKC: schedule insight, not a submit lever.</span><span class="fm">serve</span></div>
           </div>
         </div>
 
@@ -470,6 +471,7 @@
           <li><b>GQA</b> — <a href="https://arxiv.org/abs/2305.13245" target="_blank" rel="noopener noreferrer">arXiv:2305.13245</a> · share KV across query groups (e.g. 32→8 heads ≈ ¼ KV body). Architecture cut to Copy/KV stream size; OKC kernels do not change head layout yet.</li>
           <li><b>MLA · DeepSeek-V2</b> — <a href="https://arxiv.org/abs/2405.04434" target="_blank" rel="noopener noreferrer">arXiv:2405.04434</a> · low-rank latent KV cache; compress state bytes further than head-sharing. Framing for long-L decode bandwidth on this board.</li>
           <li><b>MHA / MQA lineage</b> — <a href="https://arxiv.org/abs/1706.03762" target="_blank" rel="noopener noreferrer">Attention Is All You Need</a> · <a href="https://arxiv.org/abs/1911.02150" target="_blank" rel="noopener noreferrer">Multi-Query Attention</a> · full heads → one shared KV; GQA sits between.</li>
+          <li><b>Pipeline Parallelism (GPipe)</b> — <a href="https://arxiv.org/abs/1811.06965" target="_blank" rel="noopener noreferrer">arXiv:1811.06965</a> · stage the model across devices; microbatch to hide bubbles — serve-side cousin of the async schedule on this dash.</li>
         </ul></div>
 
       </section>
