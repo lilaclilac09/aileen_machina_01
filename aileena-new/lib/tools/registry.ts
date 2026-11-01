@@ -50,6 +50,22 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'nsight',
+    tag: 'PERF',
+    title: 'OKC Explorer',
+    body: 'Where time goes in the Muse kernel pipeline — Copy, Compute, Wait, Launch per stage.',
+    why: 'Profile first. Guessing knobs without a bottleneck map wastes checks.',
+    verdict: 'IN → stages → OUT for each problem. Solutions sit under the hot stage.',
+    href: '/nsight',
+    liveUrl: '/nsight',
+    status: 'useful',
+    tier: 'utility',
+    arcade: {
+      glyph: '☰',
+      screenGradient: '#e8eef4',
+    },
+  },
+  {
     slug: 'cafe-cursor',
     tag: 'EVENT',
     title: 'Cafe Cursor',

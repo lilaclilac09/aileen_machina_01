@@ -65,6 +65,14 @@ export const t = {
       verdictLabel: 'current verdict',
       labNote: 'Not every tool deserves to become a product. Some are just receipts from a workflow.',
       items: {
+        nsight: {
+          tag: 'PERF',
+          title: 'OKC Explorer',
+          body: 'Where time goes in the Muse kernel pipeline — Copy, Compute, Wait, Launch per stage.',
+          why: 'Profile first. Guessing knobs without a bottleneck map wastes checks.',
+          verdict: 'IN → stages → OUT for each problem. Solutions sit under the hot stage.',
+          statusLabel: 'useful',
+        },
         'inkling-clips': {
           tag: 'AUDIO',
           title: 'Audio Clipping',
@@ -1294,6 +1302,14 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
       verdictLabel: 'aktuelles Urteil',
       labNote: 'Nicht jedes Tool muss ein Produkt werden. Manche sind nur Belege aus einem Workflow.',
       items: {
+        nsight: {
+          tag: 'PERF',
+          title: 'OKC Explorer',
+          body: 'Where time goes in the Muse kernel pipeline — Copy, Compute, Wait, Launch per stage.',
+          why: 'Profile first. Guessing knobs without a bottleneck map wastes checks.',
+          verdict: 'IN → stages → OUT for each problem. Solutions sit under the hot stage.',
+          statusLabel: 'useful',
+        },
         'inkling-clips': {
           tag: 'AUDIO',
           title: 'Audio Clipping',
