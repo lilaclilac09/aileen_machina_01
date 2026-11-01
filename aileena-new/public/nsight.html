@@ -268,6 +268,19 @@
           </ol>
         </div>
 
+        <!-- ADVANCE SCHEDULE · challenge pipeline -->
+        <div class="card" style="margin-bottom:16px">
+          <div class="card-head"><span class="card-title">Advance schedule plan · challenge pipeline</span><span class="card-hint">Not math-first — overlap-first</span></div>
+          <div class="feed">
+            <div class="feed-row"><span class="fv">P0</span><span class="ft">nsys capture</span><span class="fd">CPU + CUDA + NVTX on one timeline · mark Stream / KV / Launch gaps</span><span class="fm">profile</span></div>
+            <div class="feed-row"><span class="fv">P1</span><span class="ft">bf16_proj · weight stream</span><span class="fd">num_stages≥3 · prefetch tile n+1 while n GEMMs · hide 188 MiB wall</span><span class="fm">proj</span></div>
+            <div class="feed-row"><span class="fv">P2</span><span class="ft">attention_decode · KV stream</span><span class="fd">issue next KV copy before QK/V math finishes · cut copy-bound ~52%</span><span class="fm">decode</span></div>
+            <div class="feed-row"><span class="fv">P3</span><span class="ft">decode_layer · launch gaps</span><span class="fd">CUDA Graph + fused ops · schedule ops ahead so ~18% Launch idle shrinks</span><span class="fm">decode</span></div>
+            <div class="feed-row"><span class="fv">P4</span><span class="ft">Fill the schedule</span><span class="fd">Split-K / skinny tiles so SMs have work while copies fly — math is support, not the goal</span><span class="fm">tiles</span></div>
+            <div class="feed-row"><span class="fv">P5</span><span class="ft">Verify</span><span class="fd">nsys: Wait↓ Launch↓ overlap↑ · ncu only after timeline is clean</span><span class="fm">accept</span></div>
+          </div>
+        </div>
+
         <!-- LEVEL 2 · THE BOTTLENECK, IN NUMBERS -->
         <div class="metrics" style="margin-bottom:16px">
           <div class="metric"><div class="k">CURRENT · V4</div><div class="v red">4.599 ms</div><div class="d">1.05× vs SGLang</div></div>
@@ -547,10 +560,11 @@
           <p class="why"><b>Why:</b> every token re-streams the entire KV cache — the read grows with L, the math does not.</p>
           <div class="do-grid">
             <div><div class="do-h">DO THIS</div><ol class="do-list">
-              <li>Split-KV (Flash-Decoding) — split L across blocks, stream in parallel.</li>
-              <li>Paged KV layout — appends O(1), reads sequential.</li>
-              <li>FP8 KV cache — halves the stream, same gate as bf16 step 3.</li>
-              <li>CUDA Graph — the step repeats identically per token.</li>
+              <li><b>Advance KV schedule</b> — issue next-chunk KV copy before QK/V math finishes (async overlap).</li>
+              <li>Split-KV (Flash-Decoding) — split L across blocks so the schedule has parallel streams.</li>
+              <li>Paged KV layout — appends O(1), reads sequential for the pipeline.</li>
+              <li>FP8 KV cache — halves the stream after precision gate.</li>
+              <li>CUDA Graph — replay the decode step; kill per-token Launch gaps.</li>
             </ol></div>
             <div><div class="do-h">DO NOT</div><ul class="dont-list">
               <li>Do not tune the attention math — it is 15%.</li>
@@ -666,9 +680,10 @@
           <p class="why"><b>Why:</b> the layer is a chain of tiny kernels — the seams cost more than several of the kernels.</p>
           <div class="do-grid">
             <div><div class="do-h">DO THIS</div><ol class="do-list">
+              <li><b>Advance layer schedule</b> — overlap residual/norm prep with prior GEMM; fill Launch gaps (~18%) before chasing block FLOPS.</li>
               <li>CUDA Graph the whole layer — one capture, one replay per token.</li>
               <li>Fuse norms + residuals into neighboring GEMM epilogues.</li>
-              <li>Then apply the attention and MoE fixes inside their blocks.</li>
+              <li>Then apply attention + MoE async/KV fixes inside their blocks.</li>
             </ol></div>
             <div><div class="do-h">DO NOT</div><ul class="dont-list">
               <li>Do not optimize blocks one by one before killing the gaps.</li>
