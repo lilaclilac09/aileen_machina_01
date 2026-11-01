@@ -1,0 +1,762 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="color-scheme" content="light" />
+    <link rel="icon" href="data:," />
+    <title>OKC Explorer — Where time goes in the pipeline</title>
+    <style>
+      :root{
+        color-scheme:light;
+        --bg:#f6f7f9; --card:#ffffff; --ink:#14181f; --ink2:#8a93a3; --ink3:#b6bdc9;
+        --line:#e7eaef; --line2:#eef0f4;
+        --copy:#3b9eff; --compute:#2fbf71; --wait:#f0a020; --launch:#8b5cf6;
+        --teal:#0aa06e; --red:#e5484d; --red-bg:#fdf0f0; --green-bg:#edf9f2;
+        --shadow:0 1px 2px rgba(16,24,40,.04),0 4px 16px rgba(16,24,40,.04);
+        --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+      }
+      *{box-sizing:border-box}
+      body{margin:0;background:var(--bg);color:var(--ink);
+        font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+        font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
+      .wrap{max-width:1060px;margin:0 auto;padding:0 18px 56px}
+      .mono{font-family:var(--mono)}
+      button{font:inherit}
+
+      /* top chrome */
+      .chrome{padding:22px 0 0}
+      .kicker{font-size:11px;font-weight:700;letter-spacing:.16em;color:var(--ink2)}
+      .chrome-row{display:flex;justify-content:space-between;align-items:baseline;gap:12px;flex-wrap:wrap;margin-top:4px}
+      .chrome-title{font-size:19px;font-weight:800;letter-spacing:-.01em}
+      .bucket-dots{display:flex;gap:14px;font-size:12.5px;color:var(--ink2);flex-wrap:wrap}
+      .bucket-dots span{display:inline-flex;align-items:center;gap:5px}
+      .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+      .tabs{display:flex;gap:4px;flex-wrap:wrap;margin-top:14px;border-bottom:1px solid var(--line)}
+      .tabs button{border:none;background:none;cursor:pointer;padding:8px 12px;font-size:14px;color:var(--ink2);border-bottom:2px solid transparent;margin-bottom:-1px}
+      .tabs button[aria-pressed="true"]{color:var(--ink);font-weight:700;border-bottom-color:var(--ink)}
+      .view.is-hidden{display:none}
+
+      /* headline */
+      h1{font-size:clamp(26px,4.6vw,36px);font-weight:800;letter-spacing:-.02em;margin:30px 0 6px;color:#3c434e}
+      .sub{color:var(--ink2);font-size:15px;margin:0 0 14px}
+      .meta-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+      .meta-pills span{font-size:12px;color:var(--ink2);background:var(--card);border:1px solid var(--line);border-radius:999px;padding:3px 11px}
+
+      .card{background:var(--card);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:18px;margin-bottom:16px}
+      .card-head{display:flex;justify-content:space-between;gap:10px;align-items:baseline;flex-wrap:wrap;margin-bottom:12px}
+      .card-title{font-size:14.5px;font-weight:700}
+      .card-hint{font-size:12.5px;color:var(--ink3)}
+
+      /* ===== LEVEL 1 · the solution ===== */
+      .sol-card{border:1.5px solid var(--teal);padding:22px}
+      .sol-kicker{font-size:11px;font-weight:800;letter-spacing:.14em;color:var(--teal)}
+      .sol-nums{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin:8px 0 4px}
+      .sol-nums .from{font-family:var(--mono);font-weight:800;font-size:clamp(30px,5.4vw,44px);letter-spacing:-.02em}
+      .sol-nums .arr{font-size:clamp(22px,4vw,32px);color:var(--teal);font-weight:800}
+      .sol-nums .to{font-family:var(--mono);font-weight:800;font-size:clamp(30px,5.4vw,44px);color:var(--teal);letter-spacing:-.02em}
+      .sol-nums .unit{font-size:14px;color:var(--ink2);font-weight:600}
+      .sol-sub{font-size:13.5px;color:var(--ink2);margin:0 0 16px}
+      .sol-sub b{color:var(--red)}
+      .sol-steps{list-style:none;margin:0;padding:0;display:grid;gap:0}
+      .sol-steps li{display:flex;gap:14px;align-items:baseline;padding:10px 0;border-top:1px solid var(--line2)}
+      .sol-steps li:first-child{border-top:none;padding-top:2px}
+      .sol-no{font-family:var(--mono);font-weight:800;font-size:19px;color:var(--teal);min-width:26px}
+      .sol-step-t{font-size:clamp(16px,2.4vw,19px);font-weight:800;line-height:1.3}
+      .sol-step-d{font-size:13.5px;color:var(--ink2)}
+      .sol-tag{margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:700;color:var(--teal);background:var(--green-bg);border-radius:999px;padding:2px 10px;white-space:nowrap}
+      .sol-tag.warn{color:var(--red);background:var(--red-bg)}
+      @media (max-width:640px){.sol-tag{display:none}}
+
+      /* skim rows */
+      .skim{display:grid;gap:10px}
+      .skim-row{display:flex;align-items:center;gap:14px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px 14px;cursor:pointer;text-align:left;width:100%;color:var(--ink)}
+      .skim-row:hover{border-color:var(--ink3)}
+      .skim-row.main{border-color:var(--teal)}
+      .skim-name{min-width:172px}
+      .skim-name .n{font-weight:700;font-size:14.5px}
+      .skim-name .s{font-size:12px;color:var(--ink2)}
+      .pills{display:flex;align-items:center;gap:5px;flex-wrap:wrap;flex:1}
+      .pill-step{font-size:12px;color:var(--ink2);background:#fbfbfc;border:1px solid var(--line);border-radius:8px;padding:5px 12px;white-space:nowrap}
+      .pill-step.hot{color:var(--red);background:var(--red-bg);border-color:#f3cdce;font-weight:700}
+      .pill-step.good{color:var(--teal);background:var(--green-bg);border-color:#c4e9d8;font-weight:700}
+      .pill-arr{color:var(--ink3);font-size:11px}
+      .skim-num{font-family:var(--mono);font-weight:800;font-size:16px;min-width:58px;text-align:right}
+      .skim-num.up{color:var(--teal)} .skim-num.flat{color:var(--ink3)}
+      @media (max-width:720px){.skim-row{flex-wrap:wrap}.skim-name{min-width:0;flex:1}.skim-num{min-width:0}}
+
+      /* legend table */
+      table.legend{width:100%;border-collapse:collapse;font-size:13.5px}
+      table.legend th{text-align:left;font-size:11px;letter-spacing:.1em;color:var(--ink2);font-weight:700;padding:6px 10px;border-bottom:1px solid var(--line)}
+      table.legend td{padding:9px 10px;border-bottom:1px solid var(--line2);vertical-align:top}
+      table.legend tr:last-child td{border-bottom:none}
+      .btag{font-size:12px;font-weight:700;border-radius:6px;padding:2px 9px;white-space:nowrap}
+      .btag.copy{color:var(--copy);background:#eaf4ff}.btag.compute{color:var(--compute);background:var(--green-bg)}
+      .btag.wait{color:#c47f0a;background:#fdf3e0}.btag.launch{color:var(--launch);background:#f1eafd}
+      table.legend td.act{color:var(--ink2)}
+
+      /* ===== detail views ===== */
+      .d-title{font-size:clamp(24px,4vw,32px);font-weight:800;letter-spacing:-.02em;color:#3c434e;margin:28px 0 4px}
+      .d-sub{color:var(--ink2);margin:0 0 12px;font-size:14.5px}
+      .status-pills{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+      .status-pills span{font-size:12.5px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:3px 11px;color:var(--ink2)}
+      .status-pills span.bad{color:var(--red);background:var(--red-bg);border-color:#f3cdce;font-weight:700}
+      .status-pills span.good{color:var(--teal);background:var(--green-bg);border-color:#c4e9d8;font-weight:700}
+      .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}
+      .metrics.five{grid-template-columns:repeat(5,1fr)}
+      @media (max-width:720px){.metrics,.metrics.five{grid-template-columns:1fr 1fr}.metrics.five .metric:last-child{grid-column:span 2}}
+      .metric{background:var(--card);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:14px 16px}
+      .metric .k{font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--ink2)}
+      .metric .v{font-family:var(--mono);font-weight:800;font-size:clamp(20px,3.2vw,27px);margin-top:4px;letter-spacing:-.01em}
+      .metric .v.red{color:var(--red)} .metric .v.teal{color:var(--teal)} .metric .v.grey{color:var(--ink3)}
+      .metric .d{font-size:12px;color:var(--ink2)}
+
+      .pipe-scroll{overflow-x:auto;padding-bottom:8px}
+      .pipe{display:flex;align-items:stretch;gap:0;min-width:min-content}
+      .stage{width:218px;flex:0 0 auto;background:#fbfbfc;border:1px solid var(--line);border-radius:12px;padding:14px}
+      .stage.hot{border-color:#f3cdce;background:#fffafa}
+      .stage.good{border-color:#c4e9d8;background:#fbfffc}
+      .stage .sk{font-size:10.5px;font-weight:700;letter-spacing:.1em;color:var(--ink3)}
+      .stage.hot .sk{color:var(--red)} .stage.good .sk{color:var(--teal)}
+      .stage .sn{font-weight:700;font-size:14.5px;margin:3px 0 2px;line-height:1.3}
+      .stage .sd{font-size:12.5px;color:var(--ink2);min-height:34px}
+      .stage .st{font-family:var(--mono);font-weight:800;font-size:17px;margin-top:8px}
+      .stage .st small{font-size:11px;color:var(--ink2);font-weight:600}
+      .stage .bar{height:7px;border-radius:99px;background:var(--line2);overflow:hidden;margin:7px 0 10px}
+      .stage .bar i{display:block;height:100%;border-radius:99px}
+      .chips{display:grid;grid-template-columns:1fr 1fr 1fr 1fr;gap:5px}
+      .chip{border:1px solid var(--line);border-radius:7px;padding:4px 0;text-align:center;background:var(--card)}
+      .chip .ck{font-size:8.5px;font-weight:700;letter-spacing:.06em;color:var(--ink3)}
+      .chip .cv{font-family:var(--mono);font-size:11.5px;font-weight:700;color:var(--ink3)}
+      .chip.on-copy{border-color:#bcd9fb}.chip.on-copy .cv{color:var(--copy)}
+      .chip.on-compute{border-color:#b5e6cc}.chip.on-compute .cv{color:var(--compute)}
+      .chip.on-wait{border-color:#f3ddae}.chip.on-wait .cv{color:#c47f0a}
+      .chip.on-launch{border-color:#d8c8f8}.chip.on-launch .cv{color:var(--launch)}
+      .pipe-arr{display:flex;align-items:center;padding:0 6px;color:var(--ink3);flex:0 0 auto}
+
+      /* detailed solution tables */
+      .stable{width:100%;border-collapse:collapse;font-size:12.8px;margin-top:4px}
+      .stable th{text-align:left;font-size:10.5px;letter-spacing:.09em;color:var(--ink2);font-weight:800;padding:6px 8px;border-bottom:1px solid var(--line);white-space:nowrap}
+      .stable td{padding:8px;border-bottom:1px solid var(--line2);vertical-align:top;line-height:1.45}
+      .stable tr:last-child td{border-bottom:none}
+      .stable td.ord{font-family:var(--mono);font-weight:800;color:var(--teal);white-space:nowrap}
+      .stable td.save{font-family:var(--mono);font-weight:700;white-space:nowrap}
+      .stable td.save.grey{color:var(--ink3)}
+      @media (max-width:760px){
+        .stable thead{display:none}
+        .stable tr{display:block;padding:6px 0;border-bottom:1px solid var(--line)}
+        .stable tr:last-child{border-bottom:none}
+        .stable td{display:grid;grid-template-columns:84px 1fr;gap:8px;border:none;padding:3px 4px;white-space:normal}
+        .stable td::before{content:attr(data-l);font-size:9.5px;font-weight:800;letter-spacing:.08em;color:var(--ink2);padding-top:3px}
+      }
+      /* time path */
+      .tp-row{display:flex;gap:12px;align-items:baseline;padding:8px 2px;border-bottom:1px solid var(--line2);font-size:13.5px;flex-wrap:wrap}
+      .tp-row:last-child{border-bottom:none}
+      .tp-row .ts{font-family:var(--mono);font-weight:800;color:var(--teal);min-width:34px}
+      .tp-row .tt{font-weight:600}
+      .tp-row .td2{color:var(--ink2)}
+      .tp-row .tm{margin-left:auto;font-family:var(--mono);font-weight:700;white-space:nowrap}
+      .tp-row .tm.run{color:var(--ink2);font-weight:600}
+      .tp-row.fallback .ts,.tp-row.fallback .tm{color:var(--red)}
+      .tp-date{font-family:var(--mono);font-weight:800;min-width:86px}
+      .tp-date.lock{color:var(--red)}
+
+      /* method cards · expandable */
+      .mitem{margin-bottom:8px}
+      .mcard{width:100%;display:flex;gap:12px;align-items:baseline;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:11px 14px;cursor:pointer;text-align:left;color:var(--ink)}
+      .mcard:hover{border-color:var(--ink3)}
+      .mitem.open .mcard{border-radius:12px 12px 0 0;border-bottom-color:var(--line2)}
+      .mcard .mid{font-family:var(--mono);font-weight:800;color:var(--teal);min-width:38px}
+      .mcard .mt{font-weight:700;font-size:14px}
+      .mcard .mchev{margin-left:10px;color:var(--ink3);font-size:12px}
+      .mstat{margin-left:auto;font-family:var(--mono);font-size:11px;font-weight:700;color:var(--teal);background:var(--green-bg);border-radius:999px;padding:2px 10px;white-space:nowrap}
+      .mstat.warn{color:var(--red);background:var(--red-bg)}
+      .mstat.grey{color:var(--ink2);background:#f1f2f5}
+      @media (max-width:640px){.mstat{display:none}}
+      .mpanel{border:1px solid var(--line);border-top:none;border-radius:0 0 12px 12px;background:#fbfbfc;padding:4px 14px 8px}
+      .mpanel[hidden]{display:none}
+      .prow{display:grid;grid-template-columns:118px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--line2)}
+      .prow:last-child{border-bottom:none}
+      .prow .pk{font-size:10.5px;font-weight:800;letter-spacing:.1em;color:var(--ink2);padding-top:3px}
+      .prow .pv{font-size:13.5px;line-height:1.5}
+      .prow .pv.ana{font-style:italic;color:#3c434e}
+      .prow .pv.st{font-weight:700}
+      @media (max-width:640px){.prow{grid-template-columns:1fr;gap:1px}}
+
+      .sol-block .why{font-size:14.5px;margin:0 0 14px}
+      .sol-block .why b{color:var(--ink)}
+      .do-grid{display:grid;grid-template-columns:1.6fr 1fr;gap:20px}
+      @media (max-width:720px){.do-grid{grid-template-columns:1fr}}
+      .do-h{font-size:11px;font-weight:800;letter-spacing:.12em;color:var(--ink2);margin-bottom:8px}
+      .do-list{margin:0;padding-left:20px;font-size:14px;display:grid;gap:7px}
+      .dont-list{margin:0;padding:0;list-style:none;font-size:14px;display:grid;gap:7px}
+      .dont-list li{color:var(--red);padding-left:16px;position:relative}
+      .dont-list li::before{content:"•";position:absolute;left:2px}
+
+      /* ===== LEVEL 4 · dimmed secondary ===== */
+      .dim{opacity:.62}
+      .dim .card{box-shadow:none}
+      .dim-title{font-size:12px;font-weight:800;letter-spacing:.12em;color:var(--ink2);margin:26px 0 10px}
+      .feed{display:grid;gap:0;font-size:13px}
+      .feed-row{display:flex;gap:12px;align-items:baseline;padding:7px 2px;border-bottom:1px solid var(--line2);flex-wrap:wrap}
+      .feed-row:last-child{border-bottom:none}
+      .feed-row .fv{font-family:var(--mono);font-weight:700;min-width:52px}
+      .feed-row .ft{font-weight:600}
+      .feed-row .fd{color:var(--ink2)}
+      .feed-row .fm{margin-left:auto;font-family:var(--mono);color:var(--ink2)}
+      .mini-list{margin:0;padding:0;list-style:none;font-size:13px;display:grid;gap:6px;color:var(--ink2)}
+      .mini-list b{color:var(--ink);font-family:var(--mono);font-size:12.5px}
+      footer{font-size:12px;color:var(--ink3);margin-top:22px}
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+
+      <div class="chrome">
+        <div class="kicker">OPEN KERNEL CHALLENGE · EXPLORER</div>
+        <div class="chrome-row">
+          <div class="chrome-title">Pipeline · bytes in → steps → out</div>
+          <div class="bucket-dots" aria-hidden="true">
+            <span><span class="dot" style="background:var(--copy)"></span>Copy</span>
+            <span><span class="dot" style="background:var(--compute)"></span>Compute</span>
+            <span><span class="dot" style="background:var(--wait)"></span>Wait</span>
+            <span><span class="dot" style="background:var(--launch)"></span>Launch</span>
+          </div>
+        </div>
+        <nav class="tabs" aria-label="Views">
+          <button type="button" data-view="overview" aria-pressed="true">Overview</button>
+          <button type="button" data-view="bf16" aria-pressed="false">bf16_proj</button>
+          <button type="button" data-view="attn" aria-pressed="false">attention_decode</button>
+          <button type="button" data-view="moe" aria-pressed="false">moe_w4a16</button>
+          <button type="button" data-view="declayer" aria-pressed="false">decode_layer</button>
+          <button type="button" data-view="prelayer" aria-pressed="false">prefill_layer</button>
+        </nav>
+      </div>
+
+      <!-- ================= OVERVIEW ================= -->
+      <section class="view" data-view-panel="overview">
+        <h1>Where time goes in the pipeline</h1>
+        <p class="sub">One problem matters first: <b>bf16_proj</b> — decode is stuck on the memory wall, not on math.</p>
+        <div class="meta-pills"><span>H200 · 132 SMs</span><span>Shares = model estimates, not measured</span><span>Deadline · Nov 4 PT</span></div>
+
+        <!-- LEVEL 1 · THE SOLUTION -->
+        <div class="card sol-card">
+          <div class="sol-kicker">THE SOLUTION · BF16_PROJ · IN ORDER</div>
+          <div class="sol-nums"><span class="from">4.599</span><span class="arr">→</span><span class="to">2.92</span><span class="unit">ms · current → leader</span></div>
+          <p class="sol-sub">Cut <b>1.679 ms (−36.5%)</b> · if the FP8 gate fails, realistic landing is <b>3.4–3.7 ms</b>.</p>
+          <ol class="sol-steps">
+            <li><span class="sol-no">1</span><div><span class="sol-step-t">Measure first</span> <span class="sol-step-d">— nsys + ncu. No guessing.</span></div><span class="sol-tag">FIRST</span></li>
+            <li><span class="sol-no">2</span><div><span class="sol-step-t">Skinny GEMM + adaptive Split-K</span> <span class="sol-step-d">— fill all 132 SMs at small m.</span></div><span class="sol-tag">18 → 100+ TILES</span></li>
+            <li><span class="sol-no">3</span><div><span class="sol-step-t">FP8 precision gate</span> <span class="sol-step-d">— hi+lo error must pass tolerance before step 4.</span></div><span class="sol-tag warn">GATE</span></li>
+            <li><span class="sol-no">4</span><div><span class="sol-step-t">Single-FP8 weight reads</span> <span class="sol-step-d">— halve the bytes streamed.</span></div><span class="sol-tag">188 → 94 MiB</span></li>
+            <li><span class="sol-no">5</span><div><span class="sol-step-t">Router fusion + CUDA Graph</span> <span class="sol-step-d">— one kernel, x read once, launches replayed.</span></div><span class="sol-tag">−2 PASSES</span></li>
+            <li><span class="sol-no">6</span><div><span class="sol-step-t">Prefetch + WGMMA / TMA</span> <span class="sol-step-d">— only if ncu shows DRAM saturated, SMs idle.</span></div><span class="sol-tag warn">ONLY IF PROVEN</span></li>
+          </ol>
+        </div>
+
+        <!-- LEVEL 2 · THE BOTTLENECK, IN NUMBERS -->
+        <div class="metrics" style="margin-bottom:16px">
+          <div class="metric"><div class="k">CURRENT · V4</div><div class="v red">4.599 ms</div><div class="d">1.05× vs SGLang</div></div>
+          <div class="metric"><div class="k">BASELINE · SGLANG</div><div class="v">4.83 ms</div><div class="d">1.00× reference</div></div>
+          <div class="metric"><div class="k">LEADER</div><div class="v teal">2.92 ms</div><div class="d">1.65× · status P</div></div>
+          <div class="metric"><div class="k">THE WALL</div><div class="v">188 MiB</div><div class="d">streamed per pass · floor ≈ 59 µs</div></div>
+        </div>
+
+        <!-- TIME PATH · current → target, against the clock -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">Time path · bf16_proj · 4.599 → 2.92 ms</span><span class="card-hint">Saves = estimates until ncu confirms</span></div>
+          <div>
+            <div class="tp-row"><span class="ts">—</span><span class="tt">Start · v4, measured</span><span class="tm run">4.599 ms</span></div>
+            <div class="tp-row"><span class="ts">2</span><span class="tt">Skinny GEMM + Split-K</span><span class="td2">tile tail 1.06 ms attacked</span><span class="tm">−0.55 · est.</span><span class="tm run">→ 4.05</span></div>
+            <div class="tp-row"><span class="ts">3</span><span class="tt">FP8 precision gate</span><span class="td2">decides step 4, saves nothing itself</span><span class="tm">−0.00</span><span class="tm run">→ 4.05</span></div>
+            <div class="tp-row"><span class="ts">4</span><span class="tt">Single-FP8 weight reads</span><span class="td2">stream 1.38 ms attacked</span><span class="tm">−0.60 · est.</span><span class="tm run">→ 3.45</span></div>
+            <div class="tp-row"><span class="ts">5</span><span class="tt">Router fusion + CUDA Graph</span><span class="td2">router pass + dispatch attacked</span><span class="tm">−0.30 · est.</span><span class="tm run">→ 3.15</span></div>
+            <div class="tp-row"><span class="ts">6</span><span class="tt">Prefetch + WGMMA / TMA</span><span class="td2">only if ncu proves it</span><span class="tm">−0.22 · est.</span><span class="tm run">→ ≈2.92 ✓</span></div>
+            <div class="tp-row fallback"><span class="ts">✕</span><span class="tt">If the FP8 gate fails</span><span class="td2">step 4 lost · steps 2 + 5 + 6 only</span><span class="tm">≈3.4–3.7 ms</span></div>
+          </div>
+          <div class="do-h" style="margin-top:16px">TIMELINE</div>
+          <div>
+            <div class="tp-row"><span class="tp-date">NOV 1</span><span class="tt">Measure</span><span class="td2">nsys / ncu · GPU-check v9 · run the FP8 gate on v8</span></div>
+            <div class="tp-row"><span class="tp-date lock">NOV 2</span><span class="tt">Internal lock</span><span class="td2">submit the best verified build — nothing unverified ships</span></div>
+            <div class="tp-row"><span class="tp-date">NOV 3</span><span class="tt">Buffer</span><span class="td2">re-verify only · fix regressions, no new features</span></div>
+            <div class="tp-row"><span class="tp-date lock">NOV 4 PT</span><span class="tt">Official deadline</span><span class="td2">final submission closes</span></div>
+          </div>
+        </div>
+
+        <!-- pipeline skim -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">All problems · pipeline skim</span><span class="card-hint">Click a row to open its full flow</span></div>
+          <div class="skim">
+            <button type="button" class="skim-row main" data-open="bf16">
+              <span class="skim-name"><span class="n">bf16_proj</span><br /><span class="s">Main · memory wall</span></span>
+              <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">Dispatch</span><span class="pill-arr">→</span><span class="pill-step hot">Stream 188 MiB</span><span class="pill-arr">→</span><span class="pill-step">GEMM ×5</span><span class="pill-arr">→</span><span class="pill-step hot">Tile tail</span><span class="pill-arr">→</span><span class="pill-step">Router</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
+              <span class="skim-num up">1.05×</span>
+            </button>
+            <button type="button" class="skim-row" data-open="attn">
+              <span class="skim-name"><span class="n">attention_decode</span><br /><span class="s">Copy-bound · KV stream</span></span>
+              <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">QKV</span><span class="pill-arr">→</span><span class="pill-step">Append</span><span class="pill-arr">→</span><span class="pill-step hot">KV stream</span><span class="pill-arr">→</span><span class="pill-step">Attn math</span><span class="pill-arr">→</span><span class="pill-step">Merge</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
+              <span class="skim-num flat">—</span>
+            </button>
+            <button type="button" class="skim-row" data-open="moe">
+              <span class="skim-name"><span class="n">moe_w4a16</span><br /><span class="s">Copy-bound · dequant</span></span>
+              <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">Router</span><span class="pill-arr">→</span><span class="pill-step">Gather</span><span class="pill-arr">→</span><span class="pill-step hot">Dequant</span><span class="pill-arr">→</span><span class="pill-step">GEMM</span><span class="pill-arr">→</span><span class="pill-step">Combine</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
+              <span class="skim-num flat">—</span>
+            </button>
+            <button type="button" class="skim-row" data-open="declayer">
+              <span class="skim-name"><span class="n">decode_layer</span><br /><span class="s">Launch-heavy · kernel gaps</span></span>
+              <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">Norm</span><span class="pill-arr">→</span><span class="pill-step">Attn</span><span class="pill-arr">→</span><span class="pill-step">Residual</span><span class="pill-arr">→</span><span class="pill-step">MoE</span><span class="pill-arr">→</span><span class="pill-step hot">Gaps</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
+              <span class="skim-num flat">—</span>
+            </button>
+            <button type="button" class="skim-row" data-open="prelayer">
+              <span class="skim-name"><span class="n">prefill_layer</span><br /><span class="s">Healthy · compute-bound</span></span>
+              <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">Norm</span><span class="pill-arr">→</span><span class="pill-step good">Attn</span><span class="pill-arr">→</span><span class="pill-step">MLP</span><span class="pill-arr">→</span><span class="pill-step">KV write</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
+              <span class="skim-num flat">—</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- bucket legend -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">How to read a stage</span></div>
+          <table class="legend">
+            <thead><tr><th>BUCKET</th><th>MEANING</th><th>WHAT TO DO IF IT DOMINATES</th></tr></thead>
+            <tbody>
+              <tr><td><span class="btag copy">Copy</span></td><td>Bytes moving HBM ↔ chip</td><td class="act">Move fewer bytes · fuse · keep data on-chip</td></tr>
+              <tr><td><span class="btag compute">Compute</span></td><td>Real multiply-adds</td><td class="act">Tune tiles · Tensor Core path</td></tr>
+              <tr><td><span class="btag wait">Wait</span></td><td>SMs idle — tail, starvation, sync</td><td class="act">More parallel work · Split-K · balance</td></tr>
+              <tr><td><span class="btag launch">Launch</span></td><td>Kernel start cost + gaps</td><td class="act">Fuse kernels · CUDA Graph replay</td></tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- LEVEL 4 · secondary, dimmed -->
+        <div class="dim">
+          <div class="dim-title">HISTORY · VERSION FEED</div>
+          <div class="card"><div class="feed">
+            <div class="feed-row"><span class="fv">v3</span><span class="ft">Router threshold 7</span><span class="fd">parameter tweak only</span><span class="fm">4.727 ms · 1.02×</span></div>
+            <div class="feed-row"><span class="fv">v4</span><span class="ft">m ≥ 192 dispatch split</span><span class="fd">current submission</span><span class="fm">4.599 ms · 1.05×</span></div>
+            <div class="feed-row"><span class="fv">v8</span><span class="ft">FP8 hi+lo experiment</span><span class="fd">precision data for step 3 gate</span><span class="fm">not submitted</span></div>
+            <div class="feed-row"><span class="fv">v9</span><span class="ft">Skinny GEMM + Split-K</span><span class="fd">= solution step 2</span><span class="fm">planned</span></div>
+          </div></div>
+
+          <div class="dim-title">ASK A MATHEMATICIAN · 3 QUESTIONS</div>
+          <div class="card"><ul class="mini-list">
+            <li><b>Q1</b> — Lower bound on bytes moved for skinny GEMM, below naive blocking?</li>
+            <li><b>Q2</b> — Closed form for tile size × Split-K vs the tail effect?</li>
+            <li><b>Q3</b> — Error bound for BF16 split into FP8 hi+lo, accumulated over K?</li>
+          </ul></div>
+          <footer>Totals 4.83 / 4.599 / 2.92 ms are measured (2026-11-01 board). Stage shares below are model estimates — replace with a real nsys / ncu capture.</footer>
+        </div>
+
+        <!-- METHODS · expandable -->
+        <div class="dim-title" style="margin-top:26px">METHODS · TAP A METHOD FOR ITS FULL PANEL</div>
+        <div>
+          <div class="mitem">
+            <button type="button" class="mcard" data-method="m1" aria-expanded="false"><span class="mid">M01</span><span class="mt">Split-K</span><span class="mstat warn">v9 · NOT GPU-CHECKED</span><span class="mchev">▾</span></button>
+            <div class="mpanel" id="panel-m1" hidden>
+              <div class="prow"><span class="pk">PLAN</span><span class="pv">In the v9 Triton GEMM, split the K loop across up to 8 blocks whenever the tile count is below 132; each block writes an FP32 partial, a light reduction sums them.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">The tile tail: only 18–64 tiles for 132 SMs at m&lt;192 — ~23% of 4.599 ms is Wait, SMs idle.</span></div>
+              <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">A symphony score divided among sections, each playing its part in parallel, the conductor summing them into one chord.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">In v9 — written, NOT GPU-checked. The submitted v4 does not contain it.</span></div>
+            </div>
+          </div>
+          <div class="mitem">
+            <button type="button" class="mcard" data-method="m2" aria-expanded="false"><span class="mid">M02</span><span class="mt">Single-FP8 weight reads</span><span class="mstat warn">PLANNED · GATED</span><span class="mchev">▾</span></button>
+            <div class="mpanel" id="panel-m2" hidden>
+              <div class="prow"><span class="pk">PLAN</span><span class="pv">Pre-convert weights to FP8 E4M3 offline — pooler + unpooler (64 MiB each) first; the GEMM loads 1 byte per element and dequantizes in-register. No hi/lo second pass.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">The weight stream: 188 MiB of BF16 per pass, ~30% of 4.599 ms — halving the bytes is the largest single cut, ~0.60 ms est.</span></div>
+              <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">Transcribing a manuscript onto finer paper: the same text, half the volume, carried in one trip instead of two.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Planned and GATED on the FP8 precision gate — not built. v8 is hi+lo FP8, a precision experiment; it is not single-FP8.</span></div>
+            </div>
+          </div>
+          <div class="mitem">
+            <button type="button" class="mcard" data-method="m3" aria-expanded="false"><span class="mid">M03</span><span class="mt">Prefetch · double-buffer</span><span class="mstat">PARTIAL · v9</span><span class="mchev">▾</span></button>
+            <div class="mpanel" id="panel-m3" hidden>
+              <div class="prow"><span class="pk">PLAN</span><span class="pv">Stage loads ahead of math: Triton num_stages=3 already pipelines loads; the full version double-buffers shared-memory tiles — load tile n+1 while tile n computes — with WGMMA/TMA in v10.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">Load stalls inside the GEMM stage (~29% of 4.599 ms): SMs wait on HBM between tiles.</span></div>
+              <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">A librarian placing the next volume on the desk before the reader finishes the current page, so reading never pauses.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Partial: num_stages=3 is in v9 (written, not GPU-checked). Full double-buffering is not yet built — step 6, only if ncu proves DRAM saturated.</span></div>
+            </div>
+          </div>
+          <div class="mitem">
+            <button type="button" class="mcard" data-method="m4" aria-expanded="false"><span class="mid">M04</span><span class="mt">Router fusion</span><span class="mstat warn">PLANNED · NOT BUILT</span><span class="mchev">▾</span></button>
+            <div class="mpanel" id="panel-m4" hidden>
+              <div class="prow"><span class="pk">PLAN</span><span class="pv">One kernel for the router: read x once, compute both matmuls and the add in-kernel, write once — replacing three separate ops with a single pass.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">The router second pass: 0.28 ms · ~6% of 4.599 ms, plus part of the ~12% launch slice — x is read twice today.</span></div>
+              <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">Binding three separate letters into one sealed envelope: one journey instead of three.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Planned, not built. v4 still runs the router as 2 mm + add, three separate ops.</span></div>
+            </div>
+          </div>
+          <div class="mitem">
+            <button type="button" class="mcard" data-method="m5" aria-expanded="false"><span class="mid">M05</span><span class="mt">Skinny tiles</span><span class="mstat warn">v9 · NOT GPU-CHECKED</span><span class="mchev">▾</span></button>
+            <div class="mpanel" id="panel-m5" hidden>
+              <div class="prow"><span class="pk">PLAN</span><span class="pv">In v9, shape tiles to small m — BLOCK_M 16/32 instead of 128 — so no tile is mostly padding, and the tile count rises toward the 132 SMs.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">Padding waste: at m=16 a 128-row tile computes 8× rows that do not exist — it feeds the same ~23% Wait slice as the tail.</span></div>
+              <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">Tailoring a garment to the exact measure, no excess cloth — a mosaic cut to fit a narrow wall.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">In v9 — written, NOT GPU-checked.</span></div>
+            </div>
+          </div>
+          <div class="mitem">
+            <button type="button" class="mcard" data-method="m6" aria-expanded="false"><span class="mid">M06</span><span class="mt">CUDA Graph replay</span><span class="mstat grey">HARNESS-PROVIDED</span><span class="mchev">▾</span></button>
+            <div class="mpanel" id="panel-m6" hidden>
+              <div class="prow"><span class="pk">PLAN</span><span class="pv">Record the fixed kernel sequence once and replay it per call — zero host launch cost per replay. The extension is a whole-layer capture for decode_layer.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">Dispatch and gaps: 0.55 ms · ~12% of bf16_proj; in decode_layer ~18% of the time sits in gaps between kernels.</span></div>
+              <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">A choreographed ballet recorded once and replayed: rehearsed once, performed repeatedly without re-teaching each step.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Already provided by the OKC harness inside the timed region — it is not our code. A whole-layer graph is future work.</span></div>
+            </div>
+          </div>
+          <div class="mitem">
+            <button type="button" class="mcard" data-method="m7" aria-expanded="false"><span class="mid">M07</span><span class="mt">Large-m GEMM tuning</span><span class="mstat">IN v4 · MEASURED</span><span class="mchev">▾</span></button>
+            <div class="mpanel" id="panel-m7" hidden>
+              <div class="prow"><span class="pk">PLAN</span><span class="pv">Keep large m on the tuned library path — dispatch m≥192 to SGLang's GEMM — and tune tile size and pipeline depth to the scale of m (prefill: 128-row tiles).</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">At m≥192 the tiles already fill the SMs, so tuning — not restructuring — is the lever; prefill is ~52% Compute (est.), where tuning pays directly.</span></div>
+              <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">Choosing a vessel for the voyage: a skiff for a stream, a ship for the ocean — tile size matched to the scale of the work.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">In v4 — the SGLang dispatch for m≥192 is in and measured better than baseline. Prefill-specific tuning is pending.</span></div>
+            </div>
+          </div>
+          <div class="mitem">
+            <button type="button" class="mcard" data-method="m8" aria-expanded="false"><span class="mid">M08</span><span class="mt">Persistent kernel</span><span class="mstat grey">NOT STARTED</span><span class="mchev">▾</span></button>
+            <div class="mpanel" id="panel-m8" hidden>
+              <div class="prow"><span class="pk">PLAN</span><span class="pv">One kernel launches once and loops over all work from a queue — no relaunch between waves, and no final wave running mostly empty.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">The tail wave: the last wave of tiles runs a fraction full — part of the ~23% Wait slice that Split-K reduces but cannot remove.</span></div>
+              <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">A resident orchestra that stays on stage between movements, rather than disbanding and reassembling after every piece, so there is no empty stage at the end.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Not started — concept only. Considered only after M01 and M05 land.</span></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= BF16_PROJ ================= -->
+      <section class="view is-hidden" data-view-panel="bf16">
+        <div class="d-title">bf16_proj</div>
+        <p class="d-sub">5 GEMMs · x[m, 8192] · m = 1–192 · the weights are huge, the input is tiny.</p>
+        <div class="status-pills"><span class="bad">Behind leader · −36.5%</span><span>Priority · Main</span><span>Wall · 4.599 ms</span><span>Hot stage · Stream</span></div>
+        <div class="metrics five">
+          <div class="metric"><div class="k">SPEED</div><div class="v teal">1.05×</div><div class="d">vs SGLang 1.00×</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v red">4.599 ms</div><div class="d">v4 · measured</div></div>
+          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
+          <div class="metric"><div class="k">TARGET</div><div class="v">2.92 ms</div><div class="d">leader · 1.65×</div></div>
+          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Stream</div><div class="d">188 MiB · Copy</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Stage times = share × 4.599 ms · est.</span></div>
+          <div class="pipe-scroll"><div class="pipe">
+            <div class="stage"><div class="sk">IN</div><div class="sn">x + 5 weights</div><div class="sd">x [m, 8192] · weights 188 MiB in HBM.</div><div class="st">—</div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">01 · LAUNCH</div><div class="sn">Dispatch</div><div class="sd">Read m, launch 5 GEMMs.</div><div class="st">0.55 <small>ms · ~12%</small></div><div class="bar"><i style="width:12%;background:var(--launch)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip on-launch"><div class="ck">LAUNCH</div><div class="cv">12%</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage hot"><div class="sk">02 · COPY · HOT</div><div class="sn">Stream weights</div><div class="sd">188 MiB HBM → SRAM. Floor ≈ 59 µs per pass.</div><div class="st">1.38 <small>ms · ~30%</small></div><div class="bar"><i style="width:30%;background:var(--copy)"></i></div><div class="chips"><div class="chip on-copy"><div class="ck">COPY</div><div class="cv">30%</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">03 · COMPUTE</div><div class="sn">5 GEMMs</div><div class="sd">Real math ≈ 3 µs at m=16. Victim, not villain.</div><div class="st">1.33 <small>ms · ~29%</small></div><div class="bar"><i style="width:29%;background:var(--compute)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip on-compute"><div class="ck">COMP</div><div class="cv">29%</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage hot"><div class="sk">04 · WAIT · HOT</div><div class="sn">Tile tail</div><div class="sd">18–64 tiles for 132 SMs. Most of the chip idles.</div><div class="st">1.06 <small>ms · ~23%</small></div><div class="bar"><i style="width:23%;background:var(--wait)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip on-wait"><div class="ck">WAIT</div><div class="cv">23%</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">05 · COPY</div><div class="sn">Router 2nd pass</div><div class="sd">x read a second time + writeback.</div><div class="st">0.28 <small>ms · ~6%</small></div><div class="bar"><i style="width:6%;background:var(--copy)"></i></div><div class="chips"><div class="chip on-copy"><div class="ck">COPY</div><div class="cv">6%</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">OUT</div><div class="sn">5 outputs</div><div class="sd">[m, N] × 5 → HBM.</div><div class="st">—</div></div>
+          </div></div>
+        </div>
+        <div class="card sol-block">
+          <div class="card-head"><span class="card-title"><span class="btag copy">SOLUTIONS</span>&nbsp; What to optimize next</span></div>
+          <p class="why"><b>Why:</b> two hot stages, two diseases — stage 02 moves too many bytes, stage 04 has too few tiles.</p>
+          <div class="do-grid">
+            <div><div class="do-h">DO THIS</div><ol class="do-list">
+              <li>Measure first: nsys + ncu, replace every estimate on this page.</li>
+              <li>Skinny GEMM + adaptive Split-K — 18 tiles → 100+.</li>
+              <li>FP8 precision gate — pass tolerance before touching bytes.</li>
+              <li>Single-FP8 reads — 188 → 94 MiB, pooler + unpooler first.</li>
+              <li>Router fusion + CUDA Graph — x read once, launches replayed.</li>
+              <li>Prefetch + WGMMA/TMA — only if ncu proves DRAM full, SMs idle.</li>
+            </ol></div>
+            <div><div class="do-h">DO NOT</div><ul class="dont-list">
+              <li>Do not tune GEMM tiles at small m — the math is 3 µs.</li>
+              <li>Do not expect FP8 hi+lo to save bandwidth — it saves nothing.</li>
+              <li>Do not touch the m ≥ 192 path — it already beats baseline.</li>
+            </ul></div>
+          </div>
+          <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
+          <table class="stable">
+            <thead><tr><th>#</th><th>BOTTLENECK</th><th>ROOT CAUSE</th><th>FIX · CODE / KERNEL</th><th>SAVES</th><th>VERIFY</th></tr></thead>
+            <tbody>
+              <tr><td class="ord" data-l="#">2</td><td data-l="Bottleneck"><b>Tile tail</b> · 1.06 ms · ~23%</td><td data-l="Root cause">18–64 tiles for 132 SMs at m&lt;192 — most of the chip idles.</td><td data-l="Fix">v9 Triton GEMM: BLOCK_M 16/32; split K up to 8× while tiles &lt;132; FP32 partials + light reduce.</td><td class="save" data-l="Saves">−0.55 ms · est.</td><td data-l="Verify">ncu active warps ↑ · check passes on GPU</td></tr>
+              <tr><td class="ord" data-l="#">3</td><td data-l="Bottleneck"><b>FP8 gate</b> · 0 ms · gate only</td><td data-l="Root cause">Single-FP8 is worthless if its error fails tolerance; hi+lo (v8) saves no bytes.</td><td data-l="Fix">Run v8 across the m sweep; compare vs BF16 reference before any FP8 build starts.</td><td class="save" data-l="Saves">−0.00 ms</td><td data-l="Verify">max rel. error ≤ tol at every m</td></tr>
+              <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>Stream weights</b> · 1.38 ms · ~30%</td><td data-l="Root cause">188 MiB of BF16 re-read per pass; the math is ~3 µs at m=16.</td><td data-l="Fix">Pre-convert weights to single FP8 (E4M3) offline — pooler + unpooler (64 MiB each) first; GEMM loads 1 B/elem, dequantizes in-register.</td><td class="save" data-l="Saves">−0.60 ms · est.</td><td data-l="Verify">ncu DRAM read ≈ 188 → 94 MiB · error ≤ tol</td></tr>
+              <tr><td class="ord" data-l="#">5</td><td data-l="Bottleneck"><b>Router 2nd pass</b> · 0.28 ms · ~6%</td><td data-l="Root cause">x read a second time; router runs as 2 mm + add, 3 separate ops.</td><td data-l="Fix">One fused router kernel: read x once, both matmuls + add in-kernel, write once.</td><td class="save" data-l="Saves">−0.15 ms · est.</td><td data-l="Verify">router kernels 3 → 1 · x reads 2 → 1</td></tr>
+              <tr><td class="ord" data-l="#">5</td><td data-l="Bottleneck"><b>Dispatch + launches</b> · 0.55 ms · ~12%</td><td data-l="Root cause">5 separate launches + host dispatch per call.</td><td data-l="Fix">Replay the fixed sequence as a CUDA Graph (harness already graphs the timed region); collapse the m-dispatch branch.</td><td class="save" data-l="Saves">−0.15 ms · est.</td><td data-l="Verify">nsys inter-kernel gaps → ~0</td></tr>
+              <tr><td class="ord" data-l="#">6</td><td data-l="Bottleneck"><b>Load stalls in GEMM</b> · inside 1.33 ms · ~29%</td><td data-l="Root cause">Loads and math serialized — SMs wait on HBM between tiles.</td><td data-l="Fix">Prefetch: num_stages=3 (already in v9); full double-buffer + WGMMA/TMA (v10) only if ncu shows DRAM full, SMs idle.</td><td class="save" data-l="Saves">−0.22 ms · est.</td><td data-l="Verify">ncu stall-long-scoreboard ↓</td></tr>
+            </tbody>
+          </table>
+          <p class="card-hint" style="margin:10px 0 0">Rows sum to −1.67 ms ≈ the full 1.679 ms gap. All saves are estimates until an ncu capture replaces them.</p>
+        </div>
+      </section>
+
+      <!-- ================= ATTENTION_DECODE ================= -->
+      <section class="view is-hidden" data-view-panel="attn">
+        <div class="d-title">attention_decode</div>
+        <p class="d-sub">1 token per step · the query is 1 row · the KV cache is the whole history.</p>
+        <div class="status-pills"><span class="bad">Copy-bound · 52%</span><span>Total · Unknown</span><span>Hot stage · KV stream</span></div>
+        <div class="metrics five">
+          <div class="metric"><div class="k">SPEED</div><div class="v grey">—</div><div class="d">not captured</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">Unknown</div><div class="d">pending nsys</div></div>
+          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
+          <div class="metric"><div class="k">DOMINANT</div><div class="v">Copy 52%</div><div class="d">est. split</div></div>
+          <div class="metric"><div class="k">HOT STAGE</div><div class="v">KV stream</div><div class="d">grows with L</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Stage shares = est. of total</span></div>
+          <div class="pipe-scroll"><div class="pipe">
+            <div class="stage"><div class="sk">IN</div><div class="sn">Hidden state</div><div class="sd">1 row + KV cache [L, d].</div><div class="st">—</div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">01 · LAUNCH</div><div class="sn">QKV project</div><div class="sd">Skinny GEMM, m=1.</div><div class="st">~11%</div><div class="bar"><i style="width:11%;background:var(--launch)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip on-launch"><div class="ck">LAUNCH</div><div class="cv">11%</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">02 · COPY</div><div class="sn">KV append</div><div class="sd">Write k_new / v_new, 2 rows.</div><div class="st">~5%</div><div class="bar"><i style="width:5%;background:var(--copy)"></i></div><div class="chips"><div class="chip on-copy"><div class="ck">COPY</div><div class="cv">5%</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage hot"><div class="sk">03 · COPY · HOT</div><div class="sn">KV stream</div><div class="sd">2 × L × d × 2 B re-read per token.</div><div class="st">~47%</div><div class="bar"><i style="width:47%;background:var(--copy)"></i></div><div class="chips"><div class="chip on-copy"><div class="ck">COPY</div><div class="cv">47%</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">04 · COMPUTE</div><div class="sn">Attn math</div><div class="sd">q·K^T → softmax → Σ p·V.</div><div class="st">~15%</div><div class="bar"><i style="width:15%;background:var(--compute)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip on-compute"><div class="ck">COMP</div><div class="cv">15%</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">05 · WAIT</div><div class="sn">Merge partials</div><div class="sd">Reduction waits on the slowest block.</div><div class="st">~22%</div><div class="bar"><i style="width:22%;background:var(--wait)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip on-wait"><div class="ck">WAIT</div><div class="cv">22%</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">OUT</div><div class="sn">Attn output</div><div class="sd">1 row.</div><div class="st">—</div></div>
+          </div></div>
+        </div>
+        <div class="card sol-block">
+          <div class="card-head"><span class="card-title"><span class="btag copy">SOLUTIONS</span>&nbsp; What to optimize next</span></div>
+          <p class="why"><b>Why:</b> every token re-streams the entire KV cache — the read grows with L, the math does not.</p>
+          <div class="do-grid">
+            <div><div class="do-h">DO THIS</div><ol class="do-list">
+              <li>Split-KV (Flash-Decoding) — split L across blocks, stream in parallel.</li>
+              <li>Paged KV layout — appends O(1), reads sequential.</li>
+              <li>FP8 KV cache — halves the stream, same gate as bf16 step 3.</li>
+              <li>CUDA Graph — the step repeats identically per token.</li>
+            </ol></div>
+            <div><div class="do-h">DO NOT</div><ul class="dont-list">
+              <li>Do not tune the attention math — it is 15%.</li>
+              <li>Do not split L without online softmax — partials will not merge.</li>
+            </ul></div>
+          </div>
+          <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
+          <table class="stable">
+            <thead><tr><th>#</th><th>BOTTLENECK</th><th>ROOT CAUSE</th><th>FIX · CODE / KERNEL</th><th>SAVES</th><th>VERIFY</th></tr></thead>
+            <tbody>
+              <tr><td class="ord" data-l="#">1</td><td data-l="Bottleneck"><b>KV stream</b> · ~47% of total</td><td data-l="Root cause">Whole KV cache re-read per token; read grows with L, math does not.</td><td data-l="Fix">Split-KV (Flash-Decoding): partition L across blocks so the stream runs in parallel, not serially.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">DRAM bytes / token · stream stage share ↓</td></tr>
+              <tr><td class="ord" data-l="#">2</td><td data-l="Bottleneck"><b>Merge partials</b> · ~22% · Wait</td><td data-l="Root cause">Serial reduction waits on the slowest Split-KV block.</td><td data-l="Fix">Two-stage merge with log-sum-exp rescale (online softmax); small persistent merge kernel.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">Wait share ↓ · output matches single-block result</td></tr>
+              <tr><td class="ord" data-l="#">3</td><td data-l="Bottleneck"><b>KV bytes</b> · inside the ~47%</td><td data-l="Root cause">KV stored in BF16 — 2 B per element streamed every token.</td><td data-l="Fix">FP8 KV cache with per-head scales; dequantize on load. Gated on the same error check as bf16 step 3.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">bytes / token halved · attn error ≤ tol</td></tr>
+              <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>KV append</b> · ~5% · Copy</td><td data-l="Root cause">Scattered appends break coalescing on the next read.</td><td data-l="Fix">Paged KV layout: fixed-size pages, append writes only the last page, reads stay sequential.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">append kernel time · read coalescing in ncu</td></tr>
+              <tr><td class="ord" data-l="#">5</td><td data-l="Bottleneck"><b>QKV launch</b> · ~11% · Launch</td><td data-l="Root cause">Skinny m=1 projections launched separately, every token.</td><td data-l="Fix">Fuse QKV into one skinny GEMM; replay the whole step as a CUDA Graph.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">launches / token ↓ · nsys gaps → ~0</td></tr>
+            </tbody>
+          </table>
+          <p class="card-hint" style="margin:10px 0 0">Total time is Unknown, so saves stay Unknown — shares are estimates, not measurements.</p>
+        </div>
+      </section>
+
+      <!-- ================= MOE_W4A16 ================= -->
+      <section class="view is-hidden" data-view-panel="moe">
+        <div class="d-title">moe_w4a16</div>
+        <p class="d-sub">Mixture of Experts · W4 weights · A16 activations · top-k routing.</p>
+        <div class="status-pills"><span class="bad">Copy-bound · 48%</span><span>Total · Unknown</span><span>Hot stage · Dequant</span></div>
+        <div class="metrics five">
+          <div class="metric"><div class="k">SPEED</div><div class="v grey">—</div><div class="d">not captured</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">Unknown</div><div class="d">pending nsys</div></div>
+          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
+          <div class="metric"><div class="k">DOMINANT</div><div class="v">Copy 48%</div><div class="d">est. split</div></div>
+          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Dequant</div><div class="d">W4 → BF16 pass</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Stage shares = est. of total</span></div>
+          <div class="pipe-scroll"><div class="pipe">
+            <div class="stage"><div class="sk">IN</div><div class="sn">Token rows</div><div class="sd">[m, d] + expert weights, 4-bit packed.</div><div class="st">—</div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">01 · LAUNCH</div><div class="sn">Router + top-k</div><div class="sd">Score experts, pick top-k.</div><div class="st">~6%</div><div class="bar"><i style="width:6%;background:var(--launch)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip on-launch"><div class="ck">LAUNCH</div><div class="cv">6%</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">02 · COPY</div><div class="sn">Gather</div><div class="sd">Group tokens by expert. Pure permutation.</div><div class="st">~10%</div><div class="bar"><i style="width:10%;background:var(--copy)"></i></div><div class="chips"><div class="chip on-copy"><div class="ck">COPY</div><div class="cv">10%</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage hot"><div class="sk">03 · COPY · HOT</div><div class="sn">Load + dequant</div><div class="sd">Separate pass = one full extra HBM round trip.</div><div class="st">~38%</div><div class="bar"><i style="width:38%;background:var(--copy)"></i></div><div class="chips"><div class="chip on-copy"><div class="ck">COPY</div><div class="cv">38%</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">04 · COMPUTE</div><div class="sn">Grouped GEMM</div><div class="sd">One block per expert — ragged sizes.</div><div class="st">~22%</div><div class="bar"><i style="width:22%;background:var(--compute)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip on-compute"><div class="ck">COMP</div><div class="cv">22%</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">05 · WAIT</div><div class="sn">Combine</div><div class="sd">Weighted sum, scatter back. Waits on slowest expert.</div><div class="st">~24%</div><div class="bar"><i style="width:24%;background:var(--wait)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip on-wait"><div class="ck">WAIT</div><div class="cv">24%</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">OUT</div><div class="sn">Combined output</div><div class="sd">[m, d].</div><div class="st">—</div></div>
+          </div></div>
+        </div>
+        <div class="card sol-block">
+          <div class="card-head"><span class="card-title"><span class="btag copy">SOLUTIONS</span>&nbsp; What to optimize next</span></div>
+          <p class="why"><b>Why:</b> dequantized weights round-trip through HBM — the biggest tensor pays the toll twice.</p>
+          <div class="do-grid">
+            <div><div class="do-h">DO THIS</div><ol class="do-list">
+              <li>Dequantize on load — unpack inside the GEMM, never a separate pass.</li>
+              <li>Load selected experts only — non-top-k reads are pure waste.</li>
+              <li>Grouped GEMM with per-group tiles — skinny for small groups, Split-K for large.</li>
+              <li>Fuse combine into the GEMM epilogue.</li>
+            </ol></div>
+            <div><div class="do-h">DO NOT</div><ul class="dont-list">
+              <li>Do not materialize BF16 weights in HBM.</li>
+              <li>Do not balance experts before fixing the dequant pass.</li>
+            </ul></div>
+          </div>
+          <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
+          <table class="stable">
+            <thead><tr><th>#</th><th>BOTTLENECK</th><th>ROOT CAUSE</th><th>FIX · CODE / KERNEL</th><th>SAVES</th><th>VERIFY</th></tr></thead>
+            <tbody>
+              <tr><td class="ord" data-l="#">1</td><td data-l="Bottleneck"><b>Load + dequant</b> · ~38% · Copy</td><td data-l="Root cause">Dequant is a separate pass — BF16 weights round-trip through HBM before the GEMM reads them again.</td><td data-l="Fix">Unpack W4 → BF16 in registers inside the GEMM load, per-block scales; load top-k experts only.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">dequant kernel gone from nsys · HBM bytes ↓</td></tr>
+              <tr><td class="ord" data-l="#">2</td><td data-l="Bottleneck"><b>Grouped GEMM</b> · ~22% · Compute</td><td data-l="Root cause">Ragged group sizes — one block per expert underfills the SMs.</td><td data-l="Fix">Grouped GEMM with per-group tile config: skinny tiles for small groups, Split-K for large ones.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">ncu SM occupancy per group ↑</td></tr>
+              <tr><td class="ord" data-l="#">3</td><td data-l="Bottleneck"><b>Combine</b> · ~24% · Wait</td><td data-l="Root cause">Weighted sum waits on the slowest expert; routing is imbalanced.</td><td data-l="Fix">Fuse the weighted combine into the GEMM epilogue; schedule experts largest-first.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">tail-expert time · Wait share ↓</td></tr>
+              <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>Gather</b> · ~10% · Copy</td><td data-l="Root cause">Tokens are physically copied into expert order before the GEMM.</td><td data-l="Fix">Index-only gather: the GEMM reads tokens through an index array — no physical copy.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">gather kernel time → 0</td></tr>
+            </tbody>
+          </table>
+          <p class="card-hint" style="margin:10px 0 0">Total time is Unknown, so saves stay Unknown — shares are estimates, not measurements.</p>
+        </div>
+      </section>
+
+      <!-- ================= DECODE_LAYER ================= -->
+      <section class="view is-hidden" data-view-panel="declayer">
+        <div class="d-title">decode_layer</div>
+        <p class="d-sub">1 full layer · decode · ~8 small kernels in series · 1 token wide.</p>
+        <div class="status-pills"><span class="bad">Launch · ~18% in gaps</span><span>Per-stage shares · Unknown</span><span>Hot stage · Gaps</span></div>
+        <div class="metrics five">
+          <div class="metric"><div class="k">SPEED</div><div class="v grey">—</div><div class="d">not captured</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">Unknown</div><div class="d">pending nsys</div></div>
+          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
+          <div class="metric"><div class="k">DOMINANT</div><div class="v">Copy 34%</div><div class="d">est. · inherited</div></div>
+          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Gaps</div><div class="d">between kernels</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Shares Unknown — structure only, not measured</span></div>
+          <div class="pipe-scroll"><div class="pipe">
+            <div class="stage"><div class="sk">IN</div><div class="sn">Hidden state</div><div class="sd">1 row in, 1 row out.</div><div class="st">—</div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">01 · LAUNCH</div><div class="sn">RMSNorm</div><div class="sd">Microseconds of math, full launch cost.</div><div class="st">—</div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip on-launch"><div class="ck">LAUNCH</div><div class="cv">hot</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">02 · COPY</div><div class="sn">Attention block</div><div class="sd">Contains the KV-stream bottleneck, unchanged.</div><div class="st">—</div><div class="chips"><div class="chip on-copy"><div class="ck">COPY</div><div class="cv">hot</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">03 · LAUNCH</div><div class="sn">Residual add</div><div class="sd">One vector add as its own kernel.</div><div class="st">—</div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip on-launch"><div class="ck">LAUNCH</div><div class="cv">hot</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">04 · MIXED</div><div class="sn">Norm + MoE block</div><div class="sd">Launch-heavy norm, then the MoE flow.</div><div class="st">—</div><div class="chips"><div class="chip on-copy"><div class="ck">COPY</div><div class="cv">hot</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip on-launch"><div class="ck">LAUNCH</div><div class="cv">hot</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage hot"><div class="sk">05 · LAUNCH · HOT</div><div class="sn">Residual + all gaps</div><div class="sd">Summed gaps = largest slice owned by no kernel.</div><div class="st">~18%</div><div class="bar"><i style="width:18%;background:var(--launch)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip on-launch"><div class="ck">LAUNCH</div><div class="cv">18%</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">OUT</div><div class="sn">Hidden state</div><div class="sd">1 row → next layer.</div><div class="st">—</div></div>
+          </div></div>
+        </div>
+        <div class="card sol-block">
+          <div class="card-head"><span class="card-title"><span class="btag copy">SOLUTIONS</span>&nbsp; What to optimize next</span></div>
+          <p class="why"><b>Why:</b> the layer is a chain of tiny kernels — the seams cost more than several of the kernels.</p>
+          <div class="do-grid">
+            <div><div class="do-h">DO THIS</div><ol class="do-list">
+              <li>CUDA Graph the whole layer — one capture, one replay per token.</li>
+              <li>Fuse norms + residuals into neighboring GEMM epilogues.</li>
+              <li>Then apply the attention and MoE fixes inside their blocks.</li>
+            </ol></div>
+            <div><div class="do-h">DO NOT</div><ul class="dont-list">
+              <li>Do not optimize blocks one by one before killing the gaps.</li>
+              <li>Do not leave a standalone residual kernel alive.</li>
+            </ul></div>
+          </div>
+          <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
+          <table class="stable">
+            <thead><tr><th>#</th><th>BOTTLENECK</th><th>ROOT CAUSE</th><th>FIX · CODE / KERNEL</th><th>SAVES</th><th>VERIFY</th></tr></thead>
+            <tbody>
+              <tr><td class="ord" data-l="#">1</td><td data-l="Bottleneck"><b>Kernel gaps</b> · ~18% · Launch</td><td data-l="Root cause">~8 small kernels in series; the gaps between them belong to no kernel.</td><td data-l="Fix">Capture the whole layer as one CUDA Graph; replay once per token (extends the harness's per-region graph).</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">nsys summed inter-kernel gap → ~0</td></tr>
+              <tr><td class="ord" data-l="#">2</td><td data-l="Bottleneck"><b>Micro-kernels</b> · share Unknown</td><td data-l="Root cause">RMSNorm and residual add run as standalone kernels — µs of math, full launch cost each.</td><td data-l="Fix">Fuse norm + residual into the neighbouring GEMM epilogue and attention prologue.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">kernels per layer ↓ in nsys</td></tr>
+              <tr><td class="ord" data-l="#">3</td><td data-l="Bottleneck"><b>Attention block</b> · share Unknown</td><td data-l="Root cause">Contains the KV-stream bottleneck (~47% inside its own problem), unchanged.</td><td data-l="Fix">Apply the attention_decode fixes inside the block: Split-KV first, FP8 KV when gated through.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">block time in nsys, before vs after</td></tr>
+              <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>MoE block</b> · share Unknown</td><td data-l="Root cause">Contains the dequant round trip (~38% inside its own problem), unchanged.</td><td data-l="Fix">Apply the moe fix inside the block: dequantize in-register during the GEMM load.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">block time in nsys · dequant kernel gone</td></tr>
+            </tbody>
+          </table>
+          <p class="card-hint" style="margin:10px 0 0">Per-stage shares are Unknown, so saves stay Unknown — structure is certain, proportions are not measured.</p>
+        </div>
+      </section>
+
+      <!-- ================= PREFILL_LAYER ================= -->
+      <section class="view is-hidden" data-view-panel="prelayer">
+        <div class="d-title">prefill_layer</div>
+        <p class="d-sub">1 full layer · prefill · whole prompt at once · large m.</p>
+        <div class="status-pills"><span class="good">Healthy · compute-bound</span><span>Per-stage shares · Unknown</span><span>Hot stage · Attention</span></div>
+        <div class="metrics five">
+          <div class="metric"><div class="k">SPEED</div><div class="v grey">—</div><div class="d">not captured</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">Unknown</div><div class="d">pending nsys</div></div>
+          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
+          <div class="metric"><div class="k">DOMINANT</div><div class="v teal">Compute 52%</div><div class="d">est. split</div></div>
+          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Attention</div><div class="d">the healthy kind</div></div>
+        </div>
+        <div class="card">
+          <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Shares Unknown — structure only, not measured</span></div>
+          <div class="pipe-scroll"><div class="pipe">
+            <div class="stage"><div class="sk">IN</div><div class="sn">Prompt tokens</div><div class="sd">[L, d] — hundreds of rows.</div><div class="st">—</div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">01 · COMPUTE</div><div class="sn">Embed + RMSNorm</div><div class="sd">Launches amortized at this size.</div><div class="st">—</div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip on-compute"><div class="ck">COMP</div><div class="cv">hot</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage good"><div class="sk">02 · COMPUTE · HOT</div><div class="sn">Prefill attention</div><div class="sd">L × L scores — Tensor Cores actually busy.</div><div class="st">—</div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip on-compute"><div class="ck">COMP</div><div class="cv">hot</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">03 · COMPUTE</div><div class="sn">MLP / MoE block</div><div class="sd">All positions at once — imbalance diluted.</div><div class="st">—</div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip on-compute"><div class="ck">COMP</div><div class="cv">hot</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">04 · COPY</div><div class="sn">KV cache write</div><div class="sd">2 × L × d × 2 B, written once — decode reads it forever.</div><div class="st">—</div><div class="chips"><div class="chip on-copy"><div class="ck">COPY</div><div class="cv">hot</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip"><div class="ck">LAUNCH</div><div class="cv">—</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">05 · LAUNCH</div><div class="sn">Residuals + norm</div><div class="sd">~10% of layer, mostly hidden behind big kernels.</div><div class="st">~10%</div><div class="bar"><i style="width:10%;background:var(--launch)"></i></div><div class="chips"><div class="chip"><div class="ck">COPY</div><div class="cv">—</div></div><div class="chip"><div class="ck">COMP</div><div class="cv">—</div></div><div class="chip"><div class="ck">WAIT</div><div class="cv">—</div></div><div class="chip on-launch"><div class="ck">LAUNCH</div><div class="cv">10%</div></div></div></div>
+            <div class="pipe-arr">→</div>
+            <div class="stage"><div class="sk">OUT</div><div class="sn">Layer output</div><div class="sd">[L, d] + KV cache ready.</div><div class="st">—</div></div>
+          </div></div>
+        </div>
+        <div class="card sol-block">
+          <div class="card-head"><span class="card-title"><span class="btag copy">SOLUTIONS</span>&nbsp; What to optimize next</span></div>
+          <p class="why"><b>Why:</b> the only compute-bound problem of the five — classic tuning actually applies here.</p>
+          <div class="do-grid">
+            <div><div class="do-h">DO THIS</div><ol class="do-list">
+              <li>FlashAttention tiling — keep L × L in SRAM, never HBM.</li>
+              <li>Classic GEMM tuning — tile size + pipeline depth.</li>
+              <li>Write KV in decode-friendly layout — paged, contiguous per head.</li>
+            </ol></div>
+            <div><div class="do-h">DO NOT</div><ul class="dont-list">
+              <li>Do not copy the decode playbook here — different disease.</li>
+              <li>Do not Split-K by default — tiles already fill.</li>
+            </ul></div>
+          </div>
+          <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
+          <table class="stable">
+            <thead><tr><th>#</th><th>BOTTLENECK</th><th>ROOT CAUSE</th><th>FIX · CODE / KERNEL</th><th>SAVES</th><th>VERIFY</th></tr></thead>
+            <tbody>
+              <tr><td class="ord" data-l="#">1</td><td data-l="Bottleneck"><b>Prefill attention</b> · hot · share Unknown</td><td data-l="Root cause">L × L scores spill to HBM if materialized — the one real compute load of the five.</td><td data-l="Fix">FlashAttention tiling: block Q/K/V through SRAM with online softmax; never write the L × L matrix.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">HBM traffic ↓ · Tensor Core util ↑</td></tr>
+              <tr><td class="ord" data-l="#">2</td><td data-l="Bottleneck"><b>MLP / MoE GEMMs</b> · share Unknown</td><td data-l="Root cause">Default tile sizes are not tuned for large m.</td><td data-l="Fix">GEMM tuning (M07): 128-row tiles, deeper pipeline stages, tile size matched to m.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">GEMM TFLOPS vs peak in ncu</td></tr>
+              <tr><td class="ord" data-l="#">3</td><td data-l="Bottleneck"><b>KV cache write</b> · share Unknown · Copy</td><td data-l="Root cause">Written in prefill's layout — decode then re-reads it every token, forever.</td><td data-l="Fix">Write KV paged and contiguous per head at write time — decode's layout, chosen once here.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">decode KV read time in its own profile</td></tr>
+              <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>Residuals + norm</b> · ~10% · Launch</td><td data-l="Root cause">Separate small kernels — mostly hidden behind big kernels, but real.</td><td data-l="Fix">Fuse residuals + norm into GEMM epilogues.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">kernels per layer ↓ in nsys</td></tr>
+            </tbody>
+          </table>
+          <p class="card-hint" style="margin:10px 0 0">Per-stage shares are Unknown, so saves stay Unknown — the healthy problem gets tuning, not surgery.</p>
+        </div>
+      </section>
+
+    </div>
+    <script>
+      (function(){
+        "use strict";
+        var tabs = document.querySelectorAll(".tabs button");
+        function show(key){
+          tabs.forEach(function(b){ b.setAttribute("aria-pressed", b.getAttribute("data-view") === key ? "true" : "false"); });
+          document.querySelectorAll("[data-view-panel]").forEach(function(p){
+            p.classList.toggle("is-hidden", p.getAttribute("data-view-panel") !== key);
+          });
+          window.scrollTo(0,0);
+        }
+        tabs.forEach(function(b){ b.addEventListener("click", function(){ show(b.getAttribute("data-view")); }); });
+        document.querySelectorAll("[data-open]").forEach(function(r){
+          r.addEventListener("click", function(){ show(r.getAttribute("data-open")); });
+        });
+        document.querySelectorAll("[data-method]").forEach(function(btn){
+          btn.addEventListener("click", function(){
+            var panel = document.getElementById("panel-" + btn.getAttribute("data-method"));
+            var item = btn.closest(".mitem");
+            var willOpen = panel.hidden;
+            document.querySelectorAll(".mpanel").forEach(function(p){ p.hidden = true; });
+            document.querySelectorAll("[data-method]").forEach(function(b){ b.setAttribute("aria-expanded","false"); });
+            document.querySelectorAll(".mitem").forEach(function(it){ it.classList.remove("open"); });
+            if (willOpen){
+              panel.hidden = false;
+              btn.setAttribute("aria-expanded","true");
+              if (item) item.classList.add("open");
+            }
+          });
+        });
+      })();
+    </script>
+  </body>
+</html>

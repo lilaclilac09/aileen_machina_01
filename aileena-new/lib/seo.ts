@@ -33,6 +33,7 @@ export const STATIC_PATHS = [
   '/updates',
   '/doors',
   '/prophecy',
+  '/nsight',
 ];
 
 export const BLOG_SECTIONS = ['researchDispatch', 'investing', 'womanInTech', 'marsAndMoon'] as const;
