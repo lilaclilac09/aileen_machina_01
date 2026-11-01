@@ -225,6 +225,8 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '23OBmlZUnRpatDl4q2RoIQ', title: 'Absolutely', artist: 'Klein Zage', album: 'Womanhood EP', bpm: 130, key: '11A', dur: 241, thumb: '/dj-set/assets/covers/womanhood-ep.jpg' },
   { id: '1KrJHAYW5IomyHw7ly8Bdd', title: 'Vertigo', artist: 'U2', album: 'How To Dismantle An Atomic Bomb', bpm: 140, key: '10A', dur: 194, thumb: '/dj-set/assets/covers/vertigo.jpg' },
   { id: '1JNsKjaCFgTxjP3EkKfYZo', title: 'LOOP (feat. Lil Cherry)', artist: 'Yves', bpm: 127, key: '4A', dur: 163, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02dff9c2cc0dfcc7271897679f' },
+  { id: '2JpAVv75QD6hRrpNm0Zr5h', title: 'Do Better', artist: 'sunkis', bpm: 89, key: '4A', dur: 180, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02565ad93bbed9099ff19df22d' },
+  { id: '2lqtPgqjXOGgXDIc3Tv553', title: 'Temporary Love', artist: 'sunkis', album: 'Parachute', bpm: 118, key: '7B', dur: 196, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e024135d4fa5765d9e722bcca0f' },
 ];
 
 /** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */
