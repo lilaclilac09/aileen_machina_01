@@ -250,7 +250,7 @@
         <div class="principle">
           <div class="pk">OPTIMIZATION DIRECTION</div>
           <h2>Asynchronous execution is the first real shift</h2>
-          <p>Hopper-style path: decouple request from completion. <b>Advance the schedule</b> — start the next tile / KV / weight stream before the current math finishes — so profiling (nsys) and decode stop sitting in sync bubbles. Measure to find the gaps; fix by overlapping, not by chasing GFLOPS.</p>
+          <p>Hopper-style path: decouple request from completion. <b>Advance the schedule</b> — start the next tile / KV / weight stream before the current math finishes — so profiling (nsys) and decode stop sitting in sync bubbles. Measure to find the gaps; fix by overlapping, not by chasing GFLOPS. Accept only when peak memory, step latency, and end-to-end progress all move the right way — one resource saved is not enough.</p>
         </div>
 
         <!-- LEVEL 1 · THE SOLUTION -->
@@ -277,7 +277,9 @@
             <div class="feed-row"><span class="fv">P2</span><span class="ft">attention_decode · KV stream</span><span class="fd">issue next KV copy before QK/V math finishes · cut copy-bound ~52%</span><span class="fm">decode</span></div>
             <div class="feed-row"><span class="fv">P3</span><span class="ft">decode_layer · launch gaps</span><span class="fd">CUDA Graph + fused ops · schedule ops ahead so ~18% Launch idle shrinks</span><span class="fm">decode</span></div>
             <div class="feed-row"><span class="fv">P4</span><span class="ft">Fill the schedule</span><span class="fd">Split-K / skinny tiles so SMs have work while copies fly — math is support, not the goal</span><span class="fm">tiles</span></div>
-            <div class="feed-row"><span class="fv">P5</span><span class="ft">Verify</span><span class="fd">nsys: Wait↓ Launch↓ overlap↑ · ncu only after timeline is clean</span><span class="fm">accept</span></div>
+              <div class="feed-row"><span class="fv">IO</span><span class="ft">Track data, not just FLOPs</span><span class="fd">Like FlashAttention: math can stay quadratic — wins often come from moves, reuse, and not writing intermediates to HBM. Trace where bytes are born, reused, and can stay on-chip.</span><span class="fm">paper</span></div>
+          <div class="feed-row"><span class="fv">P5</span><span class="ft">Verify</span><span class="fd">nsys: Wait↓ Launch↓ overlap↑ · ncu only after timeline is clean</span><span class="fm">accept</span></div>
+            <div class="feed-row"><span class="fv">P6</span><span class="ft">Multi-constraint accept</span><span class="fd">Record peak memory, step time, and full progress together — a memory win that slows the step (or a FLOPs win that blows IO) is not a win. Recompute-vs-store must clear the real config, not one metric.</span><span class="fm">tradeoff</span></div>
           </div>
         </div>
 
