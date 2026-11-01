@@ -227,6 +227,7 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '1JNsKjaCFgTxjP3EkKfYZo', title: 'LOOP (feat. Lil Cherry)', artist: 'Yves', bpm: 127, key: '4A', dur: 163, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02dff9c2cc0dfcc7271897679f' },
   { id: '2JpAVv75QD6hRrpNm0Zr5h', title: 'Do Better', artist: 'sunkis', bpm: 89, key: '4A', dur: 180, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02565ad93bbed9099ff19df22d' },
   { id: '2lqtPgqjXOGgXDIc3Tv553', title: 'Temporary Love', artist: 'sunkis', album: 'Parachute', bpm: 118, key: '7B', dur: 196, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e024135d4fa5765d9e722bcca0f' },
+  { id: '4XZ77HZq0P7S1NLKqRJ9ml', title: "SAINT LAURENT WOMEN'S WINTER 22", artist: 'SebastiAn', album: 'SAINT LAURENT SHOWS', bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ea7ad4dd0dbe9ac9e0a7752f' },
 ];
 
 /** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */
