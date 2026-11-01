@@ -130,6 +130,13 @@ function ToolCover({
             </div>
           ) : null}
           {tool.slug === 'chip-guess' ? <div className="tools-lab-die" /> : null}
+          {tool.slug === 'nsight' ? (
+            <div className="tools-lab-intent">
+              <span>IN</span>
+              <span>STAGES</span>
+              <span>OUT</span>
+            </div>
+          ) : null}
           {tool.slug === 'tamper-check' ? (
             <div className="tools-lab-scale">
               <span>REF 31.40 g</span>
