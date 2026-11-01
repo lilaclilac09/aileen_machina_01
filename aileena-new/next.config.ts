@@ -52,8 +52,6 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
-        { source: "/nsight", destination: "/nsight.html" },
-        { source: "/nsight/", destination: "/nsight.html" },
         {
           source: "/",
           has: [{ type: "host", value: "app.ks.aileena.xyz" }],
