@@ -207,6 +207,11 @@
       .mini-list{margin:0;padding:0;list-style:none;font-size:13px;display:grid;gap:6px;color:var(--ink2)}
       .mini-list b{color:var(--ink);font-family:var(--mono);font-size:12.5px}
       footer{font-size:12px;color:var(--ink3);margin-top:22px}
+      .principle{border:1px solid var(--ink);padding:14px 16px;margin:0 0 18px;background:#fff}
+      .principle .pk{font-size:11px;letter-spacing:.08em;font-weight:700;color:var(--ink3);margin-bottom:6px}
+      .principle h2{font-size:18px;margin:0 0 8px;letter-spacing:.02em;line-height:1.25}
+      .principle p{margin:0;font-size:13.5px;color:var(--ink2);line-height:1.45}
+      .principle p b{color:var(--ink)}
       a{color:var(--ink);text-decoration:underline;text-underline-offset:2px}
       a:hover{color:var(--ink2)}
       .mini-list a{font-family:inherit;font-size:13px;font-weight:500}
@@ -239,21 +244,27 @@
       <!-- ================= OVERVIEW ================= -->
       <section class="view" data-view-panel="overview">
         <h1>Where time goes in the pipeline</h1>
-        <p class="sub">One problem matters first: <b>bf16_proj</b> — decode is stuck on the memory wall, not on math.</p>
+        <p class="sub">One problem matters first: <b>bf16_proj</b> — decode is stuck on the memory wall, not on math. Optimization direction: <b>asynchronous execution</b> — schedule work ahead so copies overlap compute.</p>
         <div class="meta-pills"><span>H200 · 132 SMs</span><span>Shares = model estimates, not measured</span><span>Deadline · Nov 4 PT</span></div>
+
+        <div class="principle">
+          <div class="pk">OPTIMIZATION DIRECTION</div>
+          <h2>Asynchronous execution is the first real shift</h2>
+          <p>Hopper-style path: decouple request from completion. <b>Advance the schedule</b> — start the next tile / KV / weight stream before the current math finishes — so profiling (nsys) and decode stop sitting in sync bubbles. Measure to find the gaps; fix by overlapping, not by chasing GFLOPS.</p>
+        </div>
 
         <!-- LEVEL 1 · THE SOLUTION -->
         <div class="card sol-card">
-          <div class="sol-kicker">THE SOLUTION · BF16_PROJ · IN ORDER</div>
+          <div class="sol-kicker">THE SOLUTION · ASYNC-FIRST · BF16_PROJ + DECODE</div>
           <div class="sol-nums"><span class="from">4.599</span><span class="arr">→</span><span class="to">2.92</span><span class="unit">ms · current → leader</span></div>
-          <p class="sol-sub">Cut <b>1.679 ms (−36.5%)</b> · if the FP8 gate fails, realistic landing is <b>3.4–3.7 ms</b>.</p>
+          <p class="sol-sub">Cut <b>1.679 ms (−36.5%)</b> · schedule ahead for the memory wall · if the FP8 gate fails, realistic landing is <b>3.4–3.7 ms</b>.</p>
           <ol class="sol-steps">
-            <li><span class="sol-no">1</span><div><span class="sol-step-t">Measure first</span> <span class="sol-step-d">— nsys + ncu. No guessing.</span></div><span class="sol-tag">FIRST</span></li>
-            <li><span class="sol-no">2</span><div><span class="sol-step-t">Skinny GEMM + adaptive Split-K</span> <span class="sol-step-d">— fill all 132 SMs at small m.</span></div><span class="sol-tag">18 → 100+ TILES</span></li>
-            <li><span class="sol-no">3</span><div><span class="sol-step-t">FP8 precision gate</span> <span class="sol-step-d">— hi+lo error must pass tolerance before step 4.</span></div><span class="sol-tag warn">GATE</span></li>
-            <li><span class="sol-no">4</span><div><span class="sol-step-t">Single-FP8 weight reads</span> <span class="sol-step-d">— halve the bytes streamed.</span></div><span class="sol-tag">188 → 94 MiB</span></li>
-            <li><span class="sol-no">5</span><div><span class="sol-step-t">Router fusion + CUDA Graph</span> <span class="sol-step-d">— one kernel, x read once, launches replayed.</span></div><span class="sol-tag">−2 PASSES</span></li>
-            <li><span class="sol-no">6</span><div><span class="sol-step-t">Prefetch + WGMMA / TMA</span> <span class="sol-step-d">— only if ncu shows DRAM saturated, SMs idle.</span></div><span class="sol-tag warn">ONLY IF PROVEN</span></li>
+            <li><span class="sol-no">1</span><div><span class="sol-step-t">Async-first principle</span> <span class="sol-step-d">— treat overlap as the goal; sync copies and late launches are the bug.</span></div><span class="sol-tag">DIRECTION</span></li>
+            <li><span class="sol-no">2</span><div><span class="sol-step-t">Measure the gaps</span> <span class="sol-step-d">— nsys timeline + ncu: where warps wait, where schedule is empty.</span></div><span class="sol-tag">NSYS</span></li>
+            <li><span class="sol-no">3</span><div><span class="sol-step-t">Advance schedule / prefetch plan</span> <span class="sol-step-d">— pipeline stages for bf16_proj + decode (KV / Stream): load n+1 while n computes.</span></div><span class="sol-tag">DECODE</span></li>
+            <li><span class="sol-no">4</span><div><span class="sol-step-t">Skinny GEMM + adaptive Split-K</span> <span class="sol-step-d">— fill all 132 SMs at small m so the schedule has work.</span></div><span class="sol-tag">18 → 100+ TILES</span></li>
+            <li><span class="sol-no">5</span><div><span class="sol-step-t">FP8 gate → single-FP8 reads</span> <span class="sol-step-d">— cut bytes on the wall once precision passes.</span></div><span class="sol-tag warn">GATE</span></li>
+            <li><span class="sol-no">6</span><div><span class="sol-step-t">Router fusion + CUDA Graph + TMA/WGMMA</span> <span class="sol-step-d">— fewer launches, hardware async movement when ncu shows DRAM saturated / SMs idle.</span></div><span class="sol-tag">OVERLAP</span></li>
           </ol>
         </div>
 
@@ -269,13 +280,12 @@
         <div class="card">
           <div class="card-head"><span class="card-title">Time path · bf16_proj · 4.599 → 2.92 ms</span><span class="card-hint">Saves = estimates until ncu confirms</span></div>
           <div>
-            <div class="tp-row"><span class="ts">—</span><span class="tt">Start · v4, measured</span><span class="tm run">4.599 ms</span></div>
-            <div class="tp-row"><span class="ts">2</span><span class="tt">Skinny GEMM + Split-K</span><span class="td2">tile tail 1.06 ms attacked</span><span class="tm">−0.55 · est.</span><span class="tm run">→ 4.05</span></div>
-            <div class="tp-row"><span class="ts">3</span><span class="tt">FP8 precision gate</span><span class="td2">decides step 4, saves nothing itself</span><span class="tm">−0.00</span><span class="tm run">→ 4.05</span></div>
-            <div class="tp-row"><span class="ts">4</span><span class="tt">Single-FP8 weight reads</span><span class="td2">stream 1.38 ms attacked</span><span class="tm">−0.60 · est.</span><span class="tm run">→ 3.45</span></div>
-            <div class="tp-row"><span class="ts">5</span><span class="tt">Router fusion + CUDA Graph</span><span class="td2">router pass + dispatch attacked</span><span class="tm">−0.30 · est.</span><span class="tm run">→ 3.15</span></div>
-            <div class="tp-row"><span class="ts">6</span><span class="tt">Prefetch + WGMMA / TMA</span><span class="td2">only if ncu proves it</span><span class="tm">−0.22 · est.</span><span class="tm run">→ ≈2.92 ✓</span></div>
-            <div class="tp-row fallback"><span class="ts">✕</span><span class="tt">If the FP8 gate fails</span><span class="td2">step 4 lost · steps 2 + 5 + 6 only</span><span class="tm">≈3.4–3.7 ms</span></div>
+            <div class="tp-row"><span class="ts">—</span><span class="tt">Start · v4, measured · sync-heavy schedule</span><span class="tm run">4.599 ms</span></div>
+            <div class="tp-row"><span class="ts">3</span><span class="tt">Advance schedule / prefetch (decode + proj)</span><span class="td2">hide copy behind compute</span><span class="tm">−0.35 · est.</span><span class="tm run">→ 4.25</span></div>
+            <div class="tp-row"><span class="ts">4</span><span class="tt">Skinny GEMM + Split-K</span><span class="td2">tile tail 1.06 ms attacked</span><span class="tm">−0.55 · est.</span><span class="tm run">→ 3.70</span></div>
+            <div class="tp-row"><span class="ts">5</span><span class="tt">FP8 gate → single-FP8 reads</span><span class="td2">stream bytes attacked</span><span class="tm">−0.55 · est.</span><span class="tm run">→ 3.15</span></div>
+            <div class="tp-row"><span class="ts">6</span><span class="tt">Fusion + Graph + TMA/WGMMA</span><span class="td2">launch gaps + hardware async</span><span class="tm">−0.23 · est.</span><span class="tm run">→ ≈2.92 ✓</span></div>
+            <div class="tp-row fallback"><span class="ts">✕</span><span class="tt">If the FP8 gate fails</span><span class="td2">keep async schedule + Split-K + fusion</span><span class="tm">≈3.4–3.7 ms</span></div>
           </div>
           <div class="do-h" style="margin-top:16px">TIMELINE</div>
           <div>
@@ -432,6 +442,7 @@
         <div class="card"><ul class="mini-list">
           <li><b>Nsight Systems</b> — <a href="https://developer.nvidia.com/nsight-systems" target="_blank" rel="noopener noreferrer">developer.nvidia.com/nsight-systems</a> · system + GPU + NVTX on one timeline; locate what warps wait on, not just GFLOPS.</li>
           <li><b>Nsight Systems · Tutorials</b> — <a href="https://developer.nvidia.com/nsight-systems/get-started#tutorials" target="_blank" rel="noopener noreferrer">get-started#tutorials</a> · NVIDIA walkthroughs on profiling, reading the timeline, and turning stalls into fix paths (the usual US/EU playbook: measure → bottleneck → solution).</li>
+          <li><b>CUDA H100 · Lesson 1 · Async</b> — <a href="https://cudacourseh100.github.io/pages/lesson-1.html#async" target="_blank" rel="noopener noreferrer">lesson-1.html#async</a> · “Asynchronous execution is the first real shift” — the optimization direction for this dashboard.</li>
           <li><b>CUDA H100 course · Visuals</b> — <a href="https://cudacourseh100.github.io/index.html#visuals" target="_blank" rel="noopener noreferrer">cudacourseh100.github.io/#visuals</a> · Hopper interactive labs (WGMMA, TMA, barriers, tile scheduler) for digging solution paths deeper.</li>
         </ul></div>
 
