@@ -27,7 +27,7 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-11-03T17:33:32.403Z -->
+<!-- profile:synced-at 2026-11-04T17:45:46.146Z -->
 <!-- profile:recently-updated:start -->
 * **[aileena.xyz](https://aileena.xyz) Console**: dried sage leaf bookmark on aileena read ridge, unique titles for /doors /updates /prophecy, and links stop at CJK/fullwidth punctuation and drop trailing punctuation.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
