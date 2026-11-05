@@ -151,7 +151,8 @@ async function iframeSrc(page: import('@playwright/test').Page, embedTestId: str
 }
 
 async function seekCover(page: import('@playwright/test').Page, trackId: string) {
-  for (let i = 0; i < 48; i++) {
+  // Carousel is newest-first; handoff tracks like RAINFR sit near the end as the library grows.
+  for (let i = 0; i < 96; i++) {
     if ((await activeCoverId(page)) === trackId) return;
     await advanceToNextCover(page);
   }
