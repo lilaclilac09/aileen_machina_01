@@ -1,9 +1,9 @@
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: 'OKC Explorer',
+  title: 'Open Kernel Challenge',
   description:
-    'Where time goes in the Muse kernel pipeline — Copy, Compute, Wait, and Launch per stage, with solutions under the hot path.',
+    'Increase bandwidth, reduce latency. Nsight Systems–style map of Muse kernels — system + GPU + NVTX together, so you see what warps wait on, not just GFLOPS.',
   alternates: { canonical: '/nsight' },
 };
 
@@ -20,7 +20,7 @@ export default function NsightPage() {
     >
       <iframe
         src="/nsight.html"
-        title="OKC Explorer"
+        title="Open Kernel Challenge"
         style={{ border: 0, width: '100%', height: '100%' }}
       />
     </div>

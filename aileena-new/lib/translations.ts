@@ -66,11 +66,11 @@ export const t = {
       labNote: 'Not every tool deserves to become a product. Some are just receipts from a workflow.',
       items: {
         nsight: {
-          tag: 'PERF',
-          title: 'OKC Explorer',
-          body: 'Where time goes in the Muse kernel pipeline — Copy, Compute, Wait, Launch per stage.',
-          why: 'Profile first. Guessing knobs without a bottleneck map wastes checks.',
-          verdict: 'IN → stages → OUT for each problem. Solutions sit under the hot stage.',
+          tag: 'BW/LAT',
+          title: 'OPEN KERNEL CHALLENGE',
+          body: 'Increase bandwidth, reduce latency. Nsight Systems–style map of Muse kernels — system + GPU + NVTX on one timeline, so you see what warps wait on, not just GFLOPS.',
+          why: 'Profile the memory wall and launch gaps first. GFLOPS alone hides warp stalls.',
+          verdict: 'IN → stages → OUT per problem. Solutions sit under the hot stage.',
           statusLabel: 'useful',
         },
         'inkling-clips': {
@@ -1303,11 +1303,11 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
       labNote: 'Nicht jedes Tool muss ein Produkt werden. Manche sind nur Belege aus einem Workflow.',
       items: {
         nsight: {
-          tag: 'PERF',
-          title: 'OKC Explorer',
-          body: 'Where time goes in the Muse kernel pipeline — Copy, Compute, Wait, Launch per stage.',
-          why: 'Profile first. Guessing knobs without a bottleneck map wastes checks.',
-          verdict: 'IN → stages → OUT for each problem. Solutions sit under the hot stage.',
+          tag: 'BW/LAT',
+          title: 'OPEN KERNEL CHALLENGE',
+          body: 'Increase bandwidth, reduce latency. Nsight Systems–style map of Muse kernels — system + GPU + NVTX on one timeline, so you see what warps wait on, not just GFLOPS.',
+          why: 'Profile the memory wall and launch gaps first. GFLOPS alone hides warp stalls.',
+          verdict: 'IN → stages → OUT per problem. Solutions sit under the hot stage.',
           statusLabel: 'useful',
         },
         'inkling-clips': {
