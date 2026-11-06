@@ -65,6 +65,14 @@ export const t = {
       verdictLabel: 'current verdict',
       labNote: 'Not every tool deserves to become a product. Some are just receipts from a workflow.',
       items: {
+        photoautomat: {
+          tag: 'BOOTH',
+          title: 'Photoautomat',
+          body: 'Allow camera. Swipe. Four-strip.',
+          why: 'Berlin booth interior. Live camera. No upload.',
+          verdict: 'Useful. Four shots, local print only.',
+          statusLabel: 'useful',
+        },
         nsight: {
           tag: 'PERF',
           title: 'OKC Explorer',
@@ -484,6 +492,20 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         hear: 'hear',
         miss: 'This sentence does not open a door. Site questions stay on the console.',
         disclaimer: 'Beck, Linehan, and Herman are maps, not a license. One school, one book. This is not therapy and not a prescription.',
+      },
+      photoAutomat: {
+        tag: 'PHOTOAUTOMAT',
+        heading: 'Photoautomat',
+        body: 'Allow camera. Swipe. Four-strip.',
+        backToTools: '← Tools',
+        allow: 'allow camera',
+        swipe: 'swipe',
+        shooting: 'hold',
+        developing: 'wait',
+        take: 'strip',
+        again: 'again',
+        download: 'take strip',
+        blocked: 'camera blocked',
       },
       aiFactorySim: {
         tag: 'AI FACTORY',
@@ -1302,6 +1324,14 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
       verdictLabel: 'aktuelles Urteil',
       labNote: 'Nicht jedes Tool muss ein Produkt werden. Manche sind nur Belege aus einem Workflow.',
       items: {
+        photoautomat: {
+          tag: 'BOOTH',
+          title: 'Photoautomat',
+          body: 'Kamera an. Durchziehen. Viererstreifen.',
+          why: 'Berliner Kabine. Live-Kamera. Kein Upload.',
+          verdict: 'Nützlich. Vier Aufnahmen, nur lokaler Abzug.',
+          statusLabel: 'useful',
+        },
         nsight: {
           tag: 'PERF',
           title: 'OKC Explorer',
@@ -1720,6 +1750,20 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         hear: 'hören',
         miss: 'Dieser Satz öffnet keine Tür. Site-Fragen bleiben in der Konsole.',
         disclaimer: 'Beck, Linehan und Herman sind Karten, keine Lizenz. Eine Schule, ein Buch. Das ist keine Therapie und kein Rezept.',
+      },
+      photoAutomat: {
+        tag: 'PHOTOAUTOMAT',
+        heading: 'Photoautomat',
+        body: 'Kamera an. Durchziehen. Viererstreifen.',
+        backToTools: '← Tools',
+        allow: 'kamera an',
+        swipe: 'ziehen',
+        shooting: 'halten',
+        developing: 'warten',
+        take: 'streifen',
+        again: 'nochmal',
+        download: 'streifen holen',
+        blocked: 'kamera zu',
       },
       aiFactorySim: {
         tag: 'AI FACTORY',

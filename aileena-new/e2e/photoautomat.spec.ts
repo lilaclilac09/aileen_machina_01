@@ -1,0 +1,56 @@
+import { test, expect } from '@playwright/test';
+
+test.use({
+  permissions: ['camera'],
+  launchOptions: {
+    args: [
+      '--autoplay-policy=no-user-gesture-required',
+      '--use-fake-device-for-media-stream',
+      '--use-fake-ui-for-media-stream',
+    ],
+  },
+});
+
+test('tools hub lists Photoautomat; allow camera then swipe to a local strip', async ({ page }) => {
+  async function dismissOverlays() {
+    await page.evaluate(() => {
+      document.querySelectorAll('[aria-label="Aileena Console"], [aria-label="Browser Use"]').forEach((node) => {
+        if (node instanceof HTMLElement) node.style.display = 'none';
+      });
+    });
+  }
+
+  await page.goto('/tools', { waitUntil: 'domcontentloaded' });
+  await dismissOverlays();
+  const card = page.getByTestId('tools-card-photoautomat');
+  await expect(card).toBeVisible();
+
+  await page.goto('/tools/photoautomat', { waitUntil: 'networkidle' });
+  await dismissOverlays();
+  await expect(page.getByTestId('foto-cabin')).toBeVisible();
+  await expect(page.getByTestId('foto-allow')).toBeVisible();
+  await page.getByTestId('foto-allow').click();
+  await expect(page.getByTestId('foto-root')).toHaveAttribute('data-live', 'yes', { timeout: 15_000 });
+  await page.waitForFunction(() => {
+    const video = document.querySelector('[data-testid="foto-video"]');
+    return video instanceof HTMLVideoElement && video.readyState >= 2 && video.videoWidth > 0;
+  });
+  await expect(page.getByTestId('foto-slot')).toBeVisible();
+
+  const slot = page.getByTestId('foto-slot');
+  const swipe = page.getByTestId('foto-card');
+  const box = await slot.boundingBox();
+  expect(box).toBeTruthy();
+  await swipe.hover();
+  await page.mouse.down();
+  await page.mouse.move(box!.x + box!.width * 0.92, box!.y + box!.height / 2, { steps: 14 });
+  await page.mouse.up();
+
+  await expect(page.getByTestId('foto-print')).toBeVisible({ timeout: 25_000 });
+  await expect(page.getByTestId('foto-download')).toBeVisible();
+  const sheetBox = await page.getByTestId('foto-print').locator('img.foto-sheet').boundingBox();
+  expect(sheetBox).toBeTruthy();
+  expect(sheetBox!.height).toBeGreaterThan(sheetBox!.width * 1.6);
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
+  expect(overflow).toBe(false);
+});

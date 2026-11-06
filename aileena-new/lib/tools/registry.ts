@@ -32,6 +32,23 @@ export const CAFE_CURSOR_URL = 'https://cursor-cafe.aileena.xyz/';
 
 export const TOOL_DEFINITIONS: ToolDefinition[] = [
   {
+    slug: 'photoautomat',
+    tag: 'BOOTH',
+    title: 'Photoautomat',
+    body: 'Allow camera. Swipe. Four-strip.',
+    why: 'Berlin booth interior. Live camera. No upload.',
+    verdict: 'Useful. Four shots, local print only.',
+    href: '/tools/photoautomat',
+    liveUrl: '/tools/photoautomat',
+    screenshot: '/tools/photoautomat/kotti-street.jpg',
+    status: 'useful',
+    tier: 'featured',
+    arcade: {
+      glyph: '▦',
+      screenGradient: '#1c1612',
+    },
+  },
+  {
     slug: 'tamper-check',
     tag: 'HW',
     title: 'Tamper Check',
