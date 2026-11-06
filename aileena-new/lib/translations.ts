@@ -153,6 +153,14 @@ export const t = {
           verdict: 'Weigh before you trust. 3D centre-of-mass view, optional SDR burst check. Runs locally.',
           statusLabel: 'useful',
         },
+        'photo-automat': {
+          tag: 'PHOTO',
+          title: 'Photo Automat',
+          body: 'Swipe a card. Four automatic frames. A 2×2 black-and-white sheet.',
+          why: 'The inside of a Berlin booth — velvet, metal, a square finder — not a street photo of the cabinet.',
+          verdict: 'Useful. Real camera. Print stays on your device. Nothing is uploaded.',
+          statusLabel: 'useful',
+        },
         'pricing-slot': {
           tag: 'DATA',
           title: 'Pricing Lookup',
@@ -1388,6 +1396,14 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
           body: 'Ledger gegen eine Referenz aus derselben Charge wiegen. Zusätzliche Platinen haben Masse.',
           why: 'Verwanzte Ledger mit eSIM-Implantat bestanden trotzdem den Genuine Check. Eine 15-$-Milligrammwaage interessiert das nicht.',
           verdict: 'Erst wiegen, dann vertrauen. 3D-Schwerpunktansicht, optionaler SDR-Burst-Check. Läuft lokal.',
+          statusLabel: 'useful',
+        },
+        'photo-automat': {
+          tag: 'PHOTO',
+          title: 'Photo Automat',
+          body: 'Swipe a card. Four automatic frames. A 2×2 black-and-white sheet.',
+          why: 'The inside of a Berlin booth — velvet, metal, a square finder — not a street photo of the cabinet.',
+          verdict: 'Useful. Real camera. Print stays on your device. Nothing is uploaded.',
           statusLabel: 'useful',
         },
         'pricing-slot': {

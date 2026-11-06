@@ -15,6 +15,7 @@
 - [Home](https://www.aileena.xyz/): projects and the site console
 - [Tools](https://www.aileena.xyz/tools): Tamper Check and other tools
 - [Tamper Check](https://www.aileena.xyz/tools/tamper-check): weigh a Ledger against a same-batch reference
+- [Photo Automat](https://www.aileena.xyz/tools/photo-automat): Berlin booth interior — swipe a card, four B&W frames, a 2×2 sheet. Camera stays in the browser.
 - [Writing](https://www.aileena.xyz/dispatch): research dispatches and essays
 - [Sound](https://www.aileena.xyz/sound#dj-set): DJ sets
 - [Privacy](https://www.aileena.xyz/privacy)

@@ -50,6 +50,22 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'photo-automat',
+    tag: 'PHOTO',
+    title: 'Photo Automat',
+    body: 'Swipe a card. Four automatic frames. A 2×2 black-and-white sheet.',
+    why: 'The inside of a Berlin booth — velvet, metal, a square finder — not a street photo of the cabinet.',
+    verdict: 'Useful. Real camera. Print stays on your device. Nothing is uploaded.',
+    href: '/tools/photo-automat',
+    liveUrl: '/tools/photo-automat',
+    status: 'useful',
+    tier: 'utility',
+    arcade: {
+      glyph: '◻',
+      screenGradient: '#1c1814',
+    },
+  },
+  {
     slug: 'nsight',
     tag: 'PERF',
     title: 'OKC Explorer',
