@@ -2080,6 +2080,12 @@ button.ai-factory-cell {
 }
 
 
+.tools-lab-cover--photoautomat {
+  background:
+    linear-gradient(180deg, rgba(12, 9, 8, 0.08), rgba(12, 9, 8, 0.28)),
+    #1c1612;
+}
+
 .tools-lab-cover--tamper-check {
   background: linear-gradient(180deg, #eef3ef 0%, #dde8e2 100%);
 }

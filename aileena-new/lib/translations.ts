@@ -65,6 +65,14 @@ export const t = {
       verdictLabel: 'current verdict',
       labNote: 'Not every tool deserves to become a product. Some are just receipts from a workflow.',
       items: {
+        photoautomat: {
+          tag: 'BOOTH',
+          title: 'Photoautomat',
+          body: 'Swipe. Four black-and-white frames. A 2×2 sheet stays on your phone.',
+          why: 'Berlin booth interior. Live camera. No upload.',
+          verdict: 'Useful. Four shots, local print only.',
+          statusLabel: 'useful',
+        },
         nsight: {
           tag: 'PERF',
           title: 'OKC Explorer',
@@ -484,6 +492,19 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         hear: 'hear',
         miss: 'This sentence does not open a door. Site questions stay on the console.',
         disclaimer: 'Beck, Linehan, and Herman are maps, not a license. One school, one book. This is not therapy and not a prescription.',
+      },
+      photoAutomat: {
+        tag: 'PHOTOAUTOMAT',
+        heading: 'Photoautomat',
+        body: 'Swipe. Four shots. 2×2 sheet.',
+        backToTools: '← Tools',
+        swipe: 'swipe',
+        shooting: 'hold',
+        developing: 'wait',
+        take: 'sheet',
+        again: 'again',
+        download: 'take sheet',
+        blocked: 'camera blocked',
       },
       aiFactorySim: {
         tag: 'AI FACTORY',
@@ -1302,6 +1323,14 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
       verdictLabel: 'aktuelles Urteil',
       labNote: 'Nicht jedes Tool muss ein Produkt werden. Manche sind nur Belege aus einem Workflow.',
       items: {
+        photoautomat: {
+          tag: 'BOOTH',
+          title: 'Photoautomat',
+          body: 'Durchziehen. Vier Schwarzweiß-Bilder. Das 2×2-Blatt bleibt auf dem Handy.',
+          why: 'Berliner Kabine. Live-Kamera. Kein Upload.',
+          verdict: 'Nützlich. Vier Aufnahmen, nur lokaler Abzug.',
+          statusLabel: 'useful',
+        },
         nsight: {
           tag: 'PERF',
           title: 'OKC Explorer',
@@ -1720,6 +1749,19 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         hear: 'hören',
         miss: 'Dieser Satz öffnet keine Tür. Site-Fragen bleiben in der Konsole.',
         disclaimer: 'Beck, Linehan und Herman sind Karten, keine Lizenz. Eine Schule, ein Buch. Das ist keine Therapie und kein Rezept.',
+      },
+      photoAutomat: {
+        tag: 'PHOTOAUTOMAT',
+        heading: 'Photoautomat',
+        body: 'Durchziehen. Vier Bilder. 2×2-Blatt.',
+        backToTools: '← Tools',
+        swipe: 'ziehen',
+        shooting: 'halten',
+        developing: 'warten',
+        take: 'blatt',
+        again: 'nochmal',
+        download: 'blatt holen',
+        blocked: 'kamera zu',
       },
       aiFactorySim: {
         tag: 'AI FACTORY',
