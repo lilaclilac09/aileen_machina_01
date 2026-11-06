@@ -68,7 +68,9 @@ assert('page exists', existsSync(join(root, 'app/tools/photoautomat/page.tsx')))
 
 const page = readFileSync(join(root, 'components/tools/PhotoautomatTool.tsx'), 'utf8');
 assert('uses live camera', page.includes('requestUserCamera'));
+assert('enter tap exists', page.includes('foto-enter'));
 assert('allow tap exists', page.includes('foto-allow'));
+assert('EN enter copy', t.EN.tools.photoAutomat.enter === 'enter');
 assert('no upload fetch of frames', !/fetch\([^\)]*sheet|FormData|multipart/.test(page));
 assert('download stays local', page.includes('downloadCanvas'));
 

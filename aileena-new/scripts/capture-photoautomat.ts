@@ -52,6 +52,14 @@ async function main() {
   await page.waitForURL(/\/tools\/photoautomat/);
   await dismissConsole();
   await page.waitForSelector('[data-testid="foto-cabin"]');
+  await page.screenshot({ path: join(OUT, 'tools-photoautomat-outside-390.png') });
+  await page.getByTestId('foto-enter').click();
+  await page.waitForSelector('[data-testid="foto-allow"]');
+  await page.waitForFunction(() => {
+    const cabin = document.querySelector('[data-testid="foto-cabin"]');
+    return cabin instanceof HTMLElement && cabin.style.backgroundImage.includes('interior.jpg');
+  });
+  await page.waitForTimeout(400);
   await page.screenshot({ path: join(OUT, 'tools-photoautomat-booth-390.png') });
 
   await page.getByTestId('foto-allow').click();

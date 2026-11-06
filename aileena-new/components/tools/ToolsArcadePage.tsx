@@ -52,7 +52,11 @@ function ToolCover({
       data-testid={`tools-cover-${tool.slug}`}
       style={
         tool.screenshot
-          ? { backgroundImage: `url(${tool.screenshot})`, backgroundSize: 'cover', backgroundPosition: 'center' }
+          ? {
+              backgroundImage: `url(${tool.screenshot})`,
+              backgroundSize: 'cover',
+              backgroundPosition: tool.slug === 'photoautomat' ? 'center 18%' : 'center',
+            }
           : undefined
       }
     >

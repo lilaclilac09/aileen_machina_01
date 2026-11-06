@@ -28,6 +28,8 @@ test('tools hub lists Photoautomat; allow camera then swipe to a local strip', a
   await page.goto('/tools/photoautomat', { waitUntil: 'networkidle' });
   await dismissOverlays();
   await expect(page.getByTestId('foto-cabin')).toBeVisible();
+  await expect(page.getByTestId('foto-enter')).toBeVisible();
+  await page.getByTestId('foto-enter').click();
   await expect(page.getByTestId('foto-allow')).toBeVisible();
   await page.getByTestId('foto-allow').click();
   await expect(page.getByTestId('foto-root')).toHaveAttribute('data-live', 'yes', { timeout: 15_000 });

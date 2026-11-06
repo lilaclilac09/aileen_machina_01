@@ -16,7 +16,16 @@ import {
 } from '../../lib/tools/photoautomat';
 import './photoautomat.css';
 
-type Phase = 'idle' | 'ready' | 'armed' | 'count' | 'flash' | 'develop' | 'print' | 'blocked';
+type Phase =
+  | 'outside'
+  | 'idle'
+  | 'ready'
+  | 'armed'
+  | 'count'
+  | 'flash'
+  | 'develop'
+  | 'print'
+  | 'blocked';
 
 export default function PhotoautomatTool() {
   const { language } = useLanguage();
@@ -28,7 +37,7 @@ export default function PhotoautomatTool() {
   const dragRef = useRef(false);
   const dragValueRef = useRef(0);
   const liveRef = useRef(true);
-  const [phase, setPhase] = useState<Phase>('idle');
+  const [phase, setPhase] = useState<Phase>('outside');
   const [drag, setDrag] = useState(0);
   const [count, setCount] = useState<number | null>(null);
   const [shots, setShots] = useState(0);
@@ -48,6 +57,13 @@ export default function PhotoautomatTool() {
       stopStream();
     };
   }, [stopStream]);
+
+  useEffect(() => {
+    ['/tools/photoautomat/interior.jpg', '/tools/photoautomat/kotti-street.jpg'].forEach((src) => {
+      const image = new Image();
+      image.src = src;
+    });
+  }, []);
 
   const openCamera = useCallback(async () => {
     if (streamRef.current) return streamRef.current;
@@ -218,56 +234,66 @@ export default function PhotoautomatTool() {
         <div
           className="foto-cabin"
           data-testid="foto-cabin"
-          style={{ backgroundImage: "url('/tools/photoautomat/interior.jpg')" }}
+          style={{
+            backgroundImage: `url('${phase === 'outside' ? '/tools/photoautomat/kotti-street.jpg' : '/tools/photoautomat/interior.jpg'}')`,
+          }}
         >
-          <div className="foto-glass">
-            <video
-              ref={videoRef}
-              className={`foto-video${live ? ' is-live' : ''}`}
-              muted
-              playsInline
-              autoPlay
-              data-testid="foto-video"
-              data-live={live ? 'yes' : 'no'}
-            />
-            {!live ? (
-              <button
-                type="button"
-                className={`foto-allow${phase === 'blocked' ? ' is-blocked' : ''}`}
-                data-testid="foto-allow"
-                onClick={() => {
-                  void onAllow();
-                }}
-              >
-                {phase === 'blocked' ? tx.blocked : tx.allow}
-              </button>
-            ) : null}
-            {count != null ? <div className="foto-count">{count}</div> : null}
-          </div>
-          <div className={`foto-flash${phase === 'flash' ? ' is-on' : ''}`} />
-          {shooting || phase === 'develop' ? (
-            <p className="foto-status" data-testid="foto-status">
-              {status}
-              {shots ? ` · ${shots}/${SHOT_COUNT}` : ''}
-            </p>
-          ) : null}
-          {live ? (
-            <div ref={slotRef} className="foto-slot" data-testid="foto-slot">
-              <button
-                type="button"
-                className="foto-card"
-                data-testid="foto-card"
-                style={{ transform: `translateX(${Math.round(drag * 108)}%)` }}
-                onPointerDown={onPointerDown}
-                onPointerMove={onPointerMove}
-                onPointerUp={onPointerUp}
-                onPointerCancel={onPointerUp}
-                disabled={phase !== 'ready'}
-              >
-                {tx.swipe}
-              </button>
-            </div>
-          ) : null}
+          {phase === 'outside' ? (
+            <button type="button" className="foto-enter" data-testid="foto-enter" onClick={() => setPhase('idle')}>
+              {tx.enter}
+            </button>
+          ) : (
+            <>
+              <div className="foto-glass">
+                <video
+                  ref={videoRef}
+                  className={`foto-video${live ? ' is-live' : ''}`}
+                  muted
+                  playsInline
+                  autoPlay
+                  data-testid="foto-video"
+                  data-live={live ? 'yes' : 'no'}
+                />
+                {!live ? (
+                  <button
+                    type="button"
+                    className={`foto-allow${phase === 'blocked' ? ' is-blocked' : ''}`}
+                    data-testid="foto-allow"
+                    onClick={() => {
+                      void onAllow();
+                    }}
+                  >
+                    {phase === 'blocked' ? tx.blocked : tx.allow}
+                  </button>
+                ) : null}
+                {count != null ? <div className="foto-count">{count}</div> : null}
+              </div>
+              <div className={`foto-flash${phase === 'flash' ? ' is-on' : ''}`} />
+              {shooting || phase === 'develop' ? (
+                <p className="foto-status" data-testid="foto-status">
+                  {status}
+                  {shots ? ` · ${shots}/${SHOT_COUNT}` : ''}
+                </p>
+              ) : null}
+              {live ? (
+                <div ref={slotRef} className="foto-slot" data-testid="foto-slot">
+                  <button
+                    type="button"
+                    className="foto-card"
+                    data-testid="foto-card"
+                    style={{ transform: `translateX(${Math.round(drag * 108)}%)` }}
+                    onPointerDown={onPointerDown}
+                    onPointerMove={onPointerMove}
+                    onPointerUp={onPointerUp}
+                    onPointerCancel={onPointerUp}
+                    disabled={phase !== 'ready'}
+                  >
+                    {tx.swipe}
+                  </button>
+                </div>
+              ) : null}
+            </>
+          )}
         </div>
       )}
     </div>
