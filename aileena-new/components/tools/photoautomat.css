@@ -38,11 +38,10 @@
 
 .foto-glass {
   position: absolute;
-  left: 27.6%;
-  top: 8%;
-  width: 49.5%;
-  height: 42.6%;
-  border-radius: 2px;
+  left: 32.3%;
+  top: 27.2%;
+  width: 35.4%;
+  height: 25.3%;
   overflow: hidden;
   z-index: 2;
 }
@@ -67,11 +66,15 @@
   inset: 0;
   z-index: 3;
   border: 0;
-  background: rgba(18, 22, 26, 0.12);
-  color: #f4efe6;
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  padding-top: 10px;
+  background: rgba(20, 22, 24, 0.08);
+  color: #1c1e20;
   font-family: 'JetBrains Mono', ui-monospace, monospace;
-  font-size: 0.72rem;
-  letter-spacing: 0.18em;
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
   text-transform: uppercase;
   cursor: pointer;
   touch-action: manipulation;
@@ -112,7 +115,7 @@
   position: absolute;
   left: 31%;
   right: 31%;
-  top: 60%;
+  top: 62.4%;
   height: 36px;
   z-index: 3;
   background: transparent;
