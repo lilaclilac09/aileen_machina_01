@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
     <meta name="color-scheme" content="light" />
+    <meta name="description" content="Where time goes in the Muse kernel pipeline — Copy, Compute, Wait, Launch — with measured okc checks vs SGLang on H200." />
     <link rel="icon" href="data:," />
     <title>OKC Explorer — Where time goes in the pipeline</title>
     <style>
@@ -21,7 +22,7 @@
         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
         font-size:15px;line-height:1.5;-webkit-font-smoothing:antialiased}
       .wrap{max-width:1060px;margin:0 auto;padding:0 18px 56px}
-      .mono{font-family:var(--mono)}
+      .mono{font-family:var(--mono);white-space:nowrap}
       button{font:inherit}
 
       /* top chrome */
@@ -93,6 +94,7 @@
       .btag{font-size:12px;font-weight:700;border-radius:6px;padding:2px 9px;white-space:nowrap}
       .btag.copy{color:var(--copy);background:#eaf4ff}.btag.compute{color:var(--compute);background:var(--green-bg)}
       .btag.wait{color:#c47f0a;background:#fdf3e0}.btag.launch{color:var(--launch);background:#f1eafd}
+      .btag.gate{color:var(--ink2);background:#f1f2f5}
       table.legend td.act{color:var(--ink2)}
 
       /* ===== detail views ===== */
@@ -207,6 +209,35 @@
       .mini-list{margin:0;padding:0;list-style:none;font-size:13px;display:grid;gap:6px;color:var(--ink2)}
       .mini-list b{color:var(--ink);font-family:var(--mono);font-size:12.5px}
       footer{font-size:12px;color:var(--ink3);margin-top:22px}
+
+      .status-pills span.pause{color:#c47f0a;background:#fdf3e0;border-color:#f3ddae;font-weight:700}
+      .meas-strip{display:grid;gap:0}
+      .meas-row{display:flex;gap:10px;align-items:baseline;padding:8px 2px;border-bottom:1px solid var(--line2);font-size:13.5px;flex-wrap:wrap}
+      .meas-row:last-child{border-bottom:none}
+      .mlab{font-size:10px;font-weight:800;letter-spacing:.08em;border-radius:999px;padding:2px 8px;white-space:nowrap}
+      .mlab.meas{color:var(--teal);background:var(--green-bg)}
+      .mlab.plan{color:var(--ink2);background:#f1f2f5}
+      .mlab.pause{color:#c47f0a;background:#fdf3e0}
+      .meas-prob{font-family:var(--mono);font-weight:700;min-width:118px}
+      .meas-fact{font-weight:600}
+      .meas-note{color:var(--ink2)}
+      .lever-head,.lever-row{display:grid;grid-template-columns:1.5fr 108px 1.35fr;gap:12px;align-items:center}
+      .lever-head{font-size:10.5px;font-weight:800;letter-spacing:.09em;color:var(--ink2);padding:0 4px 8px;border-bottom:1px solid var(--line)}
+      .lever-list{display:grid;gap:8px;margin-top:8px}
+      .lever-row{width:100%;text-align:left;background:#fbfbfc;border:1px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer;color:var(--ink)}
+      .lever-row:hover{border-color:var(--ink3)}
+      .lever-row[aria-pressed="true"]{border-color:var(--teal);background:#fbfffc}
+      .lever-code .n{font-weight:700;font-size:13.5px}
+      .lever-code .s{display:block;font-size:12px;color:var(--ink2);font-weight:400}
+      .lever-check{font-family:var(--mono);font-size:12.5px;color:var(--ink2)}
+      .lever-note{margin:12px 0 0;font-size:13.5px;color:var(--ink2)}
+      .refs{display:flex;gap:8px;flex-wrap:wrap}
+      .refs a{font-size:12px;color:var(--ink2);background:#fbfbfc;border:1px solid var(--line);border-radius:999px;padding:4px 11px;text-decoration:none}
+      .refs a:hover{border-color:var(--ink3);color:var(--ink)}
+      @media (max-width:720px){
+        .lever-head{display:none}
+        .lever-row{grid-template-columns:1fr;gap:6px}
+      }
     </style>
   </head>
   <body>
@@ -236,50 +267,107 @@
       <!-- ================= OVERVIEW ================= -->
       <section class="view" data-view-panel="overview">
         <h1>Where time goes in the pipeline</h1>
-        <p class="sub">One problem matters first: <b>bf16_proj</b> — decode is stuck on the memory wall, not on math.</p>
-        <div class="meta-pills"><span>H200 · 132 SMs</span><span>Shares = model estimates, not measured</span><span>Deadline · Nov 4 PT</span></div>
+        <p class="sub">One problem matters first: <b>bf16_proj</b> — keep board submission <b>v6b 1.071×</b> until an <span class="mono">okc check</span> beats it. Pipeline / schedule only.</p>
+        <div class="meta-pills"><span>H200 · 132 SMs</span><span>Shares = estimates unless labeled measured</span><span>okc check · PASS + µs + ×</span></div>
+
+        <!-- MEASURED STRIP · first -->
+        <div class="card" id="measured">
+          <div class="card-head"><span class="card-title">Measured so far</span><span class="card-hint">okc check · measured vs planned labeled · no invented board ranks</span></div>
+          <div class="meas-strip">
+            <div class="meas-row"><span class="mlab meas">MEASURED</span><span class="meas-prob">bf16_proj</span><span class="meas-fact">v6b 1.071×</span><span class="meas-note">current board submission · keep</span></div>
+            <div class="meas-row"><span class="mlab meas">MEASURED</span><span class="meas-prob">bf16_proj</span><span class="meas-fact">v6e / v6f</span><span class="meas-note">worse than v6b · do not promote</span></div>
+            <div class="meas-row"><span class="mlab meas">MEASURED</span><span class="meas-prob">bf16_proj</span><span class="meas-fact">K-outer track</span><span class="meas-note">did not beat v6b · skip redo</span></div>
+            <div class="meas-row"><span class="mlab plan">PLANNED</span><span class="meas-prob">bf16_proj</span><span class="meas-fact">board still ahead</span><span class="meas-note">~1.66× class · next: split-K then FP8 bytes</span></div>
+            <div class="meas-row"><span class="mlab meas">MEASURED</span><span class="meas-prob">decode_layer</span><span class="meas-fact">v4_moe_epi ~0.015×</span><span class="meas-note">~1.56s PASS · far behind SGLang</span></div>
+            <div class="meas-row"><span class="mlab pause">PAUSED</span><span class="meas-prob">attn / moe / prefill</span><span class="meas-fact">tiny × / correctness</span><span class="meas-note">speed paused · no board rank</span></div>
+          </div>
+        </div>
 
         <!-- LEVEL 1 · THE SOLUTION -->
         <div class="card sol-card">
           <div class="sol-kicker">THE SOLUTION · BF16_PROJ · IN ORDER</div>
-          <div class="sol-nums"><span class="from">4.599</span><span class="arr">→</span><span class="to">2.92</span><span class="unit">ms · current → leader</span></div>
-          <p class="sol-sub">Cut <b>1.679 ms (−36.5%)</b> · if the FP8 gate fails, realistic landing is <b>3.4–3.7 ms</b>.</p>
+          <div class="sol-nums"><span class="from">1.071×</span><span class="arr">→</span><span class="to">~1.66×</span><span class="unit">v6b · board class</span></div>
+          <p class="sol-sub">Keep <b>v6b</b> until a check beats it. One lever per copy. No unverified machine wins.</p>
           <ol class="sol-steps">
-            <li><span class="sol-no">1</span><div><span class="sol-step-t">Measure first</span> <span class="sol-step-d">— nsys + ncu. No guessing.</span></div><span class="sol-tag">FIRST</span></li>
-            <li><span class="sol-no">2</span><div><span class="sol-step-t">Skinny GEMM + adaptive Split-K</span> <span class="sol-step-d">— fill all 132 SMs at small m.</span></div><span class="sol-tag">18 → 100+ TILES</span></li>
-            <li><span class="sol-no">3</span><div><span class="sol-step-t">FP8 precision gate</span> <span class="sol-step-d">— hi+lo error must pass tolerance before step 4.</span></div><span class="sol-tag warn">GATE</span></li>
-            <li><span class="sol-no">4</span><div><span class="sol-step-t">Single-FP8 weight reads</span> <span class="sol-step-d">— halve the bytes streamed.</span></div><span class="sol-tag">188 → 94 MiB</span></li>
-            <li><span class="sol-no">5</span><div><span class="sol-step-t">Router fusion + CUDA Graph</span> <span class="sol-step-d">— one kernel, x read once, launches replayed.</span></div><span class="sol-tag">−2 PASSES</span></li>
-            <li><span class="sol-no">6</span><div><span class="sol-step-t">Prefetch + WGMMA / TMA</span> <span class="sol-step-d">— only if ncu shows DRAM saturated, SMs idle.</span></div><span class="sol-tag warn">ONLY IF PROVEN</span></li>
+            <li><span class="sol-no">1</span><div><span class="sol-step-t">Gate</span> <span class="sol-step-d">— copy submission → vNEXT; one lever; <span class="mono">okc check</span> = PASS + µs + ×. Promote only if it beats v6b <b>1.071×</b>; else keep v6b.</span></div><span class="sol-tag warn">GATE</span></li>
+            <li><span class="sol-no">2</span><div><span class="sol-step-t">Split-K / more grid</span> <span class="sol-step-d">— small-m SM fill. Aims the Wait bar. Skip K-outer / dual-buffer / dual-output (already worse than v6b).</span></div><span class="sol-tag">WAIT · NEXT</span></li>
+            <li><span class="sol-no">3</span><div><span class="sol-step-t">FP8 weights after a win</span> <span class="sol-step-d">— pooler / unpooler, to cut Copy bytes. Not before split-K lands.</span></div><span class="sol-tag">COPY · THEN</span></li>
+            <li><span class="sol-no">4</span><div><span class="sol-step-t">Leave m ≥ 192</span> <span class="sol-step-d">— stays on SGLang GEMM dispatch. You are not rewriting their server. Beat them on decode / skinny-m, where FA3 / Marlin still win.</span></div><span class="sol-tag">KEEP</span></li>
           </ol>
         </div>
 
         <!-- LEVEL 2 · THE BOTTLENECK, IN NUMBERS -->
         <div class="metrics" style="margin-bottom:16px">
-          <div class="metric"><div class="k">CURRENT · V4</div><div class="v red">4.599 ms</div><div class="d">1.05× vs SGLang</div></div>
-          <div class="metric"><div class="k">BASELINE · SGLANG</div><div class="v">4.83 ms</div><div class="d">1.00× reference</div></div>
-          <div class="metric"><div class="k">LEADER</div><div class="v teal">2.92 ms</div><div class="d">1.65× · status P</div></div>
-          <div class="metric"><div class="k">THE WALL</div><div class="v">188 MiB</div><div class="d">streamed per pass · floor ≈ 59 µs</div></div>
+          <div class="metric"><div class="k">CURRENT · V6B</div><div class="v teal">1.071×</div><div class="d">measured · board submission</div></div>
+          <div class="metric"><div class="k">BASELINE · SGLANG</div><div class="v">1.00×</div><div class="d">reference · okc check vs this</div></div>
+          <div class="metric"><div class="k">BOARD CLASS</div><div class="v">~1.66×</div><div class="d">still ahead · not our win</div></div>
+          <div class="metric"><div class="k">HARDWARE</div><div class="v">H200</div><div class="d">132 SMs · not H100</div></div>
         </div>
 
-        <!-- TIME PATH · current → target, against the clock -->
-        <div class="card">
-          <div class="card-head"><span class="card-title">Time path · bf16_proj · 4.599 → 2.92 ms</span><span class="card-hint">Saves = estimates until ncu confirms</span></div>
-          <div>
-            <div class="tp-row"><span class="ts">—</span><span class="tt">Start · v4, measured</span><span class="tm run">4.599 ms</span></div>
-            <div class="tp-row"><span class="ts">2</span><span class="tt">Skinny GEMM + Split-K</span><span class="td2">tile tail 1.06 ms attacked</span><span class="tm">−0.55 · est.</span><span class="tm run">→ 4.05</span></div>
-            <div class="tp-row"><span class="ts">3</span><span class="tt">FP8 precision gate</span><span class="td2">decides step 4, saves nothing itself</span><span class="tm">−0.00</span><span class="tm run">→ 4.05</span></div>
-            <div class="tp-row"><span class="ts">4</span><span class="tt">Single-FP8 weight reads</span><span class="td2">stream 1.38 ms attacked</span><span class="tm">−0.60 · est.</span><span class="tm run">→ 3.45</span></div>
-            <div class="tp-row"><span class="ts">5</span><span class="tt">Router fusion + CUDA Graph</span><span class="td2">router pass + dispatch attacked</span><span class="tm">−0.30 · est.</span><span class="tm run">→ 3.15</span></div>
-            <div class="tp-row"><span class="ts">6</span><span class="tt">Prefetch + WGMMA / TMA</span><span class="td2">only if ncu proves it</span><span class="tm">−0.22 · est.</span><span class="tm run">→ ≈2.92 ✓</span></div>
-            <div class="tp-row fallback"><span class="ts">✕</span><span class="tt">If the FP8 gate fails</span><span class="td2">step 4 lost · steps 2 + 5 + 6 only</span><span class="tm">≈3.4–3.7 ms</span></div>
+        <!-- EDIT → EFFECT WIDGET -->
+        <div class="card" id="effect-widget">
+          <div class="card-head"><span class="card-title">Edit → bar → check</span><span class="card-hint">Left: lever · middle: aimed bar · right: last check vs SGLang</span></div>
+          <div class="lever-head"><span>LEVER / CODE</span><span>BAR</span><span>LAST CHECK vs SGLANG</span></div>
+          <div class="lever-list">
+            <button type="button" class="lever-row" aria-pressed="true" data-bar="gate" data-open="bf16" data-note="Gate: copy the submission to vNEXT. Change one lever. Run okc check — PASS + µs + × vs SGLang. Promote only if it beats v6b 1.071×; else keep v6b. Edit only the aimed bar.">
+              <span class="lever-code"><span class="n">Gate · copy → vNEXT</span><span class="s">one lever per copy</span></span>
+              <span class="btag gate">Check</span>
+              <span class="lever-check"><span class="mlab meas">MEASURED</span> keep v6b 1.071× unless beaten</span>
+            </button>
+            <button type="button" class="lever-row" aria-pressed="false" data-bar="wait" data-open="bf16" data-note="Split-K / more grid aims the Wait bar: fill 132 SMs at small-m. Skip redoing K-outer / dual-buffer / dual-output (measured worse than v6b). Verify with okc check PASS + µs + ×.">
+              <span class="lever-code"><span class="n">Split-K / more grid</span><span class="s">small-m · SM fill</span></span>
+              <span class="btag wait">Wait</span>
+              <span class="lever-check"><span class="mlab plan">PLANNED</span> next bet after v6b</span>
+            </button>
+            <button type="button" class="lever-row" aria-pressed="false" data-bar="copy" data-open="bf16" data-note="FP8 weights (pooler / unpooler) aim the Copy bar: fewer bytes streamed. Only after a split-K win. Verify with okc check PASS + µs + × and error ≤ tol.">
+              <span class="lever-code"><span class="n">FP8 weights · pooler/unpooler</span><span class="s">after a Wait win</span></span>
+              <span class="btag copy">Copy</span>
+              <span class="lever-check"><span class="mlab plan">PLANNED</span> Copy bytes · not yet</span>
+            </button>
+            <button type="button" class="lever-row" aria-pressed="false" data-bar="wait" data-open="bf16" data-note="K-outer / dual-buffer / dual-output already lost to v6b. Do not redo. Last check: worse than 1.071×. Keep v6b.">
+              <span class="lever-code"><span class="n">K-outer / dual-buffer / dual-out</span><span class="s">already tried</span></span>
+              <span class="btag wait">Wait</span>
+              <span class="lever-check"><span class="mlab meas">MEASURED</span> worse than v6b · skip</span>
+            </button>
+            <button type="button" class="lever-row" aria-pressed="false" data-bar="compute" data-open="bf16" data-note="m ≥ 192 stays on SGLang GEMM dispatch. You are not rewriting their server. Beat them on decode / skinny-m, where FA3 / Marlin still win. okc check scores your kernel vs Muse / SGLang.">
+              <span class="lever-code"><span class="n">m ≥ 192 SGLang GEMM dispatch</span><span class="s">leave their path</span></span>
+              <span class="btag compute">Compute</span>
+              <span class="lever-check"><span class="mlab meas">MEASURED</span> keep dispatch · don’t rewrite</span>
+            </button>
+            <button type="button" class="lever-row" aria-pressed="false" data-bar="copy" data-open="attn" data-note="attention_decode next: Split-KV, then FP8 KV. Aims Copy (KV stream). Correctness / speed paused — tiny ×, no board rank. Verify later with okc check PASS + µs + ×.">
+              <span class="lever-code"><span class="n">attn Split-KV → FP8 KV</span><span class="s">KV stream</span></span>
+              <span class="btag copy">Copy</span>
+              <span class="lever-check"><span class="mlab pause">PAUSED</span> tiny × / correctness · no rank</span>
+            </button>
+            <button type="button" class="lever-row" aria-pressed="false" data-bar="copy" data-open="moe" data-note="moe_w4a16 next: dequantize in-register on load. Aims Copy (separate dequant pass). Speed paused or tiny × — no board rank. Verify later with okc check.">
+              <span class="lever-code"><span class="n">moe in-register dequant</span><span class="s">no BF16 materialize</span></span>
+              <span class="btag copy">Copy</span>
+              <span class="lever-check"><span class="mlab pause">PAUSED</span> tiny × · no board rank</span>
+            </button>
+            <button type="button" class="lever-row" aria-pressed="false" data-bar="launch" data-open="declayer" data-note="decode_layer: fuse norms/residuals + CUDA Graph. Aims Launch (gaps). Measured: v4_moe_epi ~0.015× (~1.56s) PASS, far behind SGLang. Next check must still beat that and close on SGLang.">
+              <span class="lever-code"><span class="n">decode fuse + CUDA Graph</span><span class="s">kill the gaps</span></span>
+              <span class="btag launch">Launch</span>
+              <span class="lever-check"><span class="mlab meas">MEASURED</span> v4_moe_epi ~0.015× (~1.56s) PASS</span>
+            </button>
+            <button type="button" class="lever-row" aria-pressed="false" data-bar="compute" data-open="prelayer" data-note="prefill_layer: Flash tiles + large-m tune. Aims Compute. Do not paste decode tricks (Split-K / skinny tiles). Speed paused or tiny × — no board rank.">
+              <span class="lever-code"><span class="n">prefill Flash tiles + large-m</span><span class="s">don’t paste decode tricks</span></span>
+              <span class="btag compute">Compute</span>
+              <span class="lever-check"><span class="mlab pause">PAUSED</span> tiny × · no board rank</span>
+            </button>
           </div>
-          <div class="do-h" style="margin-top:16px">TIMELINE</div>
+          <p class="lever-note" id="lever-note">Gate: copy the submission to vNEXT. Change one lever. Run okc check — PASS + µs + × vs SGLang. Promote only if it beats v6b 1.071×; else keep v6b. Edit only the aimed bar.</p>
+        </div>
+
+        <!-- TIME PATH · measured vs planned -->
+        <div class="card">
+          <div class="card-head"><span class="card-title">Time path · bf16_proj · v6b 1.071× → ~1.66× class</span><span class="card-hint">Measured vs planned labeled · no invented µs</span></div>
           <div>
-            <div class="tp-row"><span class="tp-date">NOV 1</span><span class="tt">Measure</span><span class="td2">nsys / ncu · GPU-check v9 · run the FP8 gate on v8</span></div>
-            <div class="tp-row"><span class="tp-date lock">NOV 2</span><span class="tt">Internal lock</span><span class="td2">submit the best verified build — nothing unverified ships</span></div>
-            <div class="tp-row"><span class="tp-date">NOV 3</span><span class="tt">Buffer</span><span class="td2">re-verify only · fix regressions, no new features</span></div>
-            <div class="tp-row"><span class="tp-date lock">NOV 4 PT</span><span class="tt">Official deadline</span><span class="td2">final submission closes</span></div>
+            <div class="tp-row"><span class="ts">—</span><span class="tt">Start · v6b, measured board submission</span><span class="tm run">1.071× · keep</span></div>
+            <div class="tp-row"><span class="ts">✕</span><span class="tt">v6e / v6f</span><span class="td2">measured worse than v6b</span><span class="tm">skip</span></div>
+            <div class="tp-row fallback"><span class="ts">✕</span><span class="tt">K-outer / dual-buffer / dual-output</span><span class="td2">did not beat v6b</span><span class="tm">skip redo</span></div>
+            <div class="tp-row"><span class="ts">2</span><span class="tt">Split-K / more grid</span><span class="td2">Wait · small-m SM fill</span><span class="tm">planned</span><span class="tm run">next bet</span></div>
+            <div class="tp-row"><span class="ts">3</span><span class="tt">FP8 pooler / unpooler</span><span class="td2">Copy bytes · after a Wait win</span><span class="tm">planned</span></div>
+            <div class="tp-row"><span class="ts">✓</span><span class="tt">okc check gate</span><span class="td2">PASS + µs + × vs SGLang</span><span class="tm">promote only if &gt; 1.071×</span></div>
           </div>
         </div>
 
@@ -290,27 +378,27 @@
             <button type="button" class="skim-row main" data-open="bf16">
               <span class="skim-name"><span class="n">bf16_proj</span><br /><span class="s">Main · memory wall</span></span>
               <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">Dispatch</span><span class="pill-arr">→</span><span class="pill-step hot">Stream 188 MiB</span><span class="pill-arr">→</span><span class="pill-step">GEMM ×5</span><span class="pill-arr">→</span><span class="pill-step hot">Tile tail</span><span class="pill-arr">→</span><span class="pill-step">Router</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
-              <span class="skim-num up">1.05×</span>
+              <span class="skim-num up">1.071×</span>
             </button>
             <button type="button" class="skim-row" data-open="attn">
-              <span class="skim-name"><span class="n">attention_decode</span><br /><span class="s">Copy-bound · KV stream</span></span>
+              <span class="skim-name"><span class="n">attention_decode</span><br /><span class="s">Copy-bound · KV stream · paused</span></span>
               <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">QKV</span><span class="pill-arr">→</span><span class="pill-step">Append</span><span class="pill-arr">→</span><span class="pill-step hot">KV stream</span><span class="pill-arr">→</span><span class="pill-step">Attn math</span><span class="pill-arr">→</span><span class="pill-step">Merge</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
-              <span class="skim-num flat">—</span>
+              <span class="skim-num flat">paused</span>
             </button>
             <button type="button" class="skim-row" data-open="moe">
-              <span class="skim-name"><span class="n">moe_w4a16</span><br /><span class="s">Copy-bound · dequant</span></span>
+              <span class="skim-name"><span class="n">moe_w4a16</span><br /><span class="s">Copy-bound · dequant · paused</span></span>
               <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">Router</span><span class="pill-arr">→</span><span class="pill-step">Gather</span><span class="pill-arr">→</span><span class="pill-step hot">Dequant</span><span class="pill-arr">→</span><span class="pill-step">GEMM</span><span class="pill-arr">→</span><span class="pill-step">Combine</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
-              <span class="skim-num flat">—</span>
+              <span class="skim-num flat">paused</span>
             </button>
             <button type="button" class="skim-row" data-open="declayer">
               <span class="skim-name"><span class="n">decode_layer</span><br /><span class="s">Launch-heavy · kernel gaps</span></span>
               <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">Norm</span><span class="pill-arr">→</span><span class="pill-step">Attn</span><span class="pill-arr">→</span><span class="pill-step">Residual</span><span class="pill-arr">→</span><span class="pill-step">MoE</span><span class="pill-arr">→</span><span class="pill-step hot">Gaps</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
-              <span class="skim-num flat">—</span>
+              <span class="skim-num flat">0.015×</span>
             </button>
             <button type="button" class="skim-row" data-open="prelayer">
-              <span class="skim-name"><span class="n">prefill_layer</span><br /><span class="s">Healthy · compute-bound</span></span>
+              <span class="skim-name"><span class="n">prefill_layer</span><br /><span class="s">Healthy · compute-bound · paused</span></span>
               <span class="pills"><span class="pill-step">IN</span><span class="pill-arr">→</span><span class="pill-step">Norm</span><span class="pill-arr">→</span><span class="pill-step good">Attn</span><span class="pill-arr">→</span><span class="pill-step">MLP</span><span class="pill-arr">→</span><span class="pill-step">KV write</span><span class="pill-arr">→</span><span class="pill-step">OUT</span></span>
-              <span class="skim-num flat">—</span>
+              <span class="skim-num flat">paused</span>
             </button>
           </div>
         </div>
@@ -329,14 +417,38 @@
           </table>
         </div>
 
+        <div class="card">
+          <div class="card-head"><span class="card-title">SGLang · vLLM</span><span class="card-hint">Context only · not a rewrite · not an OKC dependency</span></div>
+          <ul class="mini-list">
+            <li><b>SGLang</b> — m ≥ 192 stays on their GEMM dispatch. You are not rewriting their server. Beat them on decode / skinny-m, where FA3 / Marlin still win. <span class="mono">okc check</span> scores your kernel vs Muse / SGLang.</li>
+            <li><b>vLLM</b> — PagedAttention and fused epilogues transfer as ideas (KV layout, epi fusion). Not an OKC dependency.</li>
+          </ul>
+        </div>
+
+        <div class="card">
+          <div class="card-head"><span class="card-title">Learn more</span><span class="card-hint">Public tutorials · this page is H200</span></div>
+          <div class="refs">
+            <a href="https://arxiv.org/abs/2205.14135" target="_blank" rel="noopener">FlashAttention · IO-aware paper</a>
+            <a href="https://hazyresearch.stanford.edu/blog/2023-07-17-flash2" target="_blank" rel="noopener">FlashAttention-2 · Hazy blog</a>
+            <a href="https://github.com/Dao-AILab/flash-attention" target="_blank" rel="noopener">Dao-AILab · official repo</a>
+            <a href="https://docs.nvidia.com/cutlass/latest/" target="_blank" rel="noopener">NVIDIA CUTLASS docs</a>
+            <a href="https://docs.nvidia.com/cutlass/latest/media/docs/pythonDSL/guides/mma/wgmma_programming.html" target="_blank" rel="noopener">CUTLASS · WGMMA</a>
+            <a href="https://docs.nvidia.com/cutlass/latest/media/docs/cpp/cute/0z_tma_tensors.html" target="_blank" rel="noopener">CUTLASS · TMA</a>
+            <a href="https://www.lmsys.org/blog/2026-10-18-sglang-low-latency-mode/" target="_blank" rel="noopener">SGLang · low-latency kernels</a>
+            <a href="https://docs.vllm.ai/en/stable/design/paged_attention/" target="_blank" rel="noopener">vLLM · PagedAttention (ideas)</a>
+            <a href="https://cudacourseh100.github.io/h100visu/" target="_blank" rel="noopener">Hopper visu · H100 analogy only</a>
+          </div>
+        </div>
+
         <!-- LEVEL 4 · secondary, dimmed -->
         <div class="dim">
           <div class="dim-title">HISTORY · VERSION FEED</div>
           <div class="card"><div class="feed">
-            <div class="feed-row"><span class="fv">v3</span><span class="ft">Router threshold 7</span><span class="fd">parameter tweak only</span><span class="fm">4.727 ms · 1.02×</span></div>
-            <div class="feed-row"><span class="fv">v4</span><span class="ft">m ≥ 192 dispatch split</span><span class="fd">current submission</span><span class="fm">4.599 ms · 1.05×</span></div>
-            <div class="feed-row"><span class="fv">v8</span><span class="ft">FP8 hi+lo experiment</span><span class="fd">precision data for step 3 gate</span><span class="fm">not submitted</span></div>
-            <div class="feed-row"><span class="fv">v9</span><span class="ft">Skinny GEMM + Split-K</span><span class="fd">= solution step 2</span><span class="fm">planned</span></div>
+            <div class="feed-row"><span class="fv">v6b</span><span class="ft">board submission</span><span class="fd">current · keep until beaten</span><span class="fm">1.071× · measured</span></div>
+            <div class="feed-row"><span class="fv">v6e</span><span class="ft">worse than v6b</span><span class="fd">do not promote</span><span class="fm">measured</span></div>
+            <div class="feed-row"><span class="fv">v6f</span><span class="ft">worse than v6b</span><span class="fd">do not promote</span><span class="fm">measured</span></div>
+            <div class="feed-row"><span class="fv">K-out</span><span class="ft">K-outer / dual-buffer / dual-out</span><span class="fd">did not beat v6b · skip redo</span><span class="fm">measured</span></div>
+            <div class="feed-row"><span class="fv">v4_moe</span><span class="ft">decode_layer epi</span><span class="fd">PASS · far behind SGLang</span><span class="fm">~0.015× · ~1.56s</span></div>
           </div></div>
 
           <div class="dim-title">ASK A MATHEMATICIAN · 3 QUESTIONS</div>
@@ -345,73 +457,73 @@
             <li><b>Q2</b> — Closed form for tile size × Split-K vs the tail effect?</li>
             <li><b>Q3</b> — Error bound for BF16 split into FP8 hi+lo, accumulated over K?</li>
           </ul></div>
-          <footer>Totals 4.83 / 4.599 / 2.92 ms are measured (2026-11-01 board). Stage shares below are model estimates — replace with a real nsys / ncu capture.</footer>
+          <footer>Measured: bf16_proj v6b 1.071× (current submission); v6e/v6f worse; K-outer did not beat v6b; decode_layer v4_moe_epi ~0.015× (~1.56s) PASS, far behind SGLang. Stage shares are estimates until ncu. Hardware: H200.</footer>
         </div>
 
         <!-- METHODS · expandable -->
         <div class="dim-title" style="margin-top:26px">METHODS · TAP A METHOD FOR ITS FULL PANEL</div>
         <div>
           <div class="mitem">
-            <button type="button" class="mcard" data-method="m1" aria-expanded="false"><span class="mid">M01</span><span class="mt">Split-K</span><span class="mstat warn">v9 · NOT GPU-CHECKED</span><span class="mchev">▾</span></button>
+            <button type="button" class="mcard" data-method="m1" aria-expanded="false"><span class="mid">M01</span><span class="mt">Split-K</span><span class="mstat">NEXT BET · WAIT</span><span class="mchev">▾</span></button>
             <div class="mpanel" id="panel-m1" hidden>
               <div class="prow"><span class="pk">PLAN</span><span class="pv">In the v9 Triton GEMM, split the K loop across up to 8 blocks whenever the tile count is below 132; each block writes an FP32 partial, a light reduction sums them.</span></div>
-              <div class="prow"><span class="pk">WHY</span><span class="pv">The tile tail: only 18–64 tiles for 132 SMs at m&lt;192 — ~23% of 4.599 ms is Wait, SMs idle.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">The tile tail: only 18–64 tiles for 132 SMs at m&lt;192 — ~23% Wait est., SMs idle.</span></div>
               <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">A symphony score divided among sections, each playing its part in parallel, the conductor summing them into one chord.</span></div>
-              <div class="prow"><span class="pk">STATUS</span><span class="pv st">In v9 — written, NOT GPU-checked. The submitted v4 does not contain it.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Next bet on bf16 after v6b. Not in the current board submission. Verify with okc check vs 1.071×.</span></div>
             </div>
           </div>
           <div class="mitem">
-            <button type="button" class="mcard" data-method="m2" aria-expanded="false"><span class="mid">M02</span><span class="mt">Single-FP8 weight reads</span><span class="mstat warn">PLANNED · GATED</span><span class="mchev">▾</span></button>
+            <button type="button" class="mcard" data-method="m2" aria-expanded="false"><span class="mid">M02</span><span class="mt">Single-FP8 weight reads</span><span class="mstat warn">AFTER A WIN · COPY</span><span class="mchev">▾</span></button>
             <div class="mpanel" id="panel-m2" hidden>
               <div class="prow"><span class="pk">PLAN</span><span class="pv">Pre-convert weights to FP8 E4M3 offline — pooler + unpooler (64 MiB each) first; the GEMM loads 1 byte per element and dequantizes in-register. No hi/lo second pass.</span></div>
-              <div class="prow"><span class="pk">WHY</span><span class="pv">The weight stream: 188 MiB of BF16 per pass, ~30% of 4.599 ms — halving the bytes is the largest single cut, ~0.60 ms est.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">The weight stream: 188 MiB of BF16 per pass, ~30% Copy est. — halving bytes is the Copy bet after a Wait win.</span></div>
               <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">Transcribing a manuscript onto finer paper: the same text, half the volume, carried in one trip instead of two.</span></div>
-              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Planned and GATED on the FP8 precision gate — not built. v8 is hi+lo FP8, a precision experiment; it is not single-FP8.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Planned after a Split-K win — pooler / unpooler first. Not in v6b. Gated on error ≤ tol and okc check.</span></div>
             </div>
           </div>
           <div class="mitem">
-            <button type="button" class="mcard" data-method="m3" aria-expanded="false"><span class="mid">M03</span><span class="mt">Prefetch · double-buffer</span><span class="mstat">PARTIAL · v9</span><span class="mchev">▾</span></button>
+            <button type="button" class="mcard" data-method="m3" aria-expanded="false"><span class="mid">M03</span><span class="mt">Prefetch · double-buffer</span><span class="mstat warn">SKIP · WORSE THAN V6B</span><span class="mchev">▾</span></button>
             <div class="mpanel" id="panel-m3" hidden>
               <div class="prow"><span class="pk">PLAN</span><span class="pv">Stage loads ahead of math: Triton num_stages=3 already pipelines loads; the full version double-buffers shared-memory tiles — load tile n+1 while tile n computes — with WGMMA/TMA in v10.</span></div>
-              <div class="prow"><span class="pk">WHY</span><span class="pv">Load stalls inside the GEMM stage (~29% of 4.599 ms): SMs wait on HBM between tiles.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">Load stalls inside the GEMM stage (~29% est.): SMs wait on HBM between tiles. Dual-buffer track already lost to v6b — skip redo.</span></div>
               <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">A librarian placing the next volume on the desk before the reader finishes the current page, so reading never pauses.</span></div>
-              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Partial: num_stages=3 is in v9 (written, not GPU-checked). Full double-buffering is not yet built — step 6, only if ncu proves DRAM saturated.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Dual-buffer / K-outer track measured worse than v6b — skip redo. Do not revive this as the next bet.</span></div>
             </div>
           </div>
           <div class="mitem">
             <button type="button" class="mcard" data-method="m4" aria-expanded="false"><span class="mid">M04</span><span class="mt">Router fusion</span><span class="mstat warn">PLANNED · NOT BUILT</span><span class="mchev">▾</span></button>
             <div class="mpanel" id="panel-m4" hidden>
               <div class="prow"><span class="pk">PLAN</span><span class="pv">One kernel for the router: read x once, compute both matmuls and the add in-kernel, write once — replacing three separate ops with a single pass.</span></div>
-              <div class="prow"><span class="pk">WHY</span><span class="pv">The router second pass: 0.28 ms · ~6% of 4.599 ms, plus part of the ~12% launch slice — x is read twice today.</span></div>
+              <div class="prow"><span class="pk">WHY</span><span class="pv">The router second pass: ~6% Copy est., plus part of the ~12% Launch slice — x is read twice today. Not the current bet.</span></div>
               <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">Binding three separate letters into one sealed envelope: one journey instead of three.</span></div>
               <div class="prow"><span class="pk">STATUS</span><span class="pv st">Planned, not built. v4 still runs the router as 2 mm + add, three separate ops.</span></div>
             </div>
           </div>
           <div class="mitem">
-            <button type="button" class="mcard" data-method="m5" aria-expanded="false"><span class="mid">M05</span><span class="mt">Skinny tiles</span><span class="mstat warn">v9 · NOT GPU-CHECKED</span><span class="mchev">▾</span></button>
+            <button type="button" class="mcard" data-method="m5" aria-expanded="false"><span class="mid">M05</span><span class="mt">Skinny tiles</span><span class="mstat">WITH SPLIT-K</span><span class="mchev">▾</span></button>
             <div class="mpanel" id="panel-m5" hidden>
               <div class="prow"><span class="pk">PLAN</span><span class="pv">In v9, shape tiles to small m — BLOCK_M 16/32 instead of 128 — so no tile is mostly padding, and the tile count rises toward the 132 SMs.</span></div>
               <div class="prow"><span class="pk">WHY</span><span class="pv">Padding waste: at m=16 a 128-row tile computes 8× rows that do not exist — it feeds the same ~23% Wait slice as the tail.</span></div>
               <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">Tailoring a garment to the exact measure, no excess cloth — a mosaic cut to fit a narrow wall.</span></div>
-              <div class="prow"><span class="pk">STATUS</span><span class="pv st">In v9 — written, NOT GPU-checked.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Goes with Split-K / more grid for small-m. Not a separate bet from M01. Verify together via okc check.</span></div>
             </div>
           </div>
           <div class="mitem">
-            <button type="button" class="mcard" data-method="m6" aria-expanded="false"><span class="mid">M06</span><span class="mt">CUDA Graph replay</span><span class="mstat grey">HARNESS-PROVIDED</span><span class="mchev">▾</span></button>
+            <button type="button" class="mcard" data-method="m6" aria-expanded="false"><span class="mid">M06</span><span class="mt">CUDA Graph replay</span><span class="mstat">DECODE NEXT · LAUNCH</span><span class="mchev">▾</span></button>
             <div class="mpanel" id="panel-m6" hidden>
               <div class="prow"><span class="pk">PLAN</span><span class="pv">Record the fixed kernel sequence once and replay it per call — zero host launch cost per replay. The extension is a whole-layer capture for decode_layer.</span></div>
               <div class="prow"><span class="pk">WHY</span><span class="pv">Dispatch and gaps: 0.55 ms · ~12% of bf16_proj; in decode_layer ~18% of the time sits in gaps between kernels.</span></div>
               <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">A choreographed ballet recorded once and replayed: rehearsed once, performed repeatedly without re-teaching each step.</span></div>
-              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Already provided by the OKC harness inside the timed region — it is not our code. A whole-layer graph is future work.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Harness already graphs the timed region. Whole-layer capture is the decode_layer next bet (fuse + CUDA Graph), after v4_moe_epi ~0.015×.</span></div>
             </div>
           </div>
           <div class="mitem">
-            <button type="button" class="mcard" data-method="m7" aria-expanded="false"><span class="mid">M07</span><span class="mt">Large-m GEMM tuning</span><span class="mstat">IN v4 · MEASURED</span><span class="mchev">▾</span></button>
+            <button type="button" class="mcard" data-method="m7" aria-expanded="false"><span class="mid">M07</span><span class="mt">Large-m GEMM tuning</span><span class="mstat">KEEP · M≥192</span><span class="mchev">▾</span></button>
             <div class="mpanel" id="panel-m7" hidden>
               <div class="prow"><span class="pk">PLAN</span><span class="pv">Keep large m on the tuned library path — dispatch m≥192 to SGLang's GEMM — and tune tile size and pipeline depth to the scale of m (prefill: 128-row tiles).</span></div>
               <div class="prow"><span class="pk">WHY</span><span class="pv">At m≥192 the tiles already fill the SMs, so tuning — not restructuring — is the lever; prefill is ~52% Compute (est.), where tuning pays directly.</span></div>
               <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">Choosing a vessel for the voyage: a skiff for a stream, a ship for the ocean — tile size matched to the scale of the work.</span></div>
-              <div class="prow"><span class="pk">STATUS</span><span class="pv st">In v4 — the SGLang dispatch for m≥192 is in and measured better than baseline. Prefill-specific tuning is pending.</span></div>
+              <div class="prow"><span class="pk">STATUS</span><span class="pv st">Keep: m≥192 stays on SGLang GEMM dispatch in v6b. Prefill large-m tune is a later problem — do not paste decode tricks there.</span></div>
             </div>
           </div>
           <div class="mitem">
@@ -430,16 +542,25 @@
       <section class="view is-hidden" data-view-panel="bf16">
         <div class="d-title">bf16_proj</div>
         <p class="d-sub">5 GEMMs · x[m, 8192] · m = 1–192 · the weights are huge, the input is tiny.</p>
-        <div class="status-pills"><span class="bad">Behind leader · −36.5%</span><span>Priority · Main</span><span>Wall · 4.599 ms</span><span>Hot stage · Stream</span></div>
+        <div class="status-pills"><span class="bad">Behind board · ~1.66× class</span><span class="good">v6b 1.071× · keep</span><span>Hot · Stream (Copy) + tail (Wait)</span><span>H200</span></div>
+        <div class="card" style="padding:14px 18px">
+          <div class="card-head"><span class="card-title">Measured so far</span><span class="card-hint">okc check vs SGLang</span></div>
+          <div class="meas-strip">
+            <div class="meas-row"><span class="mlab meas">MEASURED</span><span class="meas-fact">v6b 1.071×</span><span class="meas-note">current board submission · keep</span></div>
+            <div class="meas-row"><span class="mlab meas">MEASURED</span><span class="meas-fact">v6e / v6f</span><span class="meas-note">worse than v6b</span></div>
+            <div class="meas-row"><span class="mlab meas">MEASURED</span><span class="meas-fact">K-outer track</span><span class="meas-note">did not beat v6b · skip redo</span></div>
+            <div class="meas-row"><span class="mlab plan">PLANNED</span><span class="meas-fact">split-K then FP8 bytes</span><span class="meas-note">Wait, then Copy · promote only if &gt; 1.071×</span></div>
+          </div>
+        </div>
         <div class="metrics five">
-          <div class="metric"><div class="k">SPEED</div><div class="v teal">1.05×</div><div class="d">vs SGLang 1.00×</div></div>
-          <div class="metric"><div class="k">WALL TIME</div><div class="v red">4.599 ms</div><div class="d">v4 · measured</div></div>
-          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
-          <div class="metric"><div class="k">TARGET</div><div class="v">2.92 ms</div><div class="d">leader · 1.65×</div></div>
-          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Stream</div><div class="d">188 MiB · Copy</div></div>
+          <div class="metric"><div class="k">SPEED</div><div class="v teal">1.071×</div><div class="d">v6b · measured vs SGLang</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">—</div><div class="d">× known · µs not restated</div></div>
+          <div class="metric"><div class="k">HARDWARE</div><div class="v">H200</div><div class="d">132 SMs · ncu pending</div></div>
+          <div class="metric"><div class="k">BOARD CLASS</div><div class="v">~1.66×</div><div class="d">still ahead · not our win</div></div>
+          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Copy + Wait</div><div class="d">stream + tile tail · est.</div></div>
         </div>
         <div class="card">
-          <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Stage times = share × 4.599 ms · est.</span></div>
+          <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Stage shares = model estimates, not v6b wall</span></div>
           <div class="pipe-scroll"><div class="pipe">
             <div class="stage"><div class="sk">IN</div><div class="sn">x + 5 weights</div><div class="sd">x [m, 8192] · weights 188 MiB in HBM.</div><div class="st">—</div></div>
             <div class="pipe-arr">→</div>
@@ -458,35 +579,30 @@
         </div>
         <div class="card sol-block">
           <div class="card-head"><span class="card-title"><span class="btag copy">SOLUTIONS</span>&nbsp; What to optimize next</span></div>
-          <p class="why"><b>Why:</b> two hot stages, two diseases — stage 02 moves too many bytes, stage 04 has too few tiles.</p>
+          <p class="why"><b>Why:</b> two hot stages — Copy (stream 188 MiB) and Wait (tile tail). Next bet aims Wait first.</p>
           <div class="do-grid">
             <div><div class="do-h">DO THIS</div><ol class="do-list">
-              <li>Measure first: nsys + ncu, replace every estimate on this page.</li>
-              <li>Skinny GEMM + adaptive Split-K — 18 tiles → 100+.</li>
-              <li>FP8 precision gate — pass tolerance before touching bytes.</li>
-              <li>Single-FP8 reads — 188 → 94 MiB, pooler + unpooler first.</li>
-              <li>Router fusion + CUDA Graph — x read once, launches replayed.</li>
-              <li>Prefetch + WGMMA/TMA — only if ncu proves DRAM full, SMs idle.</li>
+              <li>Gate: copy → vNEXT, one lever; <span class="mono">okc check</span> PASS + µs + ×. Promote only if it beats v6b 1.071×.</li>
+              <li>Split-K / more grid for small-m — fill 132 SMs (Wait).</li>
+              <li>After a win: FP8 weights (pooler / unpooler) to cut Copy bytes.</li>
             </ol></div>
             <div><div class="do-h">DO NOT</div><ul class="dont-list">
-              <li>Do not tune GEMM tiles at small m — the math is 3 µs.</li>
-              <li>Do not expect FP8 hi+lo to save bandwidth — it saves nothing.</li>
-              <li>Do not touch the m ≥ 192 path — it already beats baseline.</li>
+              <li>Do not redo K-outer / dual-buffer / dual-output — measured worse than v6b.</li>
+              <li>Do not touch m ≥ 192 — stays on SGLang GEMM dispatch.</li>
+              <li>Do not claim a win without <span class="mono">okc check</span>.</li>
             </ul></div>
           </div>
           <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
           <table class="stable">
             <thead><tr><th>#</th><th>BOTTLENECK</th><th>ROOT CAUSE</th><th>FIX · CODE / KERNEL</th><th>SAVES</th><th>VERIFY</th></tr></thead>
             <tbody>
-              <tr><td class="ord" data-l="#">2</td><td data-l="Bottleneck"><b>Tile tail</b> · 1.06 ms · ~23%</td><td data-l="Root cause">18–64 tiles for 132 SMs at m&lt;192 — most of the chip idles.</td><td data-l="Fix">v9 Triton GEMM: BLOCK_M 16/32; split K up to 8× while tiles &lt;132; FP32 partials + light reduce.</td><td class="save" data-l="Saves">−0.55 ms · est.</td><td data-l="Verify">ncu active warps ↑ · check passes on GPU</td></tr>
-              <tr><td class="ord" data-l="#">3</td><td data-l="Bottleneck"><b>FP8 gate</b> · 0 ms · gate only</td><td data-l="Root cause">Single-FP8 is worthless if its error fails tolerance; hi+lo (v8) saves no bytes.</td><td data-l="Fix">Run v8 across the m sweep; compare vs BF16 reference before any FP8 build starts.</td><td class="save" data-l="Saves">−0.00 ms</td><td data-l="Verify">max rel. error ≤ tol at every m</td></tr>
-              <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>Stream weights</b> · 1.38 ms · ~30%</td><td data-l="Root cause">188 MiB of BF16 re-read per pass; the math is ~3 µs at m=16.</td><td data-l="Fix">Pre-convert weights to single FP8 (E4M3) offline — pooler + unpooler (64 MiB each) first; GEMM loads 1 B/elem, dequantizes in-register.</td><td class="save" data-l="Saves">−0.60 ms · est.</td><td data-l="Verify">ncu DRAM read ≈ 188 → 94 MiB · error ≤ tol</td></tr>
-              <tr><td class="ord" data-l="#">5</td><td data-l="Bottleneck"><b>Router 2nd pass</b> · 0.28 ms · ~6%</td><td data-l="Root cause">x read a second time; router runs as 2 mm + add, 3 separate ops.</td><td data-l="Fix">One fused router kernel: read x once, both matmuls + add in-kernel, write once.</td><td class="save" data-l="Saves">−0.15 ms · est.</td><td data-l="Verify">router kernels 3 → 1 · x reads 2 → 1</td></tr>
-              <tr><td class="ord" data-l="#">5</td><td data-l="Bottleneck"><b>Dispatch + launches</b> · 0.55 ms · ~12%</td><td data-l="Root cause">5 separate launches + host dispatch per call.</td><td data-l="Fix">Replay the fixed sequence as a CUDA Graph (harness already graphs the timed region); collapse the m-dispatch branch.</td><td class="save" data-l="Saves">−0.15 ms · est.</td><td data-l="Verify">nsys inter-kernel gaps → ~0</td></tr>
-              <tr><td class="ord" data-l="#">6</td><td data-l="Bottleneck"><b>Load stalls in GEMM</b> · inside 1.33 ms · ~29%</td><td data-l="Root cause">Loads and math serialized — SMs wait on HBM between tiles.</td><td data-l="Fix">Prefetch: num_stages=3 (already in v9); full double-buffer + WGMMA/TMA (v10) only if ncu shows DRAM full, SMs idle.</td><td class="save" data-l="Saves">−0.22 ms · est.</td><td data-l="Verify">ncu stall-long-scoreboard ↓</td></tr>
+              <tr><td class="ord" data-l="#">1</td><td data-l="Bottleneck"><b>Tile tail</b> · Wait · ~23% est.</td><td data-l="Root cause">18–64 tiles for 132 SMs at m&lt;192 — most of the chip idles.</td><td data-l="Fix">Split-K / more grid: BLOCK_M 16/32; split K while tiles &lt;132. Next bet after v6b.</td><td class="save" data-l="Saves">planned</td><td data-l="Verify">okc check PASS + µs + × vs v6b 1.071×</td></tr>
+              <tr><td class="ord" data-l="#">2</td><td data-l="Bottleneck"><b>Stream weights</b> · Copy · ~30% est.</td><td data-l="Root cause">188 MiB of BF16 re-read per pass; math is tiny at small m.</td><td data-l="Fix">FP8 weights (pooler / unpooler) after a Wait win. Error ≤ tol first.</td><td class="save" data-l="Saves">planned</td><td data-l="Verify">okc check + DRAM bytes ↓ · error ≤ tol</td></tr>
+              <tr><td class="ord" data-l="#">3</td><td data-l="Bottleneck"><b>K-outer / dual-buffer / dual-out</b></td><td data-l="Root cause">Already tried as a Wait/Compute lever.</td><td data-l="Fix">Do not redo.</td><td class="save grey" data-l="Saves">measured worse</td><td data-l="Verify">lost to v6b 1.071×</td></tr>
+              <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>m ≥ 192 dispatch</b> · Compute</td><td data-l="Root cause">Large-m already fills SMs.</td><td data-l="Fix">Leave on SGLang GEMM dispatch. Not rewriting their server.</td><td class="save grey" data-l="Saves">keep</td><td data-l="Verify">don’t regress the m≥192 path</td></tr>
             </tbody>
           </table>
-          <p class="card-hint" style="margin:10px 0 0">Rows sum to −1.67 ms ≈ the full 1.679 ms gap. All saves are estimates until an ncu capture replaces them.</p>
+          <p class="card-hint" style="margin:10px 0 0">Stage shares stay estimates. Promote a kernel only when okc check beats v6b 1.071×. Hardware: H200.</p>
         </div>
       </section>
 
@@ -494,13 +610,20 @@
       <section class="view is-hidden" data-view-panel="attn">
         <div class="d-title">attention_decode</div>
         <p class="d-sub">1 token per step · the query is 1 row · the KV cache is the whole history.</p>
-        <div class="status-pills"><span class="bad">Copy-bound · 52%</span><span>Total · Unknown</span><span>Hot stage · KV stream</span></div>
+        <div class="status-pills"><span class="pause">Paused · tiny × / correctness</span><span>Hot · KV stream (Copy) · est.</span><span>No board rank</span><span>H200</span></div>
+        <div class="card" style="padding:14px 18px">
+          <div class="card-head"><span class="card-title">Measured so far</span><span class="card-hint">honesty · no invented rank</span></div>
+          <div class="meas-strip">
+            <div class="meas-row"><span class="mlab pause">PAUSED</span><span class="meas-fact">correctness / speed</span><span class="meas-note">tiny × if any · no board rank</span></div>
+            <div class="meas-row"><span class="mlab plan">PLANNED</span><span class="meas-fact">Split-KV → FP8 KV</span><span class="meas-note">aims Copy · okc check later</span></div>
+          </div>
+        </div>
         <div class="metrics five">
-          <div class="metric"><div class="k">SPEED</div><div class="v grey">—</div><div class="d">not captured</div></div>
-          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">Unknown</div><div class="d">pending nsys</div></div>
-          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
+          <div class="metric"><div class="k">SPEED</div><div class="v grey">paused</div><div class="d">tiny × · no rank</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">—</div><div class="d">not a measured win</div></div>
+          <div class="metric"><div class="k">HARDWARE</div><div class="v">H200</div><div class="d">ncu pending</div></div>
           <div class="metric"><div class="k">DOMINANT</div><div class="v">Copy 52%</div><div class="d">est. split</div></div>
-          <div class="metric"><div class="k">HOT STAGE</div><div class="v">KV stream</div><div class="d">grows with L</div></div>
+          <div class="metric"><div class="k">HOT STAGE</div><div class="v">KV stream</div><div class="d">grows with L · est.</div></div>
         </div>
         <div class="card">
           <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Stage shares = est. of total</span></div>
@@ -525,14 +648,13 @@
           <p class="why"><b>Why:</b> every token re-streams the entire KV cache — the read grows with L, the math does not.</p>
           <div class="do-grid">
             <div><div class="do-h">DO THIS</div><ol class="do-list">
-              <li>Split-KV (Flash-Decoding) — split L across blocks, stream in parallel.</li>
-              <li>Paged KV layout — appends O(1), reads sequential.</li>
-              <li>FP8 KV cache — halves the stream, same gate as bf16 step 3.</li>
-              <li>CUDA Graph — the step repeats identically per token.</li>
+              <li>When unpaused: Split-KV first (Copy / KV stream).</li>
+              <li>Then FP8 KV — same error gate as bf16 bytes.</li>
+              <li>Paged KV is idea transfer from vLLM — not an OKC dependency.</li>
             </ol></div>
             <div><div class="do-h">DO NOT</div><ul class="dont-list">
-              <li>Do not tune the attention math — it is 15%.</li>
-              <li>Do not split L without online softmax — partials will not merge.</li>
+              <li>Do not invent a board rank — correctness / speed are paused.</li>
+              <li>Do not tune the attention math first — Copy is the disease.</li>
             </ul></div>
           </div>
           <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
@@ -546,7 +668,7 @@
               <tr><td class="ord" data-l="#">5</td><td data-l="Bottleneck"><b>QKV launch</b> · ~11% · Launch</td><td data-l="Root cause">Skinny m=1 projections launched separately, every token.</td><td data-l="Fix">Fuse QKV into one skinny GEMM; replay the whole step as a CUDA Graph.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">launches / token ↓ · nsys gaps → ~0</td></tr>
             </tbody>
           </table>
-          <p class="card-hint" style="margin:10px 0 0">Total time is Unknown, so saves stay Unknown — shares are estimates, not measurements.</p>
+          <p class="card-hint" style="margin:10px 0 0">Paused: tiny × / correctness. Shares are estimates. Verify later with okc check PASS + µs + ×. No board rank.</p>
         </div>
       </section>
 
@@ -554,13 +676,20 @@
       <section class="view is-hidden" data-view-panel="moe">
         <div class="d-title">moe_w4a16</div>
         <p class="d-sub">Mixture of Experts · W4 weights · A16 activations · top-k routing.</p>
-        <div class="status-pills"><span class="bad">Copy-bound · 48%</span><span>Total · Unknown</span><span>Hot stage · Dequant</span></div>
+        <div class="status-pills"><span class="pause">Paused · tiny × / correctness</span><span>Hot · Dequant (Copy) · est.</span><span>No board rank</span><span>H200</span></div>
+        <div class="card" style="padding:14px 18px">
+          <div class="card-head"><span class="card-title">Measured so far</span><span class="card-hint">honesty · no invented rank</span></div>
+          <div class="meas-strip">
+            <div class="meas-row"><span class="mlab pause">PAUSED</span><span class="meas-fact">correctness / speed</span><span class="meas-note">tiny × if any · no board rank</span></div>
+            <div class="meas-row"><span class="mlab plan">PLANNED</span><span class="meas-fact">in-register dequant</span><span class="meas-note">aims Copy · okc check later</span></div>
+          </div>
+        </div>
         <div class="metrics five">
-          <div class="metric"><div class="k">SPEED</div><div class="v grey">—</div><div class="d">not captured</div></div>
-          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">Unknown</div><div class="d">pending nsys</div></div>
-          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
+          <div class="metric"><div class="k">SPEED</div><div class="v grey">paused</div><div class="d">tiny × · no rank</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">—</div><div class="d">not a measured win</div></div>
+          <div class="metric"><div class="k">HARDWARE</div><div class="v">H200</div><div class="d">ncu pending</div></div>
           <div class="metric"><div class="k">DOMINANT</div><div class="v">Copy 48%</div><div class="d">est. split</div></div>
-          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Dequant</div><div class="d">W4 → BF16 pass</div></div>
+          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Dequant</div><div class="d">W4 → BF16 pass · est.</div></div>
         </div>
         <div class="card">
           <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Stage shares = est. of total</span></div>
@@ -585,14 +714,12 @@
           <p class="why"><b>Why:</b> dequantized weights round-trip through HBM — the biggest tensor pays the toll twice.</p>
           <div class="do-grid">
             <div><div class="do-h">DO THIS</div><ol class="do-list">
-              <li>Dequantize on load — unpack inside the GEMM, never a separate pass.</li>
-              <li>Load selected experts only — non-top-k reads are pure waste.</li>
-              <li>Grouped GEMM with per-group tiles — skinny for small groups, Split-K for large.</li>
-              <li>Fuse combine into the GEMM epilogue.</li>
+              <li>When unpaused: dequantize in-register on load (Copy).</li>
+              <li>Load top-k experts only — no BF16 materialize in HBM.</li>
             </ol></div>
             <div><div class="do-h">DO NOT</div><ul class="dont-list">
-              <li>Do not materialize BF16 weights in HBM.</li>
-              <li>Do not balance experts before fixing the dequant pass.</li>
+              <li>Do not invent a board rank — speed is paused or tiny ×.</li>
+              <li>Do not balance experts before the dequant pass is gone.</li>
             </ul></div>
           </div>
           <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
@@ -605,7 +732,7 @@
               <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>Gather</b> · ~10% · Copy</td><td data-l="Root cause">Tokens are physically copied into expert order before the GEMM.</td><td data-l="Fix">Index-only gather: the GEMM reads tokens through an index array — no physical copy.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">gather kernel time → 0</td></tr>
             </tbody>
           </table>
-          <p class="card-hint" style="margin:10px 0 0">Total time is Unknown, so saves stay Unknown — shares are estimates, not measurements.</p>
+          <p class="card-hint" style="margin:10px 0 0">Paused: tiny × / correctness. Shares are estimates. Verify later with okc check. No board rank.</p>
         </div>
       </section>
 
@@ -613,12 +740,19 @@
       <section class="view is-hidden" data-view-panel="declayer">
         <div class="d-title">decode_layer</div>
         <p class="d-sub">1 full layer · decode · ~8 small kernels in series · 1 token wide.</p>
-        <div class="status-pills"><span class="bad">Launch · ~18% in gaps</span><span>Per-stage shares · Unknown</span><span>Hot stage · Gaps</span></div>
+        <div class="status-pills"><span class="bad">Far behind SGLang</span><span class="good">v4_moe_epi PASS</span><span>Hot · Gaps (Launch)</span><span>H200</span></div>
+        <div class="card" style="padding:14px 18px">
+          <div class="card-head"><span class="card-title">Measured so far</span><span class="card-hint">okc check vs SGLang</span></div>
+          <div class="meas-strip">
+            <div class="meas-row"><span class="mlab meas">MEASURED</span><span class="meas-fact">v4_moe_epi ~0.015×</span><span class="meas-note">~1.56s PASS · far behind SGLang</span></div>
+            <div class="meas-row"><span class="mlab plan">PLANNED</span><span class="meas-fact">fuse + CUDA Graph</span><span class="meas-note">aims Launch · one lever, then okc check</span></div>
+          </div>
+        </div>
         <div class="metrics five">
-          <div class="metric"><div class="k">SPEED</div><div class="v grey">—</div><div class="d">not captured</div></div>
-          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">Unknown</div><div class="d">pending nsys</div></div>
-          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
-          <div class="metric"><div class="k">DOMINANT</div><div class="v">Copy 34%</div><div class="d">est. · inherited</div></div>
+          <div class="metric"><div class="k">SPEED</div><div class="v red">~0.015×</div><div class="d">v4_moe_epi · measured</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v">~1.56s</div><div class="d">PASS · far behind SGLang</div></div>
+          <div class="metric"><div class="k">HARDWARE</div><div class="v">H200</div><div class="d">ncu pending</div></div>
+          <div class="metric"><div class="k">DOMINANT</div><div class="v">Launch</div><div class="d">gaps · est. ~18%</div></div>
           <div class="metric"><div class="k">HOT STAGE</div><div class="v">Gaps</div><div class="d">between kernels</div></div>
         </div>
         <div class="card">
@@ -644,13 +778,13 @@
           <p class="why"><b>Why:</b> the layer is a chain of tiny kernels — the seams cost more than several of the kernels.</p>
           <div class="do-grid">
             <div><div class="do-h">DO THIS</div><ol class="do-list">
+              <li>Fuse norms + residuals into neighboring epilogues (Launch).</li>
               <li>CUDA Graph the whole layer — one capture, one replay per token.</li>
-              <li>Fuse norms + residuals into neighboring GEMM epilogues.</li>
-              <li>Then apply the attention and MoE fixes inside their blocks.</li>
+              <li>Verify with <span class="mono">okc check</span> — PASS + µs + × vs SGLang. ~0.015× is not a board win.</li>
             </ol></div>
             <div><div class="do-h">DO NOT</div><ul class="dont-list">
+              <li>Do not call v4_moe_epi a speed win — it is far behind SGLang.</li>
               <li>Do not optimize blocks one by one before killing the gaps.</li>
-              <li>Do not leave a standalone residual kernel alive.</li>
             </ul></div>
           </div>
           <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
@@ -663,7 +797,7 @@
               <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>MoE block</b> · share Unknown</td><td data-l="Root cause">Contains the dequant round trip (~38% inside its own problem), unchanged.</td><td data-l="Fix">Apply the moe fix inside the block: dequantize in-register during the GEMM load.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">block time in nsys · dequant kernel gone</td></tr>
             </tbody>
           </table>
-          <p class="card-hint" style="margin:10px 0 0">Per-stage shares are Unknown, so saves stay Unknown — structure is certain, proportions are not measured.</p>
+          <p class="card-hint" style="margin:10px 0 0">Measured wall is v4_moe_epi ~0.015× (~1.56s) PASS. Stage shares stay estimates. Next check still has to beat SGLang, not just PASS.</p>
         </div>
       </section>
 
@@ -671,13 +805,20 @@
       <section class="view is-hidden" data-view-panel="prelayer">
         <div class="d-title">prefill_layer</div>
         <p class="d-sub">1 full layer · prefill · whole prompt at once · large m.</p>
-        <div class="status-pills"><span class="good">Healthy · compute-bound</span><span>Per-stage shares · Unknown</span><span>Hot stage · Attention</span></div>
+        <div class="status-pills"><span class="pause">Paused · tiny × / correctness</span><span class="good">Compute-bound · est.</span><span>Hot · Attention</span><span>H200</span></div>
+        <div class="card" style="padding:14px 18px">
+          <div class="card-head"><span class="card-title">Measured so far</span><span class="card-hint">honesty · no invented rank</span></div>
+          <div class="meas-strip">
+            <div class="meas-row"><span class="mlab pause">PAUSED</span><span class="meas-fact">correctness / speed</span><span class="meas-note">tiny × if any · no board rank</span></div>
+            <div class="meas-row"><span class="mlab plan">PLANNED</span><span class="meas-fact">Flash tiles + large-m tune</span><span class="meas-note">aims Compute · don’t paste decode tricks</span></div>
+          </div>
+        </div>
         <div class="metrics five">
-          <div class="metric"><div class="k">SPEED</div><div class="v grey">—</div><div class="d">not captured</div></div>
-          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">Unknown</div><div class="d">pending nsys</div></div>
-          <div class="metric"><div class="k">PROFILED GPU</div><div class="v grey">Unknown</div><div class="d">pending ncu</div></div>
+          <div class="metric"><div class="k">SPEED</div><div class="v grey">paused</div><div class="d">tiny × · no rank</div></div>
+          <div class="metric"><div class="k">WALL TIME</div><div class="v grey">—</div><div class="d">not a measured win</div></div>
+          <div class="metric"><div class="k">HARDWARE</div><div class="v">H200</div><div class="d">ncu pending</div></div>
           <div class="metric"><div class="k">DOMINANT</div><div class="v teal">Compute 52%</div><div class="d">est. split</div></div>
-          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Attention</div><div class="d">the healthy kind</div></div>
+          <div class="metric"><div class="k">HOT STAGE</div><div class="v">Attention</div><div class="d">the healthy kind · est.</div></div>
         </div>
         <div class="card">
           <div class="card-head"><span class="card-title">Pipeline · bytes in → processing → out</span><span class="card-hint">Shares Unknown — structure only, not measured</span></div>
@@ -702,13 +843,12 @@
           <p class="why"><b>Why:</b> the only compute-bound problem of the five — classic tuning actually applies here.</p>
           <div class="do-grid">
             <div><div class="do-h">DO THIS</div><ol class="do-list">
-              <li>FlashAttention tiling — keep L × L in SRAM, never HBM.</li>
-              <li>Classic GEMM tuning — tile size + pipeline depth.</li>
-              <li>Write KV in decode-friendly layout — paged, contiguous per head.</li>
+              <li>FlashAttention tiles — keep L × L in SRAM.</li>
+              <li>Large-m GEMM tune — tile size matched to m.</li>
             </ol></div>
             <div><div class="do-h">DO NOT</div><ul class="dont-list">
-              <li>Do not copy the decode playbook here — different disease.</li>
-              <li>Do not Split-K by default — tiles already fill.</li>
+              <li>Do not paste decode tricks (Split-K / skinny tiles) — different disease.</li>
+              <li>Do not invent a board rank — speed is paused or tiny ×.</li>
             </ul></div>
           </div>
           <div class="do-h" style="margin-top:20px">DETAIL · BOTTLENECK BY BOTTLENECK</div>
@@ -721,7 +861,7 @@
               <tr><td class="ord" data-l="#">4</td><td data-l="Bottleneck"><b>Residuals + norm</b> · ~10% · Launch</td><td data-l="Root cause">Separate small kernels — mostly hidden behind big kernels, but real.</td><td data-l="Fix">Fuse residuals + norm into GEMM epilogues.</td><td class="save grey" data-l="Saves">Unknown ms</td><td data-l="Verify">kernels per layer ↓ in nsys</td></tr>
             </tbody>
           </table>
-          <p class="card-hint" style="margin:10px 0 0">Per-stage shares are Unknown, so saves stay Unknown — the healthy problem gets tuning, not surgery.</p>
+          <p class="card-hint" style="margin:10px 0 0">Paused: tiny × / correctness. Don’t paste decode tricks. Verify later with okc check. No board rank. Hardware: H200.</p>
         </div>
       </section>
 
@@ -738,8 +878,16 @@
           window.scrollTo(0,0);
         }
         tabs.forEach(function(b){ b.addEventListener("click", function(){ show(b.getAttribute("data-view")); }); });
-        document.querySelectorAll("[data-open]").forEach(function(r){
+        document.querySelectorAll(".skim-row[data-open]").forEach(function(r){
           r.addEventListener("click", function(){ show(r.getAttribute("data-open")); });
+        });
+        var leverNote = document.getElementById("lever-note");
+        document.querySelectorAll(".lever-row").forEach(function(row){
+          row.addEventListener("click", function(){
+            document.querySelectorAll(".lever-row").forEach(function(r){ r.setAttribute("aria-pressed","false"); });
+            row.setAttribute("aria-pressed","true");
+            if (leverNote) leverNote.textContent = row.getAttribute("data-note") || "";
+          });
         });
         document.querySelectorAll("[data-method]").forEach(function(btn){
           btn.addEventListener("click", function(){
