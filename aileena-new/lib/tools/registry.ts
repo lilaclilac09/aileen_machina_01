@@ -35,7 +35,7 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     slug: 'photoautomat',
     tag: 'BOOTH',
     title: 'Photoautomat',
-    body: 'Swipe. Four black-and-white frames. A 2×2 sheet stays on your phone.',
+    body: 'Allow camera. Swipe. Four-strip.',
     why: 'Berlin booth interior. Live camera. No upload.',
     verdict: 'Useful. Four shots, local print only.',
     href: '/tools/photoautomat',

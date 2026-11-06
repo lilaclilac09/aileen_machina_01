@@ -11,25 +11,31 @@ test.use({
   },
 });
 
-test('tools hub lists Photoautomat and booth can swipe to a local sheet', async ({ page }) => {
+test('tools hub lists Photoautomat; allow camera then swipe to a local strip', async ({ page }) => {
+  async function dismissOverlays() {
+    await page.evaluate(() => {
+      document.querySelectorAll('[aria-label="Aileena Console"], [aria-label="Browser Use"]').forEach((node) => {
+        if (node instanceof HTMLElement) node.style.display = 'none';
+      });
+    });
+  }
+
   await page.goto('/tools', { waitUntil: 'domcontentloaded' });
-  const close = page.getByRole('button', { name: 'Close console' });
-  if (await close.count()) await close.first().click({ force: true }).catch(() => undefined);
-  await page.evaluate(() => {
-    const dialog = document.querySelector('[aria-label="Aileena Console"]');
-    if (dialog instanceof HTMLElement) dialog.style.display = 'none';
-  });
+  await dismissOverlays();
   const card = page.getByTestId('tools-card-photoautomat');
   await expect(card).toBeVisible();
-  await card.click();
-  await expect(page).toHaveURL(/\/tools\/photoautomat/);
-  const closeAgain = page.getByRole('button', { name: 'Close console' });
-  if (await closeAgain.count()) await closeAgain.first().click({ force: true }).catch(() => undefined);
-  await page.evaluate(() => {
-    const dialog = document.querySelector('[aria-label="Aileena Console"]');
-    if (dialog instanceof HTMLElement) dialog.style.display = 'none';
-  });
+
+  await page.goto('/tools/photoautomat', { waitUntil: 'networkidle' });
+  await dismissOverlays();
   await expect(page.getByTestId('foto-cabin')).toBeVisible();
+  await expect(page.getByTestId('foto-allow')).toBeVisible();
+  await page.getByTestId('foto-allow').click();
+  await expect(page.getByTestId('foto-root')).toHaveAttribute('data-live', 'yes', { timeout: 15_000 });
+  await page.waitForFunction(() => {
+    const video = document.querySelector('[data-testid="foto-video"]');
+    return video instanceof HTMLVideoElement && video.readyState >= 2 && video.videoWidth > 0;
+  });
+  await expect(page.getByTestId('foto-slot')).toBeVisible();
 
   const slot = page.getByTestId('foto-slot');
   const swipe = page.getByTestId('foto-card');
@@ -42,6 +48,9 @@ test('tools hub lists Photoautomat and booth can swipe to a local sheet', async 
 
   await expect(page.getByTestId('foto-print')).toBeVisible({ timeout: 25_000 });
   await expect(page.getByTestId('foto-download')).toBeVisible();
+  const sheetBox = await page.getByTestId('foto-print').locator('img.foto-sheet').boundingBox();
+  expect(sheetBox).toBeTruthy();
+  expect(sheetBox!.height).toBeGreaterThan(sheetBox!.width * 1.6);
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
   expect(overflow).toBe(false);
 });

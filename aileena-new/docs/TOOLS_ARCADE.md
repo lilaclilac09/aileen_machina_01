@@ -89,7 +89,7 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 
 | Slug | Route | Status |
 |------|-------|--------|
-| `photoautomat` | `/tools/photoautomat` | **Useful** — swipe, four live B&W shots, 2×2 sheet stays on device |
+| `photoautomat` | `/tools/photoautomat` | **Useful** — allow camera, swipe, four live B&W shots, vertical strip stays on device |
 | `cafe-cursor` | `https://cursor-cafe.aileena.xyz/` | **Useful** — redeem for checked-in Cafe Cursor guests |
 | `inkling-clips` | `/tools/inkling-clips` | **Useful** — YouTube → clips, free-mode workaround |
 | `cafe-recap` | `/tools/cafe-recap` | **Experiment** — local JSON→ffmpeg; not better than CapCut yet |

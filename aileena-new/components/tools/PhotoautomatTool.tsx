@@ -8,13 +8,15 @@ import { t } from '../../lib/translations';
 import {
   SHOT_COUNT,
   SWIPE_COMMIT,
+  attachCameraStream,
   captureFrame,
   composeSheet,
   downloadCanvas,
+  requestUserCamera,
 } from '../../lib/tools/photoautomat';
 import './photoautomat.css';
 
-type Phase = 'idle' | 'armed' | 'count' | 'flash' | 'develop' | 'print' | 'blocked';
+type Phase = 'idle' | 'ready' | 'armed' | 'count' | 'flash' | 'develop' | 'print' | 'blocked';
 
 export default function PhotoautomatTool() {
   const { language } = useLanguage();
@@ -49,35 +51,24 @@ export default function PhotoautomatTool() {
 
   const openCamera = useCallback(async () => {
     if (streamRef.current) return streamRef.current;
-    if (!navigator.mediaDevices?.getUserMedia) {
-      setPhase('blocked');
-      return null;
-    }
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        audio: false,
-        video: { facingMode: 'user', width: { ideal: 1280 }, height: { ideal: 960 } },
-      });
+      const stream = await requestUserCamera();
       streamRef.current = stream;
       const video = videoRef.current;
-      if (video) {
-        video.srcObject = stream;
-        await video.play().catch(() => undefined);
-        if (!video.videoWidth) {
-          await new Promise<void>((resolve) => {
-            const done = () => resolve();
-            video.addEventListener('loadeddata', done, { once: true });
-            window.setTimeout(done, 1200);
-          });
-        }
-      }
+      if (video) await attachCameraStream(video, stream);
       setLive(true);
+      setPhase('ready');
       return stream;
     } catch {
       setPhase('blocked');
+      setLive(false);
       return null;
     }
   }, []);
+
+  async function onAllow() {
+    await openCamera();
+  }
 
   const runSequence = useCallback(async () => {
     const video = videoRef.current;
@@ -116,15 +107,14 @@ export default function PhotoautomatTool() {
   }, [stopStream]);
 
   const startBooth = useCallback(async () => {
-    setDrag(1);
-    const stream = await openCamera();
-    if (!stream) {
+    if (!streamRef.current) {
       setDrag(0);
       return;
     }
+    setDrag(1);
     setPhase('armed');
     await runSequence();
-  }, [openCamera, runSequence]);
+  }, [runSequence]);
 
   function pointerPos(clientX: number) {
     const slot = slotRef.current;
@@ -134,7 +124,7 @@ export default function PhotoautomatTool() {
   }
 
   function onPointerDown(event: PointerEvent<HTMLButtonElement>) {
-    if (phase !== 'idle' && phase !== 'blocked') return;
+    if (phase !== 'ready') return;
     dragRef.current = true;
     event.currentTarget.setPointerCapture(event.pointerId);
     const next = pointerPos(event.clientX);
@@ -170,7 +160,7 @@ export default function PhotoautomatTool() {
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
     ctx.drawImage(image, 0, 0);
-    await downloadCanvas(canvas, 'photoautomat-sheet.png');
+    await downloadCanvas(canvas, 'photoautomat-strip.png');
   }
 
   function onAgain() {
@@ -178,26 +168,31 @@ export default function PhotoautomatTool() {
     setShots(0);
     setCount(null);
     setDrag(0);
+    setLive(false);
     setPhase('idle');
+    stopStream();
     setSheetUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
     });
   }
 
+  const shooting = phase === 'count' || phase === 'flash' || phase === 'armed';
   const status =
     phase === 'blocked'
       ? tx.blocked
       : phase === 'develop'
         ? tx.developing
-        : phase === 'count' || phase === 'flash' || phase === 'armed'
+        : shooting
           ? tx.shooting
           : phase === 'print'
             ? tx.take
-            : tx.swipe;
+            : phase === 'ready'
+              ? tx.swipe
+              : tx.allow;
 
   return (
-    <div className="foto-root" data-testid="foto-root">
+    <div className="foto-root" data-testid="foto-root" data-phase={phase} data-live={live ? 'yes' : 'no'}>
       <ScrollUnlock />
       <div className="foto-top">
         <Link href="/tools" className="foto-back">
@@ -225,38 +220,54 @@ export default function PhotoautomatTool() {
           data-testid="foto-cabin"
           style={{ backgroundImage: "url('/tools/photoautomat/interior.jpg')" }}
         >
-          <video
-            ref={videoRef}
-            className={`foto-video${live ? ' is-live' : ''}`}
-            muted
-            playsInline
-            autoPlay
-            data-testid="foto-video"
-          />
-          <span className={`foto-lamp${phase === 'count' || phase === 'flash' ? ' is-hot' : ''}`} />
+          <div className="foto-glass">
+            <video
+              ref={videoRef}
+              className={`foto-video${live ? ' is-live' : ''}`}
+              muted
+              playsInline
+              autoPlay
+              data-testid="foto-video"
+              data-live={live ? 'yes' : 'no'}
+            />
+            {!live ? (
+              <button
+                type="button"
+                className={`foto-allow${phase === 'blocked' ? ' is-blocked' : ''}`}
+                data-testid="foto-allow"
+                onClick={() => {
+                  void onAllow();
+                }}
+              >
+                {phase === 'blocked' ? tx.blocked : tx.allow}
+              </button>
+            ) : null}
+            {count != null ? <div className="foto-count">{count}</div> : null}
+          </div>
           <div className={`foto-flash${phase === 'flash' ? ' is-on' : ''}`} />
-          {count != null ? <div className="foto-count">{count}</div> : null}
-          {phase !== 'idle' ? (
+          {shooting || phase === 'develop' ? (
             <p className="foto-status" data-testid="foto-status">
               {status}
               {shots ? ` · ${shots}/${SHOT_COUNT}` : ''}
             </p>
           ) : null}
-          <div ref={slotRef} className="foto-slot" data-testid="foto-slot">
-            <button
-              type="button"
-              className="foto-card"
-              data-testid="foto-card"
-              style={{ transform: `translateX(${Math.round(drag * 108)}%)` }}
-              onPointerDown={onPointerDown}
-              onPointerMove={onPointerMove}
-              onPointerUp={onPointerUp}
-              onPointerCancel={onPointerUp}
-              disabled={phase !== 'idle' && phase !== 'blocked'}
-            >
-              {tx.swipe}
-            </button>
-          </div>
+          {live ? (
+            <div ref={slotRef} className="foto-slot" data-testid="foto-slot">
+              <button
+                type="button"
+                className="foto-card"
+                data-testid="foto-card"
+                style={{ transform: `translateX(${Math.round(drag * 108)}%)` }}
+                onPointerDown={onPointerDown}
+                onPointerMove={onPointerMove}
+                onPointerUp={onPointerUp}
+                onPointerCancel={onPointerUp}
+                disabled={phase !== 'ready'}
+              >
+                {tx.swipe}
+              </button>
+            </div>
+          ) : null}
         </div>
       )}
     </div>

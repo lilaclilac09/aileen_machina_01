@@ -35,10 +35,13 @@ async function main() {
   async function dismissConsole() {
     const close = page.getByRole('button', { name: 'Close console' });
     if (await close.count()) await close.first().click({ force: true }).catch(() => undefined);
+    const closeBrowse = page.getByRole('button', { name: 'Close Browser Use' });
+    if (await closeBrowse.count()) await closeBrowse.first().click({ force: true }).catch(() => undefined);
     await page.keyboard.press('Escape').catch(() => undefined);
     await page.evaluate(() => {
-      const dialog = document.querySelector('[aria-label="Aileena Console"]');
-      if (dialog instanceof HTMLElement) dialog.style.display = 'none';
+      document.querySelectorAll('[aria-label="Aileena Console"], [aria-label="Browser Use"]').forEach((node) => {
+        if (node instanceof HTMLElement) node.style.display = 'none';
+      });
     });
   }
 
@@ -51,6 +54,15 @@ async function main() {
   await page.waitForSelector('[data-testid="foto-cabin"]');
   await page.screenshot({ path: join(OUT, 'tools-photoautomat-booth-390.png') });
 
+  await page.getByTestId('foto-allow').click();
+  await page.waitForSelector('[data-testid="foto-video"][data-live="yes"]', { timeout: 10_000 });
+  await page.waitForFunction(() => {
+    const video = document.querySelector('[data-testid="foto-video"]');
+    return video instanceof HTMLVideoElement && video.readyState >= 2 && video.videoWidth > 0;
+  });
+  await page.waitForTimeout(250);
+  await page.screenshot({ path: join(OUT, 'tools-photoautomat-live-390.png') });
+
   const slot = page.getByTestId('foto-slot');
   const box = await slot.boundingBox();
   if (!box) throw new Error('no slot');
@@ -59,13 +71,13 @@ async function main() {
   await page.mouse.move(box.x + box.width * 0.92, box.y + box.height / 2, { steps: 16 });
   await page.mouse.up();
   await page.waitForSelector('[data-testid="foto-print"]', { timeout: 25_000 });
-  await page.screenshot({ path: join(OUT, 'tools-photoautomat-sheet-390.png') });
+  await page.screenshot({ path: join(OUT, 'tools-photoautomat-strip-390.png') });
   const video = page.video();
   await mobile.close();
   await browser.close();
   const recorded = await video?.path();
   if (recorded) {
-    await copyFile(recorded, join(OUT, 'photoautomat_swipe_four_shots_sheet.webm'));
+    await copyFile(recorded, join(OUT, 'photoautomat_allow_swipe_four_strip.webm'));
   }
   console.log('captured photoautomat stills');
 }
