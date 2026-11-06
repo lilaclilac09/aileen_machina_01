@@ -12,8 +12,11 @@ export const metadata: Metadata = {
   title: { default: DEFAULT_TITLE, template: `%s · ${TITLE_BRAND}` },
   description: DEFAULT_DESCRIPTION,
   alternates: { canonical: './' },
-  openGraph: { type: 'website', siteName: SITE_NAME, title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION, url: './' },
-  twitter: { card: 'summary_large_image', title: DEFAULT_TITLE, description: DEFAULT_DESCRIPTION },
+  // Do not pin title/description here — Next copies each page's own title +
+  // description onto og/twitter. Pinning DEFAULT_TITLE made every public
+  // room share the homepage card ("Aileen") even when <title> was unique.
+  openGraph: { type: 'website', siteName: SITE_NAME, url: './' },
+  twitter: { card: 'summary_large_image' },
 };
 
 /** iPhone Safari: env(safe-area-inset-*) only applies with viewport-fit=cover. */
