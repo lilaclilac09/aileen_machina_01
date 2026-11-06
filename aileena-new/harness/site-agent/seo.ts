@@ -134,6 +134,7 @@ const root = readFileSync('app/layout.tsx', 'utf8');
 check('layout: metadataBase', /metadataBase:\s*new URL\(SITE_URL\)/.test(root));
 check("layout: title template '%s · Aileen'", root.includes('template: `%s · ${TITLE_BRAND}`'));
 check("layout: canonical './'", root.includes("canonical: './'"));
+check('layout: OG/twitter do not pin homepage title onto every page', !/openGraph: \{[^}]*title:\s*DEFAULT_TITLE/.test(root) && !/twitter: \{[^}]*title:\s*DEFAULT_TITLE/.test(root));
 check('layout: Person + WebSite JSON-LD', root.includes('siteJsonLd()') && readFileSync('lib/jsonLd.ts', 'utf8').includes("'@type': 'WebSite'"));
 check('SubstackShell: BlogPosting JSON-LD', readFileSync('app/blog/_substack/SubstackShell.tsx', 'utf8').includes('blogPostingJsonLd('));
 check('dispatch: server index of all posts', /blogPosts\(\)\.map/.test(readFileSync('app/dispatch/layout.tsx', 'utf8')));
