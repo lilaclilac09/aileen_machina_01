@@ -64,6 +64,8 @@ Use `ArcadeLayout` + `ArcadeCabinetFrame`. Primary CTA: `className="arcade-start
 
 Back link: `← Tools` → `/tools`.
 
+Exception: **Photo Automat** (`/tools/photo-automat`) is a full-viewport booth interior (velvet / metal / finder). Do not wrap it in cream ArcadeLayout chrome. Keep `← Tools`.
+
 ### 3. i18n
 
 Add EN + DE under `t.*.tools` — hub `items[slug]` + tool-specific block.
@@ -89,6 +91,7 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 
 | Slug | Route | Status |
 |------|-------|--------|
+| `photo-automat` | `/tools/photo-automat` | **Useful** — in-browser Berlin booth: swipe card, four B&W frames, 2×2 sheet. Full-viewport interior (not ArcadeLayout). Camera stays in the browser. |
 | `cafe-cursor` | `https://cursor-cafe.aileena.xyz/` | **Useful** — redeem for checked-in Cafe Cursor guests |
 | `inkling-clips` | `/tools/inkling-clips` | **Useful** — YouTube → clips, free-mode workaround |
 | `cafe-recap` | `/tools/cafe-recap` | **Experiment** — local JSON→ffmpeg; not better than CapCut yet |

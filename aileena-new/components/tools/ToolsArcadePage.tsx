@@ -144,6 +144,14 @@ function ToolCover({
               <span className="tools-lab-scale-delta">Δ +310 mg</span>
             </div>
           ) : null}
+          {tool.slug === 'photo-automat' ? (
+            <div className="tools-lab-booth">
+              <span />
+              <span />
+              <span />
+              <span />
+            </div>
+          ) : null}
           {tool.slug === 'pricing-slot' ? (
             <div className="tools-lab-sku">
               <span />

@@ -19,6 +19,7 @@ export const STATIC_PATHS = [
   '/works',
   '/tools',
   '/tools/tamper-check',
+  '/tools/photo-automat',
   '/tools/cafe-recap',
   '/tools/ai-factory-sim',
   '/tools/intent',
