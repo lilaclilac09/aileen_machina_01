@@ -27,15 +27,14 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-11-06T17:11:52.154Z -->
+<!-- profile:synced-at 2026-11-07T16:06:23.986Z -->
 <!-- profile:recently-updated:start -->
-* **[aileena.xyz](https://aileena.xyz) Console**: dried sage leaf bookmark on aileena read ridge, and unique titles for /doors /updates /prophecy.
+* **[aileena.xyz](https://aileena.xyz) Console**: dried sage leaf bookmark on aileena read ridge.
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
 <!-- profile:recently-updated:end -->
 
 ### Recently Added
 <!-- profile:recently-added:start -->
-* **Aileena summon + Prophecy Hall**: Voice summon pack and soft-oracle surface on the Console.
 * **Console voice-code**: Orb voice to DeepSeek propose-only patches without Cursor API tokens, with visitor quota and live eval gates.
 * **Machina memory**: Site memory loop and *[How the Site Remembers](https://aileena.xyz/blog/machina-memory)* dispatch — Dreaming reports plus watchlist-only RSS ingest.
 <!-- profile:recently-added:end -->
