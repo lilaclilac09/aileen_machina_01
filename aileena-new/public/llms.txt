@@ -21,4 +21,5 @@
 - [Doors](https://www.aileena.xyz/doors): room directory
 - [Metal & Pages](https://www.aileena.xyz/updates): book club and visual shelf
 - [Prophecy Hall](https://www.aileena.xyz/prophecy): glass orbs that speak in Console
-- [OKC Explorer](https://www.aileena.xyz/nsight): Muse kernel pipeline timing — Copy, Compute, Wait, Launch
+- [OKC Explorer](https://www.aileena.xyz/nsight): Muse kernel pipeline — floor vs gap, then Copy / Compute / Wait / Launch methods
+- [OKC Diagnose](https://www.aileena.xyz/nsight?view=diagnose): four-step demo — separate the job, count retrieval trips, stop at the floor

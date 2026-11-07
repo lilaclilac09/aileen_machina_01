@@ -207,6 +207,76 @@
       .mini-list{margin:0;padding:0;list-style:none;font-size:13px;display:grid;gap:6px;color:var(--ink2)}
       .mini-list b{color:var(--ink);font-family:var(--mono);font-size:12.5px}
       footer{font-size:12px;color:var(--ink3);margin-top:22px}
+
+      /* ===== DIAGNOSE · floor vs gap ===== */
+      .dx-steps{display:flex;gap:4px;flex-wrap:wrap;margin:0 0 16px}
+      .dx-steps button{border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:12.5px;color:var(--ink2);cursor:pointer}
+      .dx-steps button[aria-pressed="true"]{border-color:var(--ink);color:var(--ink);font-weight:700}
+      .dx-pills{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 14px}
+      .dx-pill{border:1px solid var(--line);background:var(--card);border-radius:8px;padding:5px 10px;font-size:12.5px;color:var(--ink2);cursor:pointer}
+      .dx-pill.on{border-color:var(--teal);color:var(--teal);font-weight:700;background:var(--green-bg)}
+      .dx-panel{transition:opacity .15s ease}
+      .dx-panel.is-focus{opacity:1}
+      .dx-split{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+      @media (max-width:720px){.dx-split{grid-template-columns:1fr}}
+      .job-card{background:#fbfbfc;border:1px solid var(--line);border-radius:12px;padding:14px}
+      .job-card .jk{font-size:10.5px;font-weight:800;letter-spacing:.1em;color:var(--ink2)}
+      .job-card .jb{font-size:14.5px;margin-top:6px;line-height:1.45}
+      .job-card.stop .jk{color:var(--red)}
+      .sched-lab{font-size:11px;font-weight:800;letter-spacing:.1em;color:var(--ink2);min-width:52px}
+      .sched-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:8px 0;border-bottom:1px solid var(--line2)}
+      .sched-row:last-child{border-bottom:none}
+      .sched-track{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1}
+      .blk{font-size:12px;font-weight:700;border-radius:8px;padding:5px 10px;background:#f1f2f5;color:var(--ink)}
+      .blk.load{background:#fdf3e0;color:#c47f0a}
+      .blk.comp{background:var(--green-bg);color:var(--compute)}
+      .blk.dep{background:#f1f2f5;color:var(--ink2)}
+      .blk.good{background:var(--green-bg);color:var(--teal)}
+      .blk-arr{color:var(--ink3);font-size:12px}
+      .rt{display:flex;align-items:stretch;gap:8px;margin:8px 0 4px}
+      .rt-end{width:54px;flex:0 0 auto;border:1px solid var(--line);border-radius:10px;background:#fbfbfc;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800}
+      .rt-lanes{flex:1;display:grid;gap:8px}
+      .rt-lane-row{display:grid;grid-template-columns:minmax(120px,0.9fr) 1fr;gap:10px;align-items:center}
+      .rt-lane-row span{font-size:11.5px;color:var(--ink2);font-weight:600}
+      .rt-lane{height:10px;border-radius:99px;background:var(--copy)}
+      .rt-lane.back{background:var(--compute)}
+      @media (max-width:640px){
+        .rt-lane-row{grid-template-columns:1fr}
+        .rt-end{display:none}
+      }
+      .formula{font-family:var(--mono);font-weight:800;font-size:14px;background:var(--green-bg);color:var(--teal);display:inline-block;border-radius:8px;padding:6px 12px;margin:8px 0}
+      .lsu-row{display:flex;gap:4px;flex-wrap:wrap;align-items:center;min-height:28px}
+      .lsu{display:inline-block;height:16px;border-radius:4px}
+      .lsu.wide{width:72px;background:var(--green-bg);border:1px solid #c4e9d8}
+      .lsu.narrow{width:16px;background:var(--red-bg);border:1px solid #f3cdce}
+      .wl-row{width:100%;display:grid;grid-template-columns:minmax(140px,1.1fr) minmax(120px,1.4fr) auto;gap:12px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px;cursor:pointer;text-align:left;color:var(--ink);margin-bottom:8px}
+      .wl-row:hover{border-color:var(--ink3)}
+      .wl-row.on{border-color:var(--ink)}
+      .wl-name .n{font-weight:700;font-size:13.5px;display:block}
+      .wl-name .s{font-size:11.5px;color:var(--ink2)}
+      .wl-track{position:relative;height:10px;background:var(--line2);border-radius:99px;overflow:visible}
+      .wl-fill{position:absolute;left:0;top:0;height:100%;border-radius:99px;background:#f3cdce}
+      .wl-tick{position:absolute;top:-3px;width:2px;height:16px;border-radius:1px}
+      .wl-tick.floor{background:var(--teal)}
+      .wl-tick.design{background:var(--copy)}
+      .wl-tag{font-family:var(--mono);font-size:10.5px;font-weight:800;border-radius:999px;padding:2px 8px;white-space:nowrap}
+      .wl-tag.floor{color:var(--teal);background:var(--green-bg)}
+      .wl-tag.gap{color:var(--red);background:var(--red-bg)}
+      .wl-tag.unknown{color:var(--ink2);background:#f1f2f5}
+      .dx-slice.is-floor{border-color:#c4e9d8}
+      .dx-slice.is-gap{border-color:#f3cdce}
+      .occ{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:center}
+      @media (max-width:640px){
+        .occ{grid-template-columns:1fr}
+        .wl-row{grid-template-columns:1fr;gap:6px}
+      }
+      .occ input[type=range]{width:100%;accent-color:#14181f}
+      .occ-out{font-family:var(--mono);font-weight:800;font-size:18px;letter-spacing:-.02em}
+      .red-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+      @media (max-width:720px){.red-grid{grid-template-columns:1fr}}
+      .red-card{border:1px solid var(--line);border-radius:12px;padding:12px;background:#fbfbfc}
+      .legend-ticks{display:flex;gap:14px;font-size:12px;color:var(--ink2);flex-wrap:wrap;margin:0 0 10px}
+      .legend-ticks i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
     </style>
   </head>
   <body>
@@ -225,6 +295,7 @@
         </div>
         <nav class="tabs" aria-label="Views">
           <button type="button" data-view="overview" aria-pressed="true">Overview</button>
+          <button type="button" data-view="diagnose" aria-pressed="false">Diagnose</button>
           <button type="button" data-view="bf16" aria-pressed="false">bf16_proj</button>
           <button type="button" data-view="attn" aria-pressed="false">attention_decode</button>
           <button type="button" data-view="moe" aria-pressed="false">moe_w4a16</button>
@@ -236,7 +307,7 @@
       <!-- ================= OVERVIEW ================= -->
       <section class="view" data-view-panel="overview">
         <h1>Where time goes in the pipeline</h1>
-        <p class="sub">One problem matters first: <b>bf16_proj</b> — decode is stuck on the memory wall, not on math.</p>
+        <p class="sub">One problem matters first: <b>bf16_proj</b> — decode is stuck on the memory wall, not on math. <button type="button" class="dx-pill on" data-open="diagnose" data-testid="okc-open-diagnose">Diagnose · floor vs gap →</button></p>
         <div class="meta-pills"><span>H200 · 132 SMs</span><span>Shares = model estimates, not measured</span><span>Deadline · Nov 4 PT</span></div>
 
         <!-- LEVEL 1 · THE SOLUTION -->
@@ -422,6 +493,118 @@
               <div class="prow"><span class="pk">IN PLAIN WORDS</span><span class="pv ana">A resident orchestra that stays on stage between movements, rather than disbanding and reassembling after every piece, so there is no empty stage at the end.</span></div>
               <div class="prow"><span class="pk">STATUS</span><span class="pv st">Not started — concept only. Considered only after M01 and M05 land.</span></div>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================= DIAGNOSE ================= -->
+      <section class="view is-hidden" data-view-panel="diagnose" id="okc-diagnose-root" data-testid="okc-diagnose">
+        <h1>Floor first. Then methods.</h1>
+        <p class="sub">Four steps. Separate the job from the time. Count retrieval trips. Compare measured to the bound. Only then pick a method — and only on a gap.</p>
+        <div class="dx-pills" id="dx-problems" data-testid="okc-dx-problems"></div>
+        <nav class="dx-steps" aria-label="Diagnose steps" data-testid="okc-dx-steps">
+          <button type="button" data-dx-step="1" aria-pressed="true">1 · Separate</button>
+          <button type="button" data-dx-step="2" aria-pressed="false">2 · Round trips</button>
+          <button type="button" data-dx-step="3" aria-pressed="false">3 · Floor</button>
+          <button type="button" data-dx-step="4" aria-pressed="false">4 · Methods</button>
+        </nav>
+
+        <div class="dx-panel is-focus" data-dx-panel="1">
+          <div class="card">
+            <div class="card-head"><span class="card-title">1 · Separate the job from the time</span><span class="card-hint">What it solves is not where the milliseconds go</span></div>
+            <div class="sol-nums" id="dx-nums"></div>
+            <div class="dx-split">
+              <div class="job-card">
+                <div class="jk">WHAT IT SOLVES</div>
+                <div class="jb" id="dx-solving">Loading…</div>
+              </div>
+              <div class="job-card stop">
+                <div class="jk">WHAT IT IS NOT</div>
+                <div class="jb" id="dx-not"></div>
+              </div>
+            </div>
+            <p class="card-hint" style="margin:12px 0 0">If you optimize the “not”, you polish the 3 µs. The wall is somewhere else.</p>
+          </div>
+        </div>
+
+        <div class="dx-panel dim" data-dx-panel="2">
+          <div class="card">
+            <div class="card-head"><span class="card-title">2 · Data retrieval · count round trips</span><span class="card-hint">kernel time ≈ trips × latency — fewer trips, not fewer bytes, unless bytes cause extra trips</span></div>
+            <p class="d-sub" id="dx-trip-label"></p>
+            <div class="rt" aria-hidden="true">
+              <div class="rt-end">SM</div>
+              <div class="rt-lanes">
+                <div class="rt-lane-row"><span>trip 1 · page / address</span><i class="rt-lane"></i></div>
+                <div class="rt-lane-row"><span>address back</span><i class="rt-lane back"></i></div>
+                <div class="rt-lane-row"><span>trip 2 · weights / KV</span><i class="rt-lane"></i></div>
+                <div class="rt-lane-row"><span>payload</span><i class="rt-lane back"></i></div>
+              </div>
+              <div class="rt-end">HBM</div>
+            </div>
+            <div class="formula">kernel time ≈ round trips × latency</div>
+            <div class="sched-row"><span class="sched-lab">BEFORE</span><div class="sched-track" id="dx-sched-before"></div></div>
+            <div class="sched-row"><span class="sched-lab">AFTER</span><div class="sched-track" id="dx-sched-after"></div></div>
+            <div class="card-head" style="margin-top:14px"><span class="card-title">Independent loads · 128-bit</span>
+              <button type="button" id="dx-load-toggle" class="dx-pill on" aria-pressed="true">Width · 128-bit</button>
+            </div>
+            <div class="lsu-row" id="dx-lsu" data-testid="okc-lsu"></div>
+            <p class="card-hint" id="dx-lsu-cap" style="margin:8px 0 0"></p>
+            <p class="card-hint">LD.E (generic) splits a 32 B access into 2 × 16 B. Prefetch belongs before the dependency chain, not after.</p>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Pipeline occupancy</span><span class="card-hint">rate ≤ S · B / L</span></div>
+            <div class="occ">
+              <div>
+                <div class="sched-lab">S STAGES · <span id="dx-occ-s-lab">3</span></div>
+                <input id="dx-occ-s" type="range" min="1" max="8" step="1" value="3" />
+                <div class="sched-lab" style="margin-top:10px">L LATENCY · <span id="dx-occ-l-lab">8</span></div>
+                <input id="dx-occ-l" type="range" min="2" max="24" step="1" value="8" />
+              </div>
+              <div>
+                <div class="occ-out" id="dx-occ-out"></div>
+                <p class="card-hint" id="dx-occ-cap"></p>
+                <p class="card-hint">Read resident blocks from the occupancy API. Do not divide total blocks by SM count.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="dx-panel dim" data-dx-panel="3">
+          <div class="card">
+            <div class="card-head"><span class="card-title">3 · Floor vs measured</span><span class="card-hint">Log scale 1 µs → 5 ms · teal tick = physics floor · blue tick = design if the playbook lands</span></div>
+            <div class="legend-ticks">
+              <span><i style="background:var(--teal)"></i>physics floor</span>
+              <span><i style="background:var(--copy)"></i>design bound</span>
+              <span><i style="background:#f3cdce"></i>measured / estimate</span>
+            </div>
+            <div id="dx-waterline" data-testid="okc-waterline"></div>
+            <div id="dx-slice" class="card dx-slice" style="margin-top:4px;margin-bottom:0" data-testid="okc-slice"></div>
+            <p class="card-hint" style="margin:10px 0 0">Close to the floor → this design has little left. Large gap → the kernel did not land the design, or the estimate is wrong — do not write a new path until that is decided.</p>
+          </div>
+        </div>
+
+        <div class="dx-panel dim" data-dx-panel="4">
+          <div class="card sol-block">
+            <div class="card-head"><span class="card-title">4 · Methods only on a gap</span><span class="card-hint">Floor slices get no knob</span></div>
+            <div id="dx-methods" data-testid="okc-methods"></div>
+          </div>
+          <div class="card">
+            <div class="card-head"><span class="card-title">Cross-CTA reduction · pick at the crossover</span><span class="card-hint">Latency high ↓ · three ways, one switch point vs the split dimension</span></div>
+            <div class="red-grid" id="dx-reduce"></div>
+            <p class="card-hint" style="margin:10px 0 0">Two implementations: plot time vs the split (batch, L, K-splits). The intersection is the switch. A rule derived that way still works on shapes you have not measured.</p>
+          </div>
+          <div class="card dim">
+            <div class="card-head"><span class="card-title">Playbook reference · not this board’s capture</span><span class="card-hint">SM load/store rates from the estimate lecture</span></div>
+            <table class="legend">
+              <thead><tr><th>REF</th><th>NUMBER</th><th>USE</th></tr></thead>
+              <tbody>
+                <tr><td>LDG</td><td class="mono">128 B / cycle</td><td class="act">Wide prefetch. One LDG.128 = 16 B.</td></tr>
+                <tr><td>STG</td><td class="mono">32 B / cycle · any width</td><td class="act">Write drain after the last store. Partial fills still pay 32 B.</td></tr>
+                <tr><td>LD.E</td><td class="mono">32 B → 2 × 16 B</td><td class="act">Generic load splits. Pointer-through-shuffle / __grid_constant__ structs.</td></tr>
+                <tr><td>Busy resource</td><td class="mono">time = work / rate</td><td class="act">HBM bytes, shared memory, tensor time, issue slots, store rate — max term wins.</td></tr>
+              </tbody>
+            </table>
+            <footer>How to add the next problem: append a key to <span class="mono">public/okc-diagnose.json</span>. Demo reads that file. Walkthrough: <span class="mono">aileena-new/docs/OKC_DIAGNOSE.md</span>.</footer>
           </div>
         </div>
       </section>
@@ -726,15 +909,25 @@
       </section>
 
     </div>
+    <script src="/okc-diagnose.js" defer></script>
     <script>
       (function(){
         "use strict";
         var tabs = document.querySelectorAll(".tabs button");
+        var ALLOWED = {overview:1,diagnose:1,bf16:1,attn:1,moe:1,declayer:1,prelayer:1};
         function show(key){
+          if (!ALLOWED[key]) key = "overview";
           tabs.forEach(function(b){ b.setAttribute("aria-pressed", b.getAttribute("data-view") === key ? "true" : "false"); });
           document.querySelectorAll("[data-view-panel]").forEach(function(p){
             p.classList.toggle("is-hidden", p.getAttribute("data-view-panel") !== key);
           });
+          try {
+            var url = new URL(location.href);
+            if (key === "overview") url.searchParams.delete("view");
+            else url.searchParams.set("view", key);
+            url.hash = "";
+            history.replaceState(null, "", url.pathname + url.search);
+          } catch (e) {}
           window.scrollTo(0,0);
         }
         tabs.forEach(function(b){ b.addEventListener("click", function(){ show(b.getAttribute("data-view")); }); });
@@ -756,6 +949,9 @@
             }
           });
         });
+        var initial = "";
+        try { initial = new URLSearchParams(location.search).get("view") || (location.hash || "").replace("#",""); } catch (e) {}
+        if (initial) show(initial);
       })();
     </script>
   </body>
