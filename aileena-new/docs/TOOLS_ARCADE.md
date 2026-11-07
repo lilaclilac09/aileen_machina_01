@@ -89,6 +89,7 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 
 | Slug | Route | Status |
 |------|-------|--------|
+| `nsight` | `/nsight?view=diagnose` | **Useful** — OKC Explorer. Floor vs gap, then methods. Doc: `docs/OKC_DIAGNOSE.md` |
 | `photoautomat` | `/tools/photoautomat` | **Useful** — allow camera, swipe, four live B&W shots, vertical strip stays on device |
 | `cafe-cursor` | `https://cursor-cafe.aileena.xyz/` | **Useful** — redeem for checked-in Cafe Cursor guests |
 | `inkling-clips` | `/tools/inkling-clips` | **Useful** — YouTube → clips, free-mode workaround |

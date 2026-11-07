@@ -3,12 +3,20 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'OKC Explorer',
   description:
-    'Where time goes in the Muse kernel pipeline — Copy, Compute, Wait, and Launch per stage, with solutions under the hot path.',
+    'Where time goes in the Muse kernel pipeline — floor vs gap first, then Copy / Compute / Wait / Launch methods on the hot slice.',
   alternates: { canonical: '/nsight' },
 };
 
+const VIEWS = new Set(['overview', 'diagnose', 'bf16', 'attn', 'moe', 'declayer', 'prelayer']);
+
 /** Full-bleed static explorer (public/nsight.html). */
-export default function NsightPage() {
+export default async function NsightPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
+  const { view } = await searchParams;
+  const src = view && VIEWS.has(view) ? `/nsight.html?view=${encodeURIComponent(view)}` : '/nsight.html';
   return (
     <div
       data-testid="nsight-frame"
@@ -19,7 +27,7 @@ export default function NsightPage() {
       }}
     >
       <iframe
-        src="/nsight.html"
+        src={src}
         title="OKC Explorer"
         style={{ border: 0, width: '100%', height: '100%' }}
       />
