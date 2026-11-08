@@ -1,0 +1,369 @@
+{
+  "contest": {
+    "gpu": "H200 · 132 SMs",
+    "board": "2026-11-01",
+    "note": "Totals 4.83 / 4.599 / 2.92 ms are measured. Stage shares are model estimates until nsys / ncu replace them."
+  },
+  "playbook": {
+    "source": "CUDA kernel estimate loop — independent loads, round trips, busiest resource, occupancy, floor gap.",
+    "formulas": [
+      "kernel time ≈ round trips × latency",
+      "time_term = work / rate  (the max term is the bound)",
+      "rate ≤ S · B / L"
+    ],
+    "ref": {
+      "ldgBytesPerCycle": 128,
+      "stgBytesPerCycle": 32,
+      "wideLoadBits": 128,
+      "wideLoadBytes": 16,
+      "ldESplits": "LD.E generic load splits a 32 B access into 2 × 16 B",
+      "stgPartialWaste": "Partial STG fills still pay 32 B; short store bursts behind compute are almost free",
+      "occupancy": "Read resident blocks from the occupancy API (get_blocks_per_sm / CUDA occupancy). Do not divide total blocks by SM count."
+    },
+    "reduction": [
+      {
+        "id": "cluster",
+        "name": "cluster + DSMEM",
+        "latency": "lowest",
+        "note": "SM-to-SM shared memory inside one GPC. Size cap. Must land on one GPC."
+      },
+      {
+        "id": "atomics",
+        "name": "global atomics",
+        "latency": "mid",
+        "note": "Last CTA to the counter. Floating-point atomics → result order is not stable."
+      },
+      {
+        "id": "second-kernel",
+        "name": "launch another kernel",
+        "latency": "highest",
+        "note": "Kernel A writes partials, kernel B reduces. Extra launch, simplest correctness."
+      }
+    ]
+  },
+  "problems": {
+    "bf16": {
+      "key": "bf16",
+      "name": "bf16_proj",
+      "view": "bf16",
+      "solving": "Five skinny GEMMs. Input x is tiny [m, 8192]; the weights are 188 MiB.",
+      "notSolving": "Tensor Core peak. At m=16 the real math is ≈ 3 µs.",
+      "measuredMs": 4.599,
+      "leaderMs": 2.92,
+      "baselineMs": 4.83,
+      "trips": {
+        "label": "Weight stream · two HBM trips if address and payload are serial",
+        "before": ["wait on m / deps", "load 188 MiB weights", "compute"],
+        "after": ["load weights (independent, LDG.128)", "wait on m / deps + compute overlap"]
+      },
+      "slices": [
+        {
+          "id": "math",
+          "name": "GEMM math",
+          "bucket": "compute",
+          "floorLabel": "≈ 3 µs",
+          "measuredLabel": "≈ 3 µs",
+          "floorMs": 0.003,
+          "designMs": 0.003,
+          "measuredMs": 0.003,
+          "verdict": "floor",
+          "why": "Physics floor. The 1.33 ms compute bar on the pipeline is mostly load stalls, not multiply-adds. Do not tune tiles at small m.",
+          "method": null,
+          "methodNote": "Stop. No space on the math itself."
+        },
+        {
+          "id": "stream",
+          "name": "Stream weights",
+          "bucket": "copy",
+          "floorLabel": "≈ 59 µs",
+          "measuredLabel": "1.38 ms · est.",
+          "floorMs": 0.059,
+          "designMs": 0.78,
+          "measuredMs": 1.38,
+          "verdict": "gap",
+          "why": "188 MiB at HBM peak ≈ 59 µs. Prefetch cannot hide 59 µs behind 3 µs of math. Cutting bytes (single-FP8) is the only way to move the physics floor.",
+          "method": "M02",
+          "methodNote": "Single-FP8 weight reads, gated on error. Prefetch with LDG.128. Independent loads before the m-chain. Wide loads so the LSU queue is not filled with LD.E splits."
+        },
+        {
+          "id": "stalls",
+          "name": "Load stalls in GEMM",
+          "bucket": "wait",
+          "floorLabel": "hidden if S · B / L covers the load",
+          "measuredLabel": "inside 1.33 ms · est.",
+          "floorMs": 0.059,
+          "designMs": 0.22,
+          "measuredMs": 1.33,
+          "verdict": "gap",
+          "why": "SMs wait on HBM between tiles. Only spend a method here if ncu shows DRAM full and SMs idle. Occupancy from the occupancy API, not from dividing totals.",
+          "method": "M03",
+          "methodNote": "num_stages=3 is in v9 (not GPU-checked). Full double-buffer + WGMMA/TMA only if proven. Check LD.E is not splitting 32 B into 2 × 16 B."
+        },
+        {
+          "id": "tail",
+          "name": "Tile tail",
+          "bucket": "wait",
+          "floorLabel": "≈ 0 if tiles ≥ 132",
+          "measuredLabel": "1.06 ms · est.",
+          "floorMs": 0.01,
+          "designMs": 0.51,
+          "measuredMs": 1.06,
+          "verdict": "gap",
+          "why": "18–64 tiles for 132 SMs. Not a hardware floor — idle SMs. Split-K reduction then needs a crossover: cluster DSMEM vs global atomics vs a second kernel.",
+          "method": "M01",
+          "methodNote": "Skinny BLOCK_M 16/32 (M05) + adaptive Split-K up to 8× (M01). Persistent kernel (M08) only after those land. Pick the reduction by the split dimension, not by habit."
+        },
+        {
+          "id": "launch",
+          "name": "Dispatch + launches",
+          "bucket": "launch",
+          "floorLabel": "≈ 0 inside a CUDA Graph",
+          "measuredLabel": "0.55 ms · est.",
+          "floorMs": 0.01,
+          "designMs": 0.4,
+          "measuredMs": 0.55,
+          "verdict": "gap",
+          "why": "Five separate launches + host dispatch. The harness already graphs the timed region.",
+          "method": "M06",
+          "methodNote": "Replay the fixed sequence. Collapse the m-dispatch branch. Whole-layer graph is future work on decode_layer."
+        },
+        {
+          "id": "router",
+          "name": "Router 2nd pass",
+          "bucket": "copy",
+          "floorLabel": "one read of x",
+          "measuredLabel": "0.28 ms · est.",
+          "floorMs": 0.05,
+          "designMs": 0.13,
+          "measuredMs": 0.28,
+          "verdict": "gap",
+          "why": "x is read a second time. Three ops (2 mm + add) instead of one fused kernel.",
+          "method": "M04",
+          "methodNote": "One router kernel: read x once, both matmuls + add in-kernel, write once."
+        },
+        {
+          "id": "drain",
+          "name": "Write drain",
+          "bucket": "copy",
+          "floorLabel": "playbook · STG 32 B/cycle",
+          "measuredLabel": "not captured",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "unknown",
+          "why": "After the last store, HBM still drains. Playbook: 4 SMs × 32 B/cycle × 1.96 GHz ≈ 251 GB/s → 1 MB takes ≈ 4.2 µs. A short store burst behind compute is almost free. Partial 32 B stores waste 30–63% write bandwidth.",
+          "method": null,
+          "methodNote": "Measure the drain in nsys before writing a store-path kernel. Do not treat playbook µs as this board's capture."
+        }
+      ]
+    },
+    "attn": {
+      "key": "attn",
+      "name": "attention_decode",
+      "view": "attn",
+      "solving": "One new token. Query is 1 row. The KV cache is the whole history.",
+      "notSolving": "Attention math (q·Kᵀ, softmax, p·V). That slice is ~15%.",
+      "measuredMs": null,
+      "leaderMs": null,
+      "baselineMs": null,
+      "trips": {
+        "label": "KV read · page table then payload — kernel time ≈ trips × latency, not bytes",
+        "before": ["walk page table", "load KV for this token", "attn math"],
+        "after": ["prefetch next KV page (LDG.128)", "math on the page already in flight"]
+      },
+      "slices": [
+        {
+          "id": "kv",
+          "name": "KV stream",
+          "bucket": "copy",
+          "floorLabel": "bytes / HBM · grows with L",
+          "measuredLabel": "~47% · est.",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "gap",
+          "why": "Whole KV cache re-read per token. Goal is fewer round trips, not a smaller softmax.",
+          "method": "Split-KV",
+          "methodNote": "Flash-Decoding: partition L across blocks. FP8 KV only after the same precision gate as bf16 step 3. Paged layout so appends do not break the next read."
+        },
+        {
+          "id": "math",
+          "name": "Attn math",
+          "bucket": "compute",
+          "floorLabel": "small vs the stream",
+          "measuredLabel": "~15% · est.",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "floor",
+          "why": "Do not tune the attention math while the KV stream dominates.",
+          "method": null,
+          "methodNote": "Stop on this slice until ncu shows compute bound."
+        },
+        {
+          "id": "merge",
+          "name": "Merge partials",
+          "bucket": "wait",
+          "floorLabel": "reduction crossover",
+          "measuredLabel": "~22% · est.",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "gap",
+          "why": "Serial reduction waits on the slowest Split-KV block. Three cross-CTA options: cluster DSMEM, global atomics, second kernel. Switch at the batch/L crossover, not by habit.",
+          "method": "online softmax",
+          "methodNote": "Two-stage merge with log-sum-exp rescale. Pick the reduction path from the crossover plot once L and batch are known."
+        }
+      ]
+    },
+    "moe": {
+      "key": "moe",
+      "name": "moe_w4a16",
+      "view": "moe",
+      "solving": "Top-k experts. W4 weights, A16 activations.",
+      "notSolving": "A second full BF16 copy of the weights in HBM.",
+      "measuredMs": null,
+      "leaderMs": null,
+      "baselineMs": null,
+      "trips": {
+        "label": "Dequant as its own pass is an extra HBM round trip",
+        "before": ["unpack W4 → BF16 in HBM", "GEMM reads BF16 again"],
+        "after": ["unpack W4 in registers on the GEMM load", "math"]
+      },
+      "slices": [
+        {
+          "id": "dequant",
+          "name": "Load + dequant",
+          "bucket": "copy",
+          "floorLabel": "W4 bytes once",
+          "measuredLabel": "~38% · est.",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "gap",
+          "why": "Separate dequant = the biggest tensor pays the toll twice.",
+          "method": "in-register dequant",
+          "methodNote": "Unpack inside the GEMM load. Load top-k experts only."
+        },
+        {
+          "id": "gather",
+          "name": "Gather",
+          "bucket": "copy",
+          "floorLabel": "index only",
+          "measuredLabel": "~10% · est.",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "gap",
+          "why": "Physical permute before the GEMM is an extra trip.",
+          "method": "index gather",
+          "methodNote": "GEMM reads tokens through an index array."
+        },
+        {
+          "id": "group",
+          "name": "Grouped GEMM",
+          "bucket": "compute",
+          "floorLabel": "tiles fill 132 SMs",
+          "measuredLabel": "~22% · est.",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "gap",
+          "why": "Ragged expert sizes underfill SMs — same disease as the bf16 tile tail.",
+          "method": "M01/M05",
+          "methodNote": "Skinny tiles for small groups, Split-K for large. Occupancy API per group."
+        }
+      ]
+    },
+    "declayer": {
+      "key": "declayer",
+      "name": "decode_layer",
+      "view": "declayer",
+      "solving": "One full decode layer. One token wide. ~8 small kernels in series.",
+      "notSolving": "A single fat GEMM. The seams cost more than several of the kernels.",
+      "measuredMs": null,
+      "leaderMs": null,
+      "baselineMs": null,
+      "trips": {
+        "label": "Each kernel launch is a host/device trip. Count gaps, not just kernel bodies.",
+        "before": ["norm", "attn", "residual", "moe", "residual"],
+        "after": ["one CUDA Graph replay", "fused epilogues"]
+      },
+      "slices": [
+        {
+          "id": "gaps",
+          "name": "Kernel gaps",
+          "bucket": "launch",
+          "floorLabel": "≈ 0 inside one graph",
+          "measuredLabel": "~18% · est.",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "gap",
+          "why": "Time owned by no kernel. Kill gaps before polishing blocks.",
+          "method": "M06",
+          "methodNote": "Whole-layer CUDA Graph. Fuse RMSNorm + residual into neighbouring epilogues."
+        },
+        {
+          "id": "attn-block",
+          "name": "Attention block",
+          "bucket": "copy",
+          "floorLabel": "same as attention_decode",
+          "measuredLabel": "inherited",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "gap",
+          "why": "Contains the KV-stream problem unchanged.",
+          "method": "Split-KV",
+          "methodNote": "Apply attention_decode fixes inside the block after the graph lands."
+        }
+      ]
+    },
+    "prelayer": {
+      "key": "prelayer",
+      "name": "prefill_layer",
+      "view": "prelayer",
+      "solving": "Whole prompt at once. Large m. Tensor Cores can actually be busy.",
+      "notSolving": "The decode playbook (Split-K by default, gap hunting).",
+      "measuredMs": null,
+      "leaderMs": null,
+      "baselineMs": null,
+      "trips": {
+        "label": "Large m amortizes launches. Count HBM on the L×L scores and the KV write.",
+        "before": ["materialize L×L in HBM", "write KV in prefill order"],
+        "after": ["FlashAttention tiles in SRAM", "write KV paged for decode"]
+      },
+      "slices": [
+        {
+          "id": "attn",
+          "name": "Prefill attention",
+          "bucket": "compute",
+          "floorLabel": "Tensor Core peak · unknown until ncu",
+          "measuredLabel": "hot · share unknown",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "unknown",
+          "why": "The healthy problem. If ncu TFLOPS ≈ peak, this design has little left on math. If L×L spills, that is still a copy gap.",
+          "method": "FlashAttention",
+          "methodNote": "Keep scores in SRAM with online softmax. Classic GEMM tuning (M07) — not Split-K."
+        },
+        {
+          "id": "kvwrite",
+          "name": "KV cache write",
+          "bucket": "copy",
+          "floorLabel": "one write, decode-friendly layout",
+          "measuredLabel": "share unknown",
+          "floorMs": null,
+          "designMs": null,
+          "measuredMs": null,
+          "verdict": "gap",
+          "why": "Written once here, re-read every decode token forever.",
+          "method": "paged KV",
+          "methodNote": "Write paged and contiguous per head at prefill time."
+        }
+      ]
+    }
+  }
+}
