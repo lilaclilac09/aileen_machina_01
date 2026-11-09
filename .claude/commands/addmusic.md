@@ -50,7 +50,9 @@ The argument is a Spotify track URL, optionally followed by extra fields separat
 
 3. **Append the entry** to the `DECK_LIBRARY_TRACKS` array in
    `aileena-new/lib/djSetlist.ts`, right before the closing `];`.
-   Match the existing formatting exactly:
+   The carousel is chronological (oldest first). New tracks go at the **end**
+   of the array so they appear last — never prepend, never "put first", never
+   reverse the list. Match the existing formatting exactly:
 
    ```ts
    { id: '<ID>', title: '<TITLE>', bpm: <BPM>, key: '<KEY>', dur: <SECONDS>, thumb: '<COVER_URL>' },
@@ -61,7 +63,7 @@ The argument is a Spotify track URL, optionally followed by extra fields separat
    - Use the real `'<COVER_URL>'` you fetched in step 2 (a quoted string). Only substitute the
      bare `PLACEHOLDER_THUMB` token (no quotes) when no cover could be fetched — that constant
      already lives at the top of `djSetlist.ts`.
-   - Don't duplicate a track that's already in `DECK_LIBRARY_TRACKS` or the handoff five
+   - Don't duplicate a track that's already in `DECK_LIBRARY_TRACKS` or the handoff set
      (check `id` / `spotifyId` first). If the id is already present but you now have a real
      cover, **update that entry's `thumb` in place** instead of appending a duplicate.
 
@@ -83,8 +85,10 @@ The argument is a Spotify track URL, optionally followed by extra fields separat
 ## Notes
 
 - **Player + carousel** read `allDeckTracks()` from `lib/djSetlist.ts`
-  (`DJ_SET_TRACKS` handoff five + `DECK_LIBRARY_TRACKS`). `/addmusic` appends to
+  (`DJ_SET_TRACKS` handoff set + `DECK_LIBRARY_TRACKS`) and display that order
+  as-is (oldest first, newest last). `/addmusic` appends to
   `DECK_LIBRARY_TRACKS` only — do **not** write a `TRACKS` array in `DJStation.tsx`
-  (that path was removed in the sound migration).
+  (that path was removed in the sound migration). Do **not** prepend onto
+  `DJ_SET_TRACKS` or re-enable a carousel reverse.
 - If the user pastes several links at once, add them all in one commit.
 - Keep the array visually aligned the way it already is; it's hand-formatted.

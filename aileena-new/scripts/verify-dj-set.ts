@@ -9,9 +9,13 @@
  */
 
 import { chromium } from 'playwright';
+import { readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { DJ_SET_TRACKS, PINNED_DECK_A_ID, PINNED_DECK_B_ID, allDeckTracks } from '../lib/djSetlist';
+
+/** Original handoff five — carousel must keep this chronological head. */
+const CURATED_CHRONO_HEAD = ['DAYDRM', 'RAINFR', 'HIGHTD', 'INTOUCH', 'RNDVZ'] as const;
 
 const BASE_URL = (process.env.VERIFY_BASE_URL ?? 'https://www.aileena.xyz').replace(/\/$/, '');
 const OUT_DIR = process.env.VERIFY_OUT_DIR ?? join(process.cwd(), '.verify-screenshots');
@@ -112,8 +116,8 @@ async function runBrowser(checks: Check[]): Promise<void> {
     await page.screenshot({ path: join(OUT_DIR, '02-sound-full-page.png'), fullPage: true });
     await carousel.screenshot({ path: join(OUT_DIR, '03-deck-carousel-closeup.png') });
 
-    // Display order is newest-first (DECK_LIBRARY appends; carousel reverses).
-    const expectedTracks = [...allDeckTracks()].reverse();
+    // Display order is chronological (oldest first). Append-only; do not reverse.
+    const expectedTracks = allDeckTracks();
     const expected = expectedTracks.length;
     const titles: string[] = [];
 
@@ -209,8 +213,46 @@ const ARTIFACTS = [
   'verify-report.json',
 ];
 
+function checkChronologicalSource(): Check[] {
+  const head = DJ_SET_TRACKS.slice(0, CURATED_CHRONO_HEAD.length).map((t) => t.id);
+  const carouselSrc = readFileSync(join(process.cwd(), 'components/TrackLibraryBrowser.tsx'), 'utf8');
+  const stationSrc = readFileSync(join(process.cwd(), 'components/DJStation.tsx'), 'utf8');
+  const addmusic = readFileSync(join(process.cwd(), '..', '.claude', 'commands', 'addmusic.md'), 'utf8');
+  const setlist = JSON.parse(
+    readFileSync(join(process.cwd(), 'public', 'dj-set', 'setlist.json'), 'utf8'),
+  ) as { tracks: Array<{ id: string }> };
+  const setlistIds = setlist.tracks.map((t) => t.id);
+  const curatedIds = DJ_SET_TRACKS.map((t) => t.id);
+  return [
+    {
+      name: 'curated set chronological head (oldest first)',
+      ok: head.join() === CURATED_CHRONO_HEAD.join(),
+      detail: head.join(' · '),
+    },
+    {
+      name: 'setlist.json matches DJ_SET_TRACKS order',
+      ok: setlistIds.join() === curatedIds.join(),
+      detail: setlistIds.join(' · '),
+    },
+    {
+      name: 'carousel does not reverse for newest-first',
+      ok: !/reverseCarousel/.test(carouselSrc) && !/\.reverse\(\)/.test(carouselSrc),
+      detail: /reverseCarousel/.test(carouselSrc) ? 'reverseCarousel still present' : 'ok',
+    },
+    {
+      name: 'DJStation does not pass reverseCarousel',
+      ok: !/reverseCarousel/.test(stationSrc),
+    },
+    {
+      name: 'addmusic appends (does not prepend / newest-first)',
+      ok: /Append the entry/.test(addmusic) && /oldest first/.test(addmusic) && !/newest-first/.test(addmusic),
+    },
+  ];
+}
+
 async function main() {
   const checks: Check[] = [
+    ...checkChronologicalSource(),
     await checkGet('/sound'),
     await checkGet('/'),
     await checkRedirect(),

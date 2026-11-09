@@ -151,7 +151,7 @@ async function iframeSrc(page: import('@playwright/test').Page, embedTestId: str
 }
 
 async function seekCover(page: import('@playwright/test').Page, trackId: string) {
-  for (let i = 0; i < 48; i++) {
+  for (let i = 0; i < 64; i++) {
     if ((await activeCoverId(page)) === trackId) return;
     await advanceToNextCover(page);
   }
@@ -159,7 +159,8 @@ async function seekCover(page: import('@playwright/test').Page, trackId: string)
 }
 
 async function advanceToSpotifyCover(page: import('@playwright/test').Page) {
-  for (let i = 0; i < 12; i++) {
+  // Curated handoff ids are short slugs; 22-char Spotify library ids start after that set.
+  for (let i = 0; i < 64; i++) {
     const id = await activeCoverId(page);
     if (SPOTIFY_ID_RE.test(id)) return id;
     const next = await advanceToNextCover(page);
@@ -247,7 +248,7 @@ test.describe('DJ double-click vocals + covers → decks', () => {
     await expect(page.getByTestId('dj-deck-a-title')).toBeVisible();
     const switcher = page.getByTestId('dj-view-list');
     await switcher.scrollIntoViewIfNeeded();
-    await switcher.click();
+    await switcher.evaluate((el) => (el as HTMLButtonElement).click());
     await expect(page.getByTestId('dj-list-row').first()).toBeVisible({ timeout: 15_000 });
     const row = page.locator('[data-testid="dj-list-row"][data-track-id="23OBmlZUnRpatDl4q2RoIQ"]');
     await row.scrollIntoViewIfNeeded();

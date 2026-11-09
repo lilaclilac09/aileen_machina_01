@@ -1,8 +1,87 @@
 {
   "title": "Aileena Machina — current set",
   "genre": "Techno (personal): harder driving techno — DVS1, Blawan, Rødhåd",
-  "curation": "User links as-is; search Bleep/Beatport/Bandcamp; cover must match release.",
+  "curation": "User links as-is; search Bleep/Beatport/Bandcamp; cover must match release. Chronological add order (oldest first).",
   "tracks": [
+    {
+      "id": "DAYDRM",
+      "title": "Daydreaming",
+      "artist": "Harry Styles",
+      "bpm": 120,
+      "key": "7B",
+      "durationSec": null,
+      "cover": "/dj-set/assets/covers/daydrm.jpg",
+      "note": "Atmosphere entry"
+    },
+    {
+      "id": "RAINFR",
+      "title": "Rainforest",
+      "artist": "John Beltran · Open House",
+      "album": "Now & Then",
+      "bpm": null,
+      "key": null,
+      "durationSec": null,
+      "cover": "/dj-set/assets/covers/rainfr.jpg"
+    },
+    {
+      "id": "HIGHTD",
+      "title": "High Tide",
+      "artist": "John Beltran · Open House",
+      "album": "Now & Then",
+      "bpm": null,
+      "key": null,
+      "durationSec": null,
+      "cover": "/dj-set/assets/covers/hightd.jpg"
+    },
+    {
+      "id": "INTOUCH",
+      "title": "In Touch",
+      "artist": "Beatrice M.",
+      "album": "Sinking Plate 3",
+      "bpm": 140,
+      "key": "9A",
+      "durationSec": null,
+      "cover": "/dj-set/assets/covers/intouch.jpg"
+    },
+    {
+      "id": "RNDVZ",
+      "title": "Rendezvous",
+      "artist": "lovegold",
+      "bpm": null,
+      "key": null,
+      "durationSec": null,
+      "cover": "/dj-set/assets/covers/rndvz.jpg"
+    },
+    {
+      "id": "BDAY",
+      "title": "BIRTHDAY",
+      "artist": "JEON SOMI",
+      "album": "BIRTHDAY",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 185,
+      "cover": "/dj-set/assets/covers/birthday.jpg"
+    },
+    {
+      "id": "ANYMORE",
+      "title": "Anymore",
+      "artist": "JEON SOMI",
+      "album": "XOXO",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 197,
+      "cover": "/dj-set/assets/covers/xoxo.jpg"
+    },
+    {
+      "id": "RKTMRS",
+      "title": "rocket to mars",
+      "artist": "Matt Jinn",
+      "album": "rocket to mars",
+      "bpm": 120,
+      "key": "4A",
+      "durationSec": 182,
+      "cover": "/dj-set/assets/covers/rktmrs.jpg"
+    },
     {
       "id": "ACQSCN",
       "title": "Acquiescence",
@@ -62,85 +141,6 @@
       "key": "4A",
       "durationSec": 392,
       "cover": "/dj-set/assets/covers/entre-nous.jpg"
-    },
-    {
-      "id": "RKTMRS",
-      "title": "rocket to mars",
-      "artist": "Matt Jinn",
-      "album": "rocket to mars",
-      "bpm": 120,
-      "key": "4A",
-      "durationSec": 182,
-      "cover": "/dj-set/assets/covers/rktmrs.jpg"
-    },
-    {
-      "id": "ANYMORE",
-      "title": "Anymore",
-      "artist": "JEON SOMI",
-      "album": "XOXO",
-      "bpm": 120,
-      "key": "4A",
-      "durationSec": 197,
-      "cover": "/dj-set/assets/covers/xoxo.jpg"
-    },
-    {
-      "id": "BDAY",
-      "title": "BIRTHDAY",
-      "artist": "JEON SOMI",
-      "album": "BIRTHDAY",
-      "bpm": 120,
-      "key": "4A",
-      "durationSec": 185,
-      "cover": "/dj-set/assets/covers/birthday.jpg"
-    },
-    {
-      "id": "DAYDRM",
-      "title": "Daydreaming",
-      "artist": "Harry Styles",
-      "bpm": 120,
-      "key": "7B",
-      "durationSec": null,
-      "cover": "/dj-set/assets/covers/daydrm.jpg",
-      "note": "Atmosphere entry"
-    },
-    {
-      "id": "RAINFR",
-      "title": "Rainforest",
-      "artist": "John Beltran · Open House",
-      "album": "Now & Then",
-      "bpm": null,
-      "key": null,
-      "durationSec": null,
-      "cover": "/dj-set/assets/covers/rainfr.jpg"
-    },
-    {
-      "id": "HIGHTD",
-      "title": "High Tide",
-      "artist": "John Beltran · Open House",
-      "album": "Now & Then",
-      "bpm": null,
-      "key": null,
-      "durationSec": null,
-      "cover": "/dj-set/assets/covers/hightd.jpg"
-    },
-    {
-      "id": "INTOUCH",
-      "title": "In Touch",
-      "artist": "Beatrice M.",
-      "album": "Sinking Plate 3",
-      "bpm": 140,
-      "key": "9A",
-      "durationSec": null,
-      "cover": "/dj-set/assets/covers/intouch.jpg"
-    },
-    {
-      "id": "RNDVZ",
-      "title": "Rendezvous",
-      "artist": "lovegold",
-      "bpm": null,
-      "key": null,
-      "durationSec": null,
-      "cover": "/dj-set/assets/covers/rndvz.jpg"
     }
   ]
 }

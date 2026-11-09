@@ -35,8 +35,83 @@ export type DeckTrack = {
   href?: string;
 };
 
-/** Curated handoff set — also mirrored in public/dj-set/setlist.json */
+/**
+ * Curated handoff set — chronological add order (oldest first).
+ * Append new tracks; do not prepend. Mirrored in public/dj-set/setlist.json.
+ */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
+  {
+    id: 'DAYDRM',
+    title: 'Daydreaming',
+    artist: 'Harry Styles',
+    bpm: 120,
+    key: '7B',
+    cover: '/dj-set/assets/covers/daydrm.jpg',
+    note: 'Atmosphere entry',
+    spotifyId: '69w5X6uTrOaWM32IetSzvO',
+  },
+  {
+    id: 'RAINFR',
+    title: 'Rainforest',
+    artist: 'John Beltran · Open House',
+    album: 'Now & Then',
+    cover: '/dj-set/assets/covers/rainfr.jpg',
+  },
+  {
+    id: 'HIGHTD',
+    title: 'High Tide',
+    artist: 'John Beltran · Open House',
+    album: 'Now & Then',
+    cover: '/dj-set/assets/covers/hightd.jpg',
+  },
+  {
+    id: 'INTOUCH',
+    title: 'In Touch',
+    artist: 'Beatrice M.',
+    album: 'Sinking Plate 3',
+    bpm: 140,
+    key: '9A',
+    cover: '/dj-set/assets/covers/intouch.jpg',
+  },
+  {
+    id: 'RNDVZ',
+    title: 'Rendezvous',
+    artist: 'lovegold',
+    cover: '/dj-set/assets/covers/rndvz.jpg',
+  },
+  {
+    id: 'BDAY',
+    title: 'BIRTHDAY',
+    artist: 'JEON SOMI',
+    album: 'BIRTHDAY',
+    bpm: 120,
+    key: '4A',
+    durationSec: 185,
+    cover: '/dj-set/assets/covers/birthday.jpg',
+    spotifyId: '3jsWXhE5NuPWQ4IHplv2zt',
+  },
+  {
+    id: 'ANYMORE',
+    title: 'Anymore',
+    artist: 'JEON SOMI',
+    album: 'XOXO',
+    bpm: 120,
+    key: '4A',
+    durationSec: 197,
+    cover: '/dj-set/assets/covers/xoxo.jpg',
+    spotifyId: '5ysBBGHvIGTqgQb5xdL3Lf',
+  },
+  {
+    id: 'RKTMRS',
+    title: 'rocket to mars',
+    artist: 'Matt Jinn',
+    album: 'rocket to mars',
+    bpm: 120,
+    key: '4A',
+    durationSec: 182,
+    cover: '/dj-set/assets/covers/rktmrs.jpg',
+    spotifyId: '2f5QydsbD1566wZ5rjFjaX',
+  },
   {
     id: 'ACQSCN',
     title: 'Acquiescence',
@@ -103,83 +178,12 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
     cover: '/dj-set/assets/covers/entre-nous.jpg',
     spotifyId: '4y6Xfz6GnCTD1UAn9rco32',
   },
-  {
-    id: 'RKTMRS',
-    title: 'rocket to mars',
-    artist: 'Matt Jinn',
-    album: 'rocket to mars',
-    bpm: 120,
-    key: '4A',
-    durationSec: 182,
-    cover: '/dj-set/assets/covers/rktmrs.jpg',
-    spotifyId: '2f5QydsbD1566wZ5rjFjaX',
-  },
-  {
-    id: 'ANYMORE',
-    title: 'Anymore',
-    artist: 'JEON SOMI',
-    album: 'XOXO',
-    bpm: 120,
-    key: '4A',
-    durationSec: 197,
-    cover: '/dj-set/assets/covers/xoxo.jpg',
-    spotifyId: '5ysBBGHvIGTqgQb5xdL3Lf',
-  },
-  {
-    id: 'BDAY',
-    title: 'BIRTHDAY',
-    artist: 'JEON SOMI',
-    album: 'BIRTHDAY',
-    bpm: 120,
-    key: '4A',
-    durationSec: 185,
-    cover: '/dj-set/assets/covers/birthday.jpg',
-    spotifyId: '3jsWXhE5NuPWQ4IHplv2zt',
-  },
-  {
-    id: 'DAYDRM',
-    title: 'Daydreaming',
-    artist: 'Harry Styles',
-    bpm: 120,
-    key: '7B',
-    cover: '/dj-set/assets/covers/daydrm.jpg',
-    note: 'Atmosphere entry',
-    spotifyId: '69w5X6uTrOaWM32IetSzvO',
-  },
-  {
-    id: 'RAINFR',
-    title: 'Rainforest',
-    artist: 'John Beltran · Open House',
-    album: 'Now & Then',
-    cover: '/dj-set/assets/covers/rainfr.jpg',
-  },
-  {
-    id: 'HIGHTD',
-    title: 'High Tide',
-    artist: 'John Beltran · Open House',
-    album: 'Now & Then',
-    cover: '/dj-set/assets/covers/hightd.jpg',
-  },
-  {
-    id: 'INTOUCH',
-    title: 'In Touch',
-    artist: 'Beatrice M.',
-    album: 'Sinking Plate 3',
-    bpm: 140,
-    key: '9A',
-    cover: '/dj-set/assets/covers/intouch.jpg',
-  },
-  {
-    id: 'RNDVZ',
-    title: 'Rendezvous',
-    artist: 'lovegold',
-    cover: '/dj-set/assets/covers/rndvz.jpg',
-  },
 ];
 
 /**
  * Full Machina deck library that lived in DJStation before the handoff-only cut.
  * Spotify id is the track `id` (22-char). Keep these in the carousel with the handoff set.
+ * Chronological add order (oldest first). Append new tracks at the end — do not prepend.
  */
 export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '189lkmwebOMpyLoyx1zkCS', title: 'Intro', bpm: 112, key: '4A', dur: 102, thumb: 'https://i.scdn.co/image/ab67616d0000b273fca7f5aebfb6010c6da60e00' },
@@ -245,7 +249,10 @@ export function djSetToDeckTracks(): DeckTrack[] {
   }));
 }
 
-/** Everything shown in the /sound deck carousel: handoff set + full library. */
+/**
+ * Everything shown in the /sound deck carousel, chronological:
+ * handoff set (oldest first) then library (oldest first). Newest track is last.
+ */
 export function allDeckTracks(): DeckTrack[] {
   return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
 }
