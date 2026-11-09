@@ -229,6 +229,11 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '23OBmlZUnRpatDl4q2RoIQ', title: 'Absolutely', artist: 'Klein Zage', album: 'Womanhood EP', bpm: 130, key: '11A', dur: 241, thumb: '/dj-set/assets/covers/womanhood-ep.jpg' },
   { id: '1KrJHAYW5IomyHw7ly8Bdd', title: 'Vertigo', artist: 'U2', album: 'How To Dismantle An Atomic Bomb', bpm: 140, key: '10A', dur: 194, thumb: '/dj-set/assets/covers/vertigo.jpg' },
   { id: '1JNsKjaCFgTxjP3EkKfYZo', title: 'LOOP (feat. Lil Cherry)', artist: 'Yves', bpm: 127, key: '4A', dur: 163, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02dff9c2cc0dfcc7271897679f' },
+  { id: '2JpAVv75QD6hRrpNm0Zr5h', title: 'Do Better', artist: 'sunkis', bpm: 89, key: '4A', dur: 180, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02565ad93bbed9099ff19df22d' },
+  { id: '2lqtPgqjXOGgXDIc3Tv553', title: 'Temporary Love', artist: 'sunkis', album: 'Parachute', bpm: 118, key: '7B', dur: 196, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e024135d4fa5765d9e722bcca0f' },
+  { id: '4XZ77HZq0P7S1NLKqRJ9ml', title: "SAINT LAURENT WOMEN'S WINTER 22", artist: 'SebastiAn', album: 'SAINT LAURENT SHOWS', bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ea7ad4dd0dbe9ac9e0a7752f' },
+  { id: '3VylpYJ8Fpd4ze68TduAKp', title: '難得有情人', artist: 'Shirley Kwan', album: '關淑怡音樂大全 101', bpm: 84, key: '4A', dur: 225, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0227ef8776873edf848845549b' },
+  { id: '3ZbhLLnCh6IiUaiGQxt7dD', title: 'Ross Ross Ross', artist: 'SebastiAn', bpm: 120, key: '4A', dur: 202, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e020638bc4cba811f5a8fceb78d' },
 ];
 
 /** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */
