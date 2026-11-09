@@ -35,8 +35,83 @@ export type DeckTrack = {
   href?: string;
 };
 
-/** Curated handoff set — also mirrored in public/dj-set/setlist.json */
+/**
+ * Curated handoff set — chronological add order (oldest first).
+ * Append new tracks; do not prepend. Mirrored in public/dj-set/setlist.json.
+ */
 export const DJ_SET_TRACKS: DjSetTrack[] = [
+  {
+    id: 'DAYDRM',
+    title: 'Daydreaming',
+    artist: 'Harry Styles',
+    bpm: 120,
+    key: '7B',
+    cover: '/dj-set/assets/covers/daydrm.jpg',
+    note: 'Atmosphere entry',
+    spotifyId: '69w5X6uTrOaWM32IetSzvO',
+  },
+  {
+    id: 'RAINFR',
+    title: 'Rainforest',
+    artist: 'John Beltran · Open House',
+    album: 'Now & Then',
+    cover: '/dj-set/assets/covers/rainfr.jpg',
+  },
+  {
+    id: 'HIGHTD',
+    title: 'High Tide',
+    artist: 'John Beltran · Open House',
+    album: 'Now & Then',
+    cover: '/dj-set/assets/covers/hightd.jpg',
+  },
+  {
+    id: 'INTOUCH',
+    title: 'In Touch',
+    artist: 'Beatrice M.',
+    album: 'Sinking Plate 3',
+    bpm: 140,
+    key: '9A',
+    cover: '/dj-set/assets/covers/intouch.jpg',
+  },
+  {
+    id: 'RNDVZ',
+    title: 'Rendezvous',
+    artist: 'lovegold',
+    cover: '/dj-set/assets/covers/rndvz.jpg',
+  },
+  {
+    id: 'BDAY',
+    title: 'BIRTHDAY',
+    artist: 'JEON SOMI',
+    album: 'BIRTHDAY',
+    bpm: 120,
+    key: '4A',
+    durationSec: 185,
+    cover: '/dj-set/assets/covers/birthday.jpg',
+    spotifyId: '3jsWXhE5NuPWQ4IHplv2zt',
+  },
+  {
+    id: 'ANYMORE',
+    title: 'Anymore',
+    artist: 'JEON SOMI',
+    album: 'XOXO',
+    bpm: 120,
+    key: '4A',
+    durationSec: 197,
+    cover: '/dj-set/assets/covers/xoxo.jpg',
+    spotifyId: '5ysBBGHvIGTqgQb5xdL3Lf',
+  },
+  {
+    id: 'RKTMRS',
+    title: 'rocket to mars',
+    artist: 'Matt Jinn',
+    album: 'rocket to mars',
+    bpm: 120,
+    key: '4A',
+    durationSec: 182,
+    cover: '/dj-set/assets/covers/rktmrs.jpg',
+    spotifyId: '2f5QydsbD1566wZ5rjFjaX',
+  },
   {
     id: 'ACQSCN',
     title: 'Acquiescence',
@@ -103,83 +178,12 @@ export const DJ_SET_TRACKS: DjSetTrack[] = [
     cover: '/dj-set/assets/covers/entre-nous.jpg',
     spotifyId: '4y6Xfz6GnCTD1UAn9rco32',
   },
-  {
-    id: 'RKTMRS',
-    title: 'rocket to mars',
-    artist: 'Matt Jinn',
-    album: 'rocket to mars',
-    bpm: 120,
-    key: '4A',
-    durationSec: 182,
-    cover: '/dj-set/assets/covers/rktmrs.jpg',
-    spotifyId: '2f5QydsbD1566wZ5rjFjaX',
-  },
-  {
-    id: 'ANYMORE',
-    title: 'Anymore',
-    artist: 'JEON SOMI',
-    album: 'XOXO',
-    bpm: 120,
-    key: '4A',
-    durationSec: 197,
-    cover: '/dj-set/assets/covers/xoxo.jpg',
-    spotifyId: '5ysBBGHvIGTqgQb5xdL3Lf',
-  },
-  {
-    id: 'BDAY',
-    title: 'BIRTHDAY',
-    artist: 'JEON SOMI',
-    album: 'BIRTHDAY',
-    bpm: 120,
-    key: '4A',
-    durationSec: 185,
-    cover: '/dj-set/assets/covers/birthday.jpg',
-    spotifyId: '3jsWXhE5NuPWQ4IHplv2zt',
-  },
-  {
-    id: 'DAYDRM',
-    title: 'Daydreaming',
-    artist: 'Harry Styles',
-    bpm: 120,
-    key: '7B',
-    cover: '/dj-set/assets/covers/daydrm.jpg',
-    note: 'Atmosphere entry',
-    spotifyId: '69w5X6uTrOaWM32IetSzvO',
-  },
-  {
-    id: 'RAINFR',
-    title: 'Rainforest',
-    artist: 'John Beltran · Open House',
-    album: 'Now & Then',
-    cover: '/dj-set/assets/covers/rainfr.jpg',
-  },
-  {
-    id: 'HIGHTD',
-    title: 'High Tide',
-    artist: 'John Beltran · Open House',
-    album: 'Now & Then',
-    cover: '/dj-set/assets/covers/hightd.jpg',
-  },
-  {
-    id: 'INTOUCH',
-    title: 'In Touch',
-    artist: 'Beatrice M.',
-    album: 'Sinking Plate 3',
-    bpm: 140,
-    key: '9A',
-    cover: '/dj-set/assets/covers/intouch.jpg',
-  },
-  {
-    id: 'RNDVZ',
-    title: 'Rendezvous',
-    artist: 'lovegold',
-    cover: '/dj-set/assets/covers/rndvz.jpg',
-  },
 ];
 
 /**
  * Full Machina deck library that lived in DJStation before the handoff-only cut.
  * Spotify id is the track `id` (22-char). Keep these in the carousel with the handoff set.
+ * Chronological add order (oldest first). Append new tracks at the end — do not prepend.
  */
 export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '189lkmwebOMpyLoyx1zkCS', title: 'Intro', bpm: 112, key: '4A', dur: 102, thumb: 'https://i.scdn.co/image/ab67616d0000b273fca7f5aebfb6010c6da60e00' },
@@ -225,6 +229,11 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '23OBmlZUnRpatDl4q2RoIQ', title: 'Absolutely', artist: 'Klein Zage', album: 'Womanhood EP', bpm: 130, key: '11A', dur: 241, thumb: '/dj-set/assets/covers/womanhood-ep.jpg' },
   { id: '1KrJHAYW5IomyHw7ly8Bdd', title: 'Vertigo', artist: 'U2', album: 'How To Dismantle An Atomic Bomb', bpm: 140, key: '10A', dur: 194, thumb: '/dj-set/assets/covers/vertigo.jpg' },
   { id: '1JNsKjaCFgTxjP3EkKfYZo', title: 'LOOP (feat. Lil Cherry)', artist: 'Yves', bpm: 127, key: '4A', dur: 163, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02dff9c2cc0dfcc7271897679f' },
+  { id: '2JpAVv75QD6hRrpNm0Zr5h', title: 'Do Better', artist: 'sunkis', bpm: 89, key: '4A', dur: 180, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e02565ad93bbed9099ff19df22d' },
+  { id: '2lqtPgqjXOGgXDIc3Tv553', title: 'Temporary Love', artist: 'sunkis', album: 'Parachute', bpm: 118, key: '7B', dur: 196, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e024135d4fa5765d9e722bcca0f' },
+  { id: '4XZ77HZq0P7S1NLKqRJ9ml', title: "SAINT LAURENT WOMEN'S WINTER 22", artist: 'SebastiAn', album: 'SAINT LAURENT SHOWS', bpm: 120, key: '4A', dur: 200, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02ea7ad4dd0dbe9ac9e0a7752f' },
+  { id: '3VylpYJ8Fpd4ze68TduAKp', title: '難得有情人', artist: 'Shirley Kwan', album: '關淑怡音樂大全 101', bpm: 84, key: '4A', dur: 225, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0227ef8776873edf848845549b' },
+  { id: '3ZbhLLnCh6IiUaiGQxt7dD', title: 'Ross Ross Ross', artist: 'SebastiAn', bpm: 120, key: '4A', dur: 202, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e020638bc4cba811f5a8fceb78d' },
 ];
 
 /** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */
@@ -245,7 +254,10 @@ export function djSetToDeckTracks(): DeckTrack[] {
   }));
 }
 
-/** Everything shown in the /sound deck carousel: handoff set + full library. */
+/**
+ * Everything shown in the /sound deck carousel, chronological:
+ * handoff set (oldest first) then library (oldest first). Newest track is last.
+ */
 export function allDeckTracks(): DeckTrack[] {
   return [...djSetToDeckTracks(), ...DECK_LIBRARY_TRACKS];
 }

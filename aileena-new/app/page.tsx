@@ -97,13 +97,15 @@ const livedInBase: Record<string, string> = {
   'kiln-glass': 'rotate(-2.6deg)',
   'street-back': 'rotate(1.6deg)',
   'vinyl-surface': 'rotate(-2.4deg)',
+  'exchange-life': 'rotate(1.2deg)',
 };
 const livedInZ: Record<string, number> = {
   'kiln-glass': 11,
   'street-back': 7,
   'vinyl-surface': 13,
+  'exchange-life': 15,
 };
-const livedInDark = new Set(['street-back', 'vinyl-surface']);
+const livedInDark = new Set(['street-back', 'vinyl-surface', 'exchange-life']);
 
 function dragMeCursorForId(id: string, rooms: RoomDoor[]): string {
   if (id in livedInBase) {
@@ -852,6 +854,49 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               </Link>
 
               <Link
+                href="/blog/watch-listening-shelf#films"
+                aria-label="Open the watch shelf — exchange life with"
+                className="text-left"
+                data-lived-in="exchange-life"
+                style={{
+                  display: 'block',
+                  width: 'min(88%, 320px)',
+                  margin: '22px auto 8px',
+                  padding: 0,
+                  border: 'none',
+                  background: 'transparent',
+                  textDecoration: 'none',
+                  transform: 'rotate(1.1deg)',
+                  filter: 'drop-shadow(2px 10px 16px rgba(20,17,12,0.18))',
+                }}
+              >
+                <ScrapPhoto src="/desk/exchange-life.jpg" filter="saturate(0.92) contrast(1.04)">
+                  <span
+                    style={{
+                      position: 'absolute',
+                      inset: 0,
+                      zIndex: 1,
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      padding: '0 10%',
+                      color: '#fff',
+                      fontFamily: 'Georgia, serif',
+                      fontSize: 'clamp(1.05rem, 4.2vw, 1.35rem)',
+                      fontWeight: 400,
+                      letterSpacing: '0.04em',
+                      lineHeight: 1.25,
+                      textAlign: 'center',
+                      textShadow: '0 1px 12px rgba(0,0,0,0.55)',
+                      pointerEvents: 'none',
+                    }}
+                  >
+                    exchange life with
+                  </span>
+                </ScrapPhoto>
+              </Link>
+
+              <Link
                 href="/blog/pate-de-verre"
                 aria-label="Open pâte de verre — kiln glass on the bench"
                 className="text-left"
@@ -1152,6 +1197,57 @@ function AtriumLinkDock({ rooms }: { rooms: RoomDoor[] }) {
               filter="saturate(0.9) contrast(1.02)"
               caption="kiln"
             />
+          </Link>
+
+          <Link
+            href="/blog/watch-listening-shelf#films"
+            aria-label="Open the watch shelf — exchange life with"
+            data-lived-in="exchange-life"
+            className="absolute hidden sm:block"
+            style={{
+              top: '74%',
+              left: '6%',
+              width: 'min(26vw, 260px)',
+              padding: 0,
+              margin: 0,
+              border: 'none',
+              outline: 'none',
+              background: 'transparent',
+              boxShadow: 'none',
+              cursor: dragMeCursorOnDark,
+              transform: dragTransform('exchange-life', livedInBase['exchange-life']),
+              transition: 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)',
+              touchAction: 'none',
+              userSelect: 'none',
+              zIndex: livedInZ['exchange-life'],
+              textDecoration: 'none',
+            }}
+            {...dragHandlers('exchange-life')}
+          >
+            <ScrapPhoto src="/desk/exchange-life.jpg" filter="saturate(0.92) contrast(1.04)">
+              <span
+                style={{
+                  position: 'absolute',
+                  inset: 0,
+                  zIndex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '0 8%',
+                  color: '#fff',
+                  fontFamily: 'Georgia, serif',
+                  fontSize: 'clamp(0.95rem, 1.3vw, 1.15rem)',
+                  fontWeight: 400,
+                  letterSpacing: '0.03em',
+                  lineHeight: 1.2,
+                  textAlign: 'center',
+                  textShadow: '0 1px 10px rgba(0,0,0,0.55)',
+                  pointerEvents: 'none',
+                }}
+              >
+                exchange life with
+              </span>
+            </ScrapPhoto>
           </Link>
 
           <Link
