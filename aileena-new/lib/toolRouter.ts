@@ -79,6 +79,16 @@ export function isDjSetQuestion(q: string): boolean {
 
 export const SETLIST_MEMORY_QUERY = 'setlist curated tracks Ion IONPST';
 
+/**
+ * Prefetch and the tool hint must share this query. Raw CJK is one TF-IDF
+ * token and scores zero on English chunks — force the English shelf query.
+ */
+export function forcedMemoryQuery(q: string): string | null {
+  if (isLatestUpdatesQuestion(q)) return LATEST_CONTENT_MEMORY_QUERY;
+  if (isDjSetQuestion(q)) return SETLIST_MEMORY_QUERY;
+  return null;
+}
+
 function uniq(names: AgentToolName[]): AgentToolName[] {
   return [...new Set(names)];
 }
@@ -93,12 +103,13 @@ function hardRoute(q: string): ToolRoute | null {
 
   // What's new / 更新 — force latest-content shelf (Chinese queries miss TF-IDF otherwise).
   if (isLatestUpdatesQuestion(q)) {
+    const memoryQuery = forcedMemoryQuery(q) ?? LATEST_CONTENT_MEMORY_QUERY;
     return {
       route: 'latest_updates',
       allowed: uniq([...MEMORY_TOOLS, ...ARTICLE_TOOLS]),
       preferred: ['searchMemories'],
       reason: 'what updated → latest-content.md',
-      hint: `REQUIRED: call searchMemories with query exactly "${LATEST_CONTENT_MEMORY_QUERY}". Answer from that shelf (newest articles by date, /updates, research, songs). Do NOT invent from training or cite old posts (e.g. /blog/cli) unless they appear in the retrieved latest-content. Optional: searchArticles only to expand a slug already listed there.`,
+      hint: `REQUIRED: call searchMemories with query exactly "${memoryQuery}". Answer from that shelf (newest articles by date, /updates, research, songs). Do NOT invent from training or cite old posts (e.g. /blog/cli) unless they appear in the retrieved latest-content. Optional: searchArticles only to expand a slug already listed there.`,
     };
   }
 
@@ -130,12 +141,13 @@ function hardRoute(q: string): ToolRoute | null {
 
   // DJ set / setlist — force setlist.md (same pattern as latest_updates).
   if (isDjSetQuestion(q)) {
+    const memoryQuery = forcedMemoryQuery(q) ?? SETLIST_MEMORY_QUERY;
     return {
       route: 'taste',
       allowed: uniq([...MEMORY_TOOLS, ...ARTICLE_TOOLS]),
       preferred: ['searchMemories'],
       reason: 'dj set → setlist.md',
-      hint: `REQUIRED: call searchMemories with query exactly "${SETLIST_MEMORY_QUERY}". Answer with title + artist from the retrieved curated set (include Ion / IONPST when present). Point at /sound#dj-set. Never dump tool-call / DSML markup. Do not call queryChip / pricing / news.`,
+      hint: `REQUIRED: call searchMemories with query exactly "${memoryQuery}". Answer with title + artist from the retrieved curated set (include Ion / IONPST when present). Point at /sound#dj-set. Never dump tool-call / DSML markup. Do not call queryChip / pricing / news.`,
     };
   }
 
