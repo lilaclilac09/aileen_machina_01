@@ -12,6 +12,7 @@ test.use({
 });
 
 test('tools hub lists Photoautomat; allow camera then swipe to a local strip', async ({ page }) => {
+  test.setTimeout(180_000);
   async function dismissOverlays() {
     await page.evaluate(() => {
       document.querySelectorAll('[aria-label="Aileena Console"], [aria-label="Browser Use"]').forEach((node) => {
@@ -27,7 +28,16 @@ test('tools hub lists Photoautomat; allow camera then swipe to a local strip', a
 
   await page.goto('/tools/photoautomat', { waitUntil: 'networkidle' });
   await dismissOverlays();
-  await expect(page.getByTestId('foto-cabin')).toBeVisible();
+  // With WebGL the booth opens on the street; without it, straight onto the cabin.
+  const stage = page.getByTestId('foto-stage');
+  const enter = page.getByTestId('foto-enter');
+  await expect(enter.or(page.getByTestId('foto-allow'))).toBeVisible({ timeout: 20_000 });
+  if (await enter.isVisible()) {
+    await page.getByTestId('foto-curtain').click();
+    await expect(stage).toHaveAttribute('data-curtain', 'open', { timeout: 15_000 });
+    await enter.click();
+  }
+  await expect(page.getByTestId('foto-cabin')).toBeVisible({ timeout: 20_000 });
   await expect(page.getByTestId('foto-allow')).toBeVisible();
   await page.getByTestId('foto-allow').click();
   await expect(page.getByTestId('foto-root')).toHaveAttribute('data-live', 'yes', { timeout: 15_000 });
@@ -46,7 +56,7 @@ test('tools hub lists Photoautomat; allow camera then swipe to a local strip', a
   await page.mouse.move(box!.x + box!.width * 0.92, box!.y + box!.height / 2, { steps: 14 });
   await page.mouse.up();
 
-  await expect(page.getByTestId('foto-print')).toBeVisible({ timeout: 25_000 });
+  await expect(page.getByTestId('foto-print')).toBeVisible({ timeout: 90_000 });
   await expect(page.getByTestId('foto-download')).toBeVisible();
   const sheetBox = await page.getByTestId('foto-print').locator('img.foto-sheet').boundingBox();
   expect(sheetBox).toBeTruthy();
