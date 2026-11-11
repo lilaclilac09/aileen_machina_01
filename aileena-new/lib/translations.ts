@@ -506,6 +506,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         again: 'again',
         download: 'take strip',
         blocked: 'camera blocked',
+        simulate: 'simulate',
       },
       aiFactorySim: {
         tag: 'AI FACTORY',
@@ -1764,6 +1765,7 @@ curl -s http://127.0.0.1:8787/v1/chat/completions \\
         again: 'nochmal',
         download: 'streifen holen',
         blocked: 'kamera zu',
+        simulate: 'simulation',
       },
       aiFactorySim: {
         tag: 'AI FACTORY',

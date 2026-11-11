@@ -74,10 +74,39 @@ async function main() {
   await page.screenshot({ path: join(OUT, 'tools-photoautomat-strip-390.png') });
   const video = page.video();
   await mobile.close();
+
+  const sim = await browser.newContext({
+    viewport: { width: 390, height: 844 },
+    recordVideo: { dir: join(OUT, 'photoautomat-video'), size: { width: 390, height: 844 } },
+  });
+  const simPage = await sim.newPage();
+  async function dismissSim() {
+    await simPage.keyboard.press('Escape').catch(() => undefined);
+    await simPage.evaluate(() => {
+      document.querySelectorAll('[aria-label="Aileena Console"], [aria-label="Browser Use"]').forEach((node) => {
+        if (node instanceof HTMLElement) node.style.display = 'none';
+      });
+    });
+  }
+  await simPage.goto(`${BASE}/tools/photoautomat`, { waitUntil: 'networkidle' });
+  await dismissSim();
+  await simPage.waitForSelector('[data-testid="foto-simulate"]');
+  await simPage.screenshot({ path: join(OUT, 'tools-photoautomat-simulate-ready-390.png') });
+  await simPage.getByTestId('foto-simulate').click();
+  await simPage.waitForSelector('.foto-count', { timeout: 5_000 });
+  await simPage.screenshot({ path: join(OUT, 'tools-photoautomat-simulate-count-390.png') });
+  await simPage.waitForSelector('[data-testid="foto-print"]', { timeout: 25_000 });
+  await simPage.screenshot({ path: join(OUT, 'tools-photoautomat-simulate-strip-390.png') });
+  const simVideo = simPage.video();
+  await sim.close();
   await browser.close();
   const recorded = await video?.path();
   if (recorded) {
     await copyFile(recorded, join(OUT, 'photoautomat_allow_swipe_four_strip.webm'));
+  }
+  const simRecorded = await simVideo?.path();
+  if (simRecorded) {
+    await copyFile(simRecorded, join(OUT, 'photoautomat_simulate_interval_strip.webm'));
   }
   console.log('captured photoautomat stills');
 }

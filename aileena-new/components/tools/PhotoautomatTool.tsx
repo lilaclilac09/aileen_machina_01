@@ -6,6 +6,10 @@ import ScrollUnlock from '../../app/blog/ScrollUnlock';
 import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
 import {
+  COUNT_BEAT_MS,
+  DEVELOP_MS,
+  FLASH_MS,
+  POSE_GAP_MS,
   SHOT_COUNT,
   SWIPE_COMMIT,
   attachCameraStream,
@@ -13,6 +17,9 @@ import {
   composeSheet,
   downloadCanvas,
   requestUserCamera,
+  simulationFrame,
+  squareCrop,
+  applyFilmStill,
 } from '../../lib/tools/photoautomat';
 import './photoautomat.css';
 
@@ -22,23 +29,41 @@ export default function PhotoautomatTool() {
   const { language } = useLanguage();
   const tx = t[language].tools.photoAutomat;
   const videoRef = useRef<HTMLVideoElement>(null);
+  const previewRef = useRef<HTMLCanvasElement>(null);
   const slotRef = useRef<HTMLDivElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const framesRef = useRef<HTMLCanvasElement[]>([]);
   const dragRef = useRef(false);
   const dragValueRef = useRef(0);
   const liveRef = useRef(true);
+  const gradedOnce = useRef(false);
   const [phase, setPhase] = useState<Phase>('idle');
   const [drag, setDrag] = useState(0);
   const [count, setCount] = useState<number | null>(null);
   const [shots, setShots] = useState(0);
   const [live, setLive] = useState(false);
+  const [graded, setGraded] = useState(false);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
 
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
     streamRef.current = null;
     if (videoRef.current) videoRef.current.srcObject = null;
+  }, []);
+
+  const showFrame = useCallback((frame: HTMLCanvasElement) => {
+    const preview = previewRef.current;
+    const ctx = preview?.getContext('2d');
+    if (!preview || !ctx) return;
+    if (preview.width !== frame.width || preview.height !== frame.height) {
+      preview.width = frame.width;
+      preview.height = frame.height;
+    }
+    ctx.drawImage(frame, 0, 0);
+    if (!gradedOnce.current) {
+      gradedOnce.current = true;
+      setGraded(true);
+    }
   }, []);
 
   useEffect(() => {
@@ -48,6 +73,45 @@ export default function PhotoautomatTool() {
       stopStream();
     };
   }, [stopStream]);
+
+  useEffect(() => {
+    if (!live) return;
+    let raf = 0;
+    let last = 0;
+    const tick = (now: number) => {
+      if (now - last > 48) {
+        last = now;
+        const video = videoRef.current;
+        const preview = previewRef.current;
+        if (video && preview && video.readyState >= 2 && video.videoWidth > 0) {
+          const crop = squareCrop(video.videoWidth, video.videoHeight);
+          const side = 320;
+          if (preview.width !== side || preview.height !== side) {
+            preview.width = side;
+            preview.height = side;
+          }
+          const ctx = preview.getContext('2d', { willReadFrequently: true });
+          if (ctx) {
+            ctx.save();
+            ctx.translate(side, 0);
+            ctx.scale(-1, 1);
+            ctx.drawImage(video, crop.sx, crop.sy, crop.sw, crop.sh, 0, 0, side, side);
+            ctx.restore();
+            const image = ctx.getImageData(0, 0, side, side);
+            applyFilmStill(image.data, side, side);
+            ctx.putImageData(image, 0, 0);
+            if (!gradedOnce.current) {
+              gradedOnce.current = true;
+              setGraded(true);
+            }
+          }
+        }
+      }
+      raf = window.requestAnimationFrame(tick);
+    };
+    raf = window.requestAnimationFrame(tick);
+    return () => window.cancelAnimationFrame(raf);
+  }, [live]);
 
   const openCamera = useCallback(async () => {
     if (streamRef.current) return streamRef.current;
@@ -70,41 +134,52 @@ export default function PhotoautomatTool() {
     await openCamera();
   }
 
-  const runSequence = useCallback(async () => {
+  const runningRef = useRef(false);
+
+  const runSequence = useCallback(async (mode: 'camera' | 'simulate') => {
+    if (runningRef.current) return;
     const video = videoRef.current;
-    if (!video) return;
-    framesRef.current = [];
-    setShots(0);
-    for (let n = 0; n < SHOT_COUNT && liveRef.current; n += 1) {
-      for (const beat of [3, 2, 1]) {
+    if (mode === 'camera' && !video) return;
+    runningRef.current = true;
+    try {
+      framesRef.current = [];
+      setShots(0);
+      for (let n = 0; n < SHOT_COUNT && liveRef.current; n += 1) {
+        for (const beat of [3, 2, 1]) {
+          if (!liveRef.current) return;
+          setPhase('count');
+          setCount(beat);
+          if (mode === 'simulate') showFrame(simulationFrame(n, (beat - 2) * 0.35, 640));
+          await new Promise((r) => window.setTimeout(r, COUNT_BEAT_MS));
+        }
         if (!liveRef.current) return;
-        setPhase('count');
-        setCount(beat);
-        await new Promise((r) => window.setTimeout(r, 700));
+        setCount(null);
+        setPhase('flash');
+        await new Promise((r) => window.setTimeout(r, FLASH_MS));
+        const frame = mode === 'simulate' ? simulationFrame(n, 0, 720) : captureFrame(video!);
+        framesRef.current.push(frame);
+        if (mode === 'simulate') showFrame(frame);
+        setShots(n + 1);
+        setPhase('armed');
+        await new Promise((r) => window.setTimeout(r, POSE_GAP_MS));
       }
       if (!liveRef.current) return;
-      setCount(null);
-      setPhase('flash');
-      await new Promise((r) => window.setTimeout(r, 90));
-      framesRef.current.push(captureFrame(video));
-      setShots(n + 1);
-      setPhase('armed');
-      await new Promise((r) => window.setTimeout(r, 420));
+      setPhase('develop');
+      await new Promise((r) => window.setTimeout(r, DEVELOP_MS));
+      const sheet = composeSheet(framesRef.current);
+      const blob = await new Promise<Blob | null>((resolve) => sheet.toBlob(resolve, 'image/png'));
+      if (!blob || !liveRef.current) return;
+      setSheetUrl((prev) => {
+        if (prev) URL.revokeObjectURL(prev);
+        return URL.createObjectURL(blob);
+      });
+      setPhase('print');
+      setLive(false);
+      stopStream();
+    } finally {
+      runningRef.current = false;
     }
-    if (!liveRef.current) return;
-    setPhase('develop');
-    await new Promise((r) => window.setTimeout(r, 1400));
-    const sheet = composeSheet(framesRef.current);
-    const blob = await new Promise<Blob | null>((resolve) => sheet.toBlob(resolve, 'image/png'));
-    if (!blob || !liveRef.current) return;
-    setSheetUrl((prev) => {
-      if (prev) URL.revokeObjectURL(prev);
-      return URL.createObjectURL(blob);
-    });
-    setPhase('print');
-    setLive(false);
-    stopStream();
-  }, [stopStream]);
+  }, [showFrame, stopStream]);
 
   const startBooth = useCallback(async () => {
     if (!streamRef.current) {
@@ -113,7 +188,12 @@ export default function PhotoautomatTool() {
     }
     setDrag(1);
     setPhase('armed');
-    await runSequence();
+    await runSequence('camera');
+  }, [runSequence]);
+
+  const startSimulation = useCallback(async () => {
+    setPhase('armed');
+    await runSequence('simulate');
   }, [runSequence]);
 
   function pointerPos(clientX: number) {
@@ -169,6 +249,8 @@ export default function PhotoautomatTool() {
     setCount(null);
     setDrag(0);
     setLive(false);
+    gradedOnce.current = false;
+    setGraded(false);
     setPhase('idle');
     stopStream();
     setSheetUrl((prev) => {
@@ -223,24 +305,41 @@ export default function PhotoautomatTool() {
           <div className="foto-glass">
             <video
               ref={videoRef}
-              className={`foto-video${live ? ' is-live' : ''}`}
+              className={`foto-video${live && !graded ? ' is-live' : ''}`}
               muted
               playsInline
               autoPlay
               data-testid="foto-video"
               data-live={live ? 'yes' : 'no'}
             />
-            {!live ? (
-              <button
-                type="button"
-                className={`foto-allow${phase === 'blocked' ? ' is-blocked' : ''}`}
-                data-testid="foto-allow"
-                onClick={() => {
-                  void onAllow();
-                }}
-              >
-                {phase === 'blocked' ? tx.blocked : tx.allow}
-              </button>
+            <canvas
+              ref={previewRef}
+              className={`foto-preview${graded ? ' is-on' : ''}`}
+              data-testid="foto-preview"
+            />
+            {phase === 'idle' || phase === 'blocked' ? (
+              <div className="foto-gates">
+                <button
+                  type="button"
+                  className={`foto-allow${phase === 'blocked' ? ' is-blocked' : ''}`}
+                  data-testid="foto-allow"
+                  onClick={() => {
+                    void onAllow();
+                  }}
+                >
+                  {phase === 'blocked' ? tx.blocked : tx.allow}
+                </button>
+                <button
+                  type="button"
+                  className="foto-sim"
+                  data-testid="foto-simulate"
+                  onClick={() => {
+                    void startSimulation();
+                  }}
+                >
+                  {tx.simulate}
+                </button>
+              </div>
             ) : null}
             {count != null ? <div className="foto-count">{count}</div> : null}
           </div>
