@@ -16,7 +16,7 @@ import {
   CAMERA_CONSTRAINTS,
   COUNT_BEAT_MS,
   FLASH_MS,
-  SIMULATION_SPEED,
+  SHOT_CLOCK_SPEED,
   DEVELOP_WALL_MS,
 } from '../lib/tools/photoautomat';
 import { BOOTH, bathAt, clockLabel, flashTimesMs } from '../lib/tools/photoautomatData';
@@ -63,7 +63,11 @@ assert(
 );
 assert('three countdown beats fit before the first flash', COUNT_BEAT_MS * 3 <= flashes[0]);
 assert('flash is shorter than a beat', FLASH_MS < COUNT_BEAT_MS);
-assert('simulation runs the same clock faster', SIMULATION_SPEED > 1);
+assert('the page runs the booth clock faster', SHOT_CLOCK_SPEED > 1);
+assert(
+  'four shots take under ten seconds',
+  flashes[SHOT_COUNT - 1] / SHOT_CLOCK_SPEED < 10000,
+);
 assert('chemistry is four minutes', BOOTH.developS === 240 && clockLabel(BOOTH.developS) === '4:00');
 assert('four baths in order', BOOTH.baths.join('>') === 'developer>stop>fixer>wash');
 assert('clock starts in the developer', bathAt(0).bath === 0 && bathAt(59).bath === 0);

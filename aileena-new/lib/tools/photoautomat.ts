@@ -8,11 +8,11 @@ export const STRIP_FOOTER = 48;
 /** Square, matching the booth glass. h / w. */
 export const FRAME_RATIO = 1;
 export const SWIPE_COMMIT = 0.72;
-/** One-second countdown beats into each flash. The flash times themselves come from the booth data. */
+/** Countdown beats into each flash, in booth time. The flash times themselves come from the booth data. */
 export const COUNT_BEAT_MS = 1000;
 export const FLASH_MS = 90;
-/** The simulation runs the same shot clock this many times faster. */
-export const SIMULATION_SPEED = 4;
+/** The page runs the booth's shot clock this many times faster, for the camera and the simulation alike. */
+export const SHOT_CLOCK_SPEED = 4;
 /** Wall time for the four-minute chemistry. */
 export const DEVELOP_WALL_MS = 9000;
 const MAX_FRAME = 960;

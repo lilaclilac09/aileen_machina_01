@@ -11,7 +11,7 @@ import {
   DEVELOP_WALL_MS,
   FLASH_MS,
   SHOT_COUNT,
-  SIMULATION_SPEED,
+  SHOT_CLOCK_SPEED,
   SWIPE_COMMIT,
   attachCameraStream,
   captureFrame,
@@ -165,11 +165,10 @@ export default function PhotoautomatTool() {
     try {
       framesRef.current = [];
       setShots(0);
-      const speed = mode === 'simulate' ? SIMULATION_SPEED : 1;
       const flashes = flashTimesMs(SHOT_COUNT);
       const started = performance.now();
       const until = (ms: number) =>
-        new Promise((r) => window.setTimeout(r, Math.max(0, started + ms / speed - performance.now())));
+        new Promise((r) => window.setTimeout(r, Math.max(0, started + ms / SHOT_CLOCK_SPEED - performance.now())));
       for (let n = 0; n < SHOT_COUNT && liveRef.current; n += 1) {
         for (const beat of [3, 2, 1]) {
           await until(flashes[n] - beat * COUNT_BEAT_MS);
@@ -327,6 +326,7 @@ export default function PhotoautomatTool() {
         <PhotoautomatStage
           hidden={!onStreet}
           labels={tx}
+          speed={SHOT_CLOCK_SPEED}
           onReady={(stage) => {
             stageRef.current = stage;
           }}

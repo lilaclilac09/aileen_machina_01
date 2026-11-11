@@ -28,6 +28,7 @@ const IDLE: BoothStageState = { curtain: false, spin: false, xray: false, bath: 
 export default function PhotoautomatStage({
   hidden,
   labels,
+  speed,
   onReady,
   onUnsupported,
   onEntered,
@@ -36,6 +37,8 @@ export default function PhotoautomatStage({
 }: {
   hidden: boolean;
   labels: StageLabels;
+  /** How many times faster than the real booth the shot clock runs here. */
+  speed: number;
   onReady: (stage: BoothStageHandle | null) => void;
   onUnsupported: () => void;
   onEntered: () => void;
@@ -92,7 +95,7 @@ export default function PhotoautomatStage({
       <dl className="foto-readout" data-testid="foto-readout">
         <dt>{labels.flash}</dt>
         <dd>
-          {labels.flashValue.replace('{first}', String(BOOTH.firstFlashS)).replace('{gap}', String(BOOTH.flashGapS))}
+          {labels.flashValue.replace('{first}', String(BOOTH.firstFlashS)).replace('{gap}', String(BOOTH.flashGapS)).replace('{speed}', String(speed))}
         </dd>
         <dt>{labels.seat}</dt>
         <dd>{labels.seatValue.replace('{cm}', String(seatCm))}</dd>
