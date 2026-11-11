@@ -8,11 +8,14 @@ export const STRIP_FOOTER = 48;
 /** Square, matching the booth glass. h / w. */
 export const FRAME_RATIO = 1;
 export const SWIPE_COMMIT = 0.72;
-/** Countdown beat, flash, then a pose gap before the next exposure. */
-export const COUNT_BEAT_MS = 700;
+/** One-second countdown beats into each flash. The flash times themselves come from the booth data. */
+export const COUNT_BEAT_MS = 1000;
 export const FLASH_MS = 90;
-export const POSE_GAP_MS = 1200;
-export const DEVELOP_MS = 1400;
+/** The simulation runs the same shot clock this many times faster. */
+export const SIMULATION_SPEED = 4;
+/** Wall time for the four-minute chemistry, then how long the finished strip waits in the slot. */
+export const DEVELOP_WALL_MS = 9000;
+export const STRIP_HOLD_MS = 2600;
 const MAX_FRAME = 960;
 
 export const CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [

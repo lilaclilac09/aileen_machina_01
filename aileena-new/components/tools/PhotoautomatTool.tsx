@@ -1,5 +1,6 @@
 'use client';
 
+import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import { useCallback, useEffect, useRef, useState, type PointerEvent } from 'react';
 import ScrollUnlock from '../../app/blog/ScrollUnlock';
@@ -7,10 +8,11 @@ import { useLanguage } from '../LanguageProvider';
 import { t } from '../../lib/translations';
 import {
   COUNT_BEAT_MS,
-  DEVELOP_MS,
+  DEVELOP_WALL_MS,
   FLASH_MS,
-  POSE_GAP_MS,
   SHOT_COUNT,
+  SIMULATION_SPEED,
+  STRIP_HOLD_MS,
   SWIPE_COMMIT,
   attachCameraStream,
   captureFrame,
@@ -21,9 +23,13 @@ import {
   squareCrop,
   applyFilmStill,
 } from '../../lib/tools/photoautomat';
+import { flashTimesMs } from '../../lib/tools/photoautomatData';
+import type { BoothStageHandle } from '../../lib/tools/photoautomatStage';
 import './photoautomat.css';
 
-type Phase = 'idle' | 'ready' | 'armed' | 'count' | 'flash' | 'develop' | 'print' | 'blocked';
+const PhotoautomatStage = dynamic(() => import('./PhotoautomatStage'), { ssr: false });
+
+type Phase = 'outside' | 'idle' | 'ready' | 'armed' | 'count' | 'flash' | 'develop' | 'print' | 'blocked';
 
 export default function PhotoautomatTool() {
   const { language } = useLanguage();
@@ -37,7 +43,10 @@ export default function PhotoautomatTool() {
   const dragValueRef = useRef(0);
   const liveRef = useRef(true);
   const gradedOnce = useRef(false);
-  const [phase, setPhase] = useState<Phase>('idle');
+  const stageRef = useRef<BoothStageHandle | null>(null);
+  const takeRef = useRef<(() => void) | null>(null);
+  const [street, setStreet] = useState(true);
+  const [phase, setPhase] = useState<Phase>('outside');
   const [drag, setDrag] = useState(0);
   const [count, setCount] = useState<number | null>(null);
   const [shots, setShots] = useState(0);
@@ -144,14 +153,20 @@ export default function PhotoautomatTool() {
     try {
       framesRef.current = [];
       setShots(0);
+      const speed = mode === 'simulate' ? SIMULATION_SPEED : 1;
+      const flashes = flashTimesMs(SHOT_COUNT);
+      const started = performance.now();
+      const until = (ms: number) =>
+        new Promise((r) => window.setTimeout(r, Math.max(0, started + ms / speed - performance.now())));
       for (let n = 0; n < SHOT_COUNT && liveRef.current; n += 1) {
         for (const beat of [3, 2, 1]) {
+          await until(flashes[n] - beat * COUNT_BEAT_MS);
           if (!liveRef.current) return;
           setPhase('count');
           setCount(beat);
           if (mode === 'simulate') showFrame(simulationFrame(n, (beat - 2) * 0.35, 640));
-          await new Promise((r) => window.setTimeout(r, COUNT_BEAT_MS));
         }
+        await until(flashes[n]);
         if (!liveRef.current) return;
         setCount(null);
         setPhase('flash');
@@ -161,12 +176,24 @@ export default function PhotoautomatTool() {
         if (mode === 'simulate') showFrame(frame);
         setShots(n + 1);
         setPhase('armed');
-        await new Promise((r) => window.setTimeout(r, POSE_GAP_MS));
       }
       if (!liveRef.current) return;
-      setPhase('develop');
-      await new Promise((r) => window.setTimeout(r, DEVELOP_MS));
       const sheet = composeSheet(framesRef.current);
+      setLive(false);
+      stopStream();
+      const stage = stageRef.current;
+      if (stage) {
+        setPhase('develop');
+        await stage.develop(sheet, DEVELOP_WALL_MS);
+        await new Promise<void>((resolve) => {
+          const id = window.setTimeout(resolve, STRIP_HOLD_MS);
+          takeRef.current = () => {
+            window.clearTimeout(id);
+            resolve();
+          };
+        });
+        takeRef.current = null;
+      }
       const blob = await new Promise<Blob | null>((resolve) => sheet.toBlob(resolve, 'image/png'));
       if (!blob || !liveRef.current) return;
       setSheetUrl((prev) => {
@@ -174,8 +201,6 @@ export default function PhotoautomatTool() {
         return URL.createObjectURL(blob);
       });
       setPhase('print');
-      setLive(false);
-      stopStream();
     } finally {
       runningRef.current = false;
     }
@@ -243,7 +268,7 @@ export default function PhotoautomatTool() {
     await downloadCanvas(canvas, 'photoautomat-strip.png');
   }
 
-  function onAgain() {
+  function leaveCabin() {
     framesRef.current = [];
     setShots(0);
     setCount(null);
@@ -251,8 +276,13 @@ export default function PhotoautomatTool() {
     setLive(false);
     gradedOnce.current = false;
     setGraded(false);
-    setPhase('idle');
     stopStream();
+    stageRef.current?.reset();
+    setPhase(stageRef.current ? 'outside' : 'idle');
+  }
+
+  function onAgain() {
+    leaveCabin();
     setSheetUrl((prev) => {
       if (prev) URL.revokeObjectURL(prev);
       return null;
@@ -260,12 +290,12 @@ export default function PhotoautomatTool() {
   }
 
   const shooting = phase === 'count' || phase === 'flash' || phase === 'armed';
+  const onStreet = phase === 'outside' || phase === 'develop';
+  const canLeave = street && (phase === 'idle' || phase === 'ready' || phase === 'blocked');
   const status =
     phase === 'blocked'
       ? tx.blocked
-      : phase === 'develop'
-        ? tx.developing
-        : shooting
+      : shooting
           ? tx.shooting
           : phase === 'print'
             ? tx.take
@@ -280,10 +310,31 @@ export default function PhotoautomatTool() {
         <Link href="/tools" className="foto-back">
           {tx.backToTools}
         </Link>
-        <span className="foto-tag">{tx.tag}</span>
+        {canLeave ? (
+          <button type="button" className="foto-out" data-testid="foto-out" onClick={leaveCabin}>
+            {tx.outside}
+          </button>
+        ) : (
+          <span className="foto-tag">{tx.tag}</span>
+        )}
       </div>
 
-      {phase === 'print' && sheetUrl ? (
+      {street ? (
+        <PhotoautomatStage
+          hidden={!onStreet}
+          labels={tx}
+          onReady={(stage) => {
+            stageRef.current = stage;
+          }}
+          onUnsupported={() => {
+            setStreet(false);
+            setPhase((now) => (now === 'outside' ? 'idle' : now));
+          }}
+          onEntered={() => setPhase('idle')}
+          onTakeStrip={() => takeRef.current?.()}
+        />
+      ) : null}
+      {onStreet ? null : phase === 'print' && sheetUrl ? (
         <div className="foto-print" data-testid="foto-print">
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img className="foto-sheet" src={sheetUrl} alt="" />
@@ -344,7 +395,7 @@ export default function PhotoautomatTool() {
             {count != null ? <div className="foto-count">{count}</div> : null}
           </div>
           <div className={`foto-flash${phase === 'flash' ? ' is-on' : ''}`} />
-          {shooting || phase === 'develop' ? (
+          {shooting ? (
             <p className="foto-status" data-testid="foto-status">
               {status}
               {shots ? ` · ${shots}/${SHOT_COUNT}` : ''}

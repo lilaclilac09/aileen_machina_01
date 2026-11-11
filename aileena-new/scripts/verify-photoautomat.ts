@@ -16,9 +16,11 @@ import {
   CAMERA_CONSTRAINTS,
   COUNT_BEAT_MS,
   FLASH_MS,
-  POSE_GAP_MS,
-  DEVELOP_MS,
+  SIMULATION_SPEED,
+  DEVELOP_WALL_MS,
+  STRIP_HOLD_MS,
 } from '../lib/tools/photoautomat';
+import { BOOTH, bathAt, clockLabel, flashTimesMs } from '../lib/tools/photoautomatData';
 import { getToolBySlug } from '../lib/tools/registry';
 import { t } from '../lib/translations';
 import { chromeBackForPath, chromeInkForPath } from '../lib/doorsNav';
@@ -53,9 +55,27 @@ assert('stacked y', a.y < b.y && b.y < c.y && c.y < d.y);
 assert('square cells match the glass', Math.abs(a.h - a.w) <= 1);
 assert('no overlap', a.y + a.h <= b.y);
 assert('strip width constant', width === STRIP_WIDTH);
-assert('pose gap is a real interval', POSE_GAP_MS >= 1000);
-assert('countdown is faster than the pose gap', COUNT_BEAT_MS < POSE_GAP_MS);
-assert('four beats of gap stay inside the booth timeout', SHOT_COUNT * (COUNT_BEAT_MS * 3 + FLASH_MS + POSE_GAP_MS) + DEVELOP_MS < 22000);
+
+const flashes = flashTimesMs(SHOT_COUNT);
+assert('first flash follows the published wait', flashes[0] === BOOTH.firstFlashS * 1000 && BOOTH.firstFlashS >= 5 && BOOTH.firstFlashS <= 10);
+assert(
+  'flashes keep the published gap',
+  flashes.every((at, n) => n === 0 || at - flashes[n - 1] === BOOTH.flashGapS * 1000) && BOOTH.flashGapS === 7,
+);
+assert('three countdown beats fit before the first flash', COUNT_BEAT_MS * 3 <= flashes[0]);
+assert('flash is shorter than a beat', FLASH_MS < COUNT_BEAT_MS);
+assert('simulation runs the same clock faster', SIMULATION_SPEED > 1);
+assert('chemistry is four minutes', BOOTH.developS === 240 && clockLabel(BOOTH.developS) === '4:00');
+assert('four baths in order', BOOTH.baths.join('>') === 'developer>stop>fixer>wash');
+assert('clock starts in the developer', bathAt(0).bath === 0 && bathAt(59).bath === 0);
+assert('clock ends in the wash', bathAt(239).bath === 3 && bathAt(999).bath === 3 && bathAt(999).progress === 1);
+assert('each bath gets an equal share', [60, 120, 180].every((at, n) => bathAt(at).bath === n + 1));
+assert('strip is 4 cm wide', BOOTH.stripWidthM === 0.04);
+assert('seat is inside the fixed focus', BOOTH.lensDistanceM[0] === 0.6 && BOOTH.lensDistanceM[1] === 0.8);
+assert(
+  'a session fits the e2e window',
+  flashes[SHOT_COUNT - 1] + DEVELOP_WALL_MS + STRIP_HOLD_MS < 45000,
+);
 
 const night = new Uint8ClampedArray(16 * 4);
 const warm = new Uint8ClampedArray(16 * 4);
@@ -115,9 +135,26 @@ assert('uses live camera', page.includes('requestUserCamera'));
 assert('allow tap exists', page.includes('foto-allow'));
 assert('simulate tap exists', page.includes('foto-simulate'));
 assert('film still grade', page.includes('applyFilmStill'));
-assert('pose interval constant', page.includes('POSE_GAP_MS'));
+assert('shot clock comes from the booth data', page.includes('flashTimesMs'));
+assert('street stage is mounted', page.includes('PhotoautomatStage'));
+assert('cabin opens without WebGL', page.includes('onUnsupported'));
 assert('no upload fetch of frames', !/fetch\([^\)]*sheet|FormData|multipart/.test(page));
 assert('download stays local', page.includes('downloadCanvas'));
+
+const stage = readFileSync(join(root, 'lib/tools/photoautomatStage.ts'), 'utf8');
+const [, cabinetW, cabinetD] = stage.match(/const W = ([\d.]+);\nconst D = ([\d.]+);/) ?? [];
+assert(
+  'cabinet stands on the published footprint',
+  Math.abs(Number(cabinetW) * Number(cabinetD) - BOOTH.footprintM2) < 0.05,
+  `${cabinetW} x ${cabinetD}`,
+);
+assert('strip mesh uses the published width', stage.includes('BOOTH.stripWidthM'));
+assert('tanks come from the bath list', stage.includes('BOOTH.baths.forEach'));
+const paint = readFileSync(join(root, 'lib/tools/photoautomatPaint.ts'), 'utf8');
+assert('header is not the red wordmark', /fillStyle = '#0e4f4f';[\s\S]{0,400}PHOTOAUTOMAT/.test(paint));
+assert('stage loads no photographs', !/\.(jpg|jpeg|png|webp)/.test(stage + paint));
+assert('EN and DE stage copy match', Object.keys(t.EN.tools.photoAutomat).join() === Object.keys(t.DE.tools.photoAutomat).join());
+assert('EN stage copy is English', t.EN.tools.photoAutomat.sit === 'sit down' && t.EN.tools.photoAutomat.bathNames.length === BOOTH.baths.length);
 
 const lib = readFileSync(join(root, 'lib/tools/photoautomat.ts'), 'utf8');
 assert('lib requests camera', lib.includes('getUserMedia'));
