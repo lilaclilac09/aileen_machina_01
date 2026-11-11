@@ -18,7 +18,6 @@ import {
   FLASH_MS,
   SIMULATION_SPEED,
   DEVELOP_WALL_MS,
-  STRIP_HOLD_MS,
 } from '../lib/tools/photoautomat';
 import { BOOTH, bathAt, clockLabel, flashTimesMs } from '../lib/tools/photoautomatData';
 import { getToolBySlug } from '../lib/tools/registry';
@@ -74,30 +73,24 @@ assert('strip is 4 cm wide', BOOTH.stripWidthM === 0.04);
 assert('seat is inside the fixed focus', BOOTH.lensDistanceM[0] === 0.6 && BOOTH.lensDistanceM[1] === 0.8);
 assert(
   'a session fits the e2e window',
-  flashes[SHOT_COUNT - 1] + DEVELOP_WALL_MS + STRIP_HOLD_MS < 45000,
+  flashes[SHOT_COUNT - 1] + DEVELOP_WALL_MS < 45000,
 );
 
-const night = new Uint8ClampedArray(16 * 4);
-const warm = new Uint8ClampedArray(16 * 4);
-for (let i = 0; i < 16; i += 1) {
-  night[i * 4] = 8;
-  night[i * 4 + 1] = 12;
-  night[i * 4 + 2] = 22;
-  night[i * 4 + 3] = 255;
-  warm[i * 4] = 240;
-  warm[i * 4 + 1] = 200;
-  warm[i * 4 + 2] = 140;
-  warm[i * 4 + 3] = 255;
+const tones = new Uint8ClampedArray(3 * 3 * 4);
+const swatches = [
+  [8, 12, 22],
+  [240, 200, 140],
+  [200, 30, 40],
+];
+for (let i = 0; i < 9; i += 1) {
+  const [r, g, b] = swatches[Math.floor(i / 3)];
+  tones.set([r, g, b, 255], i * 4);
 }
-applyFilmStill(night, 4, 4);
-applyFilmStill(warm, 4, 4);
-const nightR = night[0];
-const nightB = night[2];
-const warmR = warm[0];
-const warmB = warm[2];
-assert('shadows stay cool', nightB > nightR + 6, `r=${nightR} b=${nightB}`);
-assert('practicals stay warm', warmR > warmB + 6, `r=${warmR} b=${warmB}`);
-assert('grade keeps color', nightR !== night[1] || warmR !== warm[1]);
+applyFilmStill(tones, 3, 3);
+const grey = (i: number) => tones[i * 4] === tones[i * 4 + 1] && tones[i * 4 + 1] === tones[i * 4 + 2];
+assert('print is black and white', Array.from({ length: 9 }, (_, i) => i).every(grey));
+assert('shadows print dark, highlights light', tones[1 * 4] < 40 && tones[4 * 4] > 180, `${tones[4]} ${tones[16]}`);
+assert('alpha is left alone', tones[3] === 255);
 
 const left = new Uint8ClampedArray(48 * 48 * 4);
 const right = new Uint8ClampedArray(48 * 48 * 4);
@@ -135,6 +128,7 @@ assert('uses live camera', page.includes('requestUserCamera'));
 assert('allow tap exists', page.includes('foto-allow'));
 assert('simulate tap exists', page.includes('foto-simulate'));
 assert('film still grade', page.includes('applyFilmStill'));
+assert('visitor can pick another camera', page.includes('listCameras') && page.includes('foto-lens'));
 assert('shot clock comes from the booth data', page.includes('flashTimesMs'));
 assert('street stage is mounted', page.includes('PhotoautomatStage'));
 assert('cabin opens without WebGL', page.includes('onUnsupported'));
@@ -160,6 +154,8 @@ const lib = readFileSync(join(root, 'lib/tools/photoautomat.ts'), 'utf8');
 assert('lib requests camera', lib.includes('getUserMedia'));
 assert('playsinline arm', lib.includes('webkit-playsinline'));
 assert('lib grades a film still', lib.includes('applyFilmStill'));
+assert('lib opens a chosen device', lib.includes('deviceId: { exact: deviceId }'));
+assert('strip is taken by hand', stage.includes('takeStrip') && !lib.includes('STRIP_HOLD_MS'));
 assert('square glass ratio', lib.includes('FRAME_RATIO = 1;'));
 
 console.log('photoautomat ok');

@@ -85,7 +85,14 @@ async function main() {
   await page.mouse.up();
   await page.waitForSelector('[data-testid="foto-stage"][data-bath="fixer"]', { timeout: 60_000 }).catch(() => undefined);
   await page.screenshot({ path: join(OUT, 'tools-photoautomat-develop-390.png') });
-  await page.waitForSelector('[data-testid="foto-print"]', { timeout: 90_000 });
+  await page.waitForSelector('[data-testid="foto-take"], [data-testid="foto-print"]', { timeout: 90_000 });
+  await page.waitForTimeout(1200);
+  await page.screenshot({ path: join(OUT, 'tools-photoautomat-slot-390.png') });
+  if (await page.getByTestId('foto-take').isVisible()) {
+    await page.getByTestId('foto-take').click();
+    await page.waitForSelector('[data-testid="foto-stage"][data-strip="held"]');
+    await page.waitForTimeout(2500);
+  }
   await page.screenshot({ path: join(OUT, 'tools-photoautomat-strip-390.png') });
   const video = page.video();
   await mobile.close();
@@ -112,7 +119,12 @@ async function main() {
   await simPage.getByTestId('foto-simulate').click();
   await simPage.waitForSelector('.foto-count', { timeout: 10_000 });
   await simPage.screenshot({ path: join(OUT, 'tools-photoautomat-simulate-count-390.png') });
-  await simPage.waitForSelector('[data-testid="foto-print"]', { timeout: 90_000 });
+  await simPage.waitForSelector('[data-testid="foto-take"], [data-testid="foto-print"]', { timeout: 90_000 });
+  if (await simPage.getByTestId('foto-take').isVisible()) {
+    await simPage.getByTestId('foto-take').click();
+    await simPage.waitForSelector('[data-testid="foto-stage"][data-strip="held"]');
+    await simPage.waitForTimeout(2500);
+  }
   await simPage.screenshot({ path: join(OUT, 'tools-photoautomat-simulate-strip-390.png') });
   const simVideo = simPage.video();
   await sim.close();

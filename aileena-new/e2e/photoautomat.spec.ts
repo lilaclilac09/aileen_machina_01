@@ -56,11 +56,21 @@ test('tools hub lists Photoautomat; allow camera then swipe to a local strip', a
   await page.mouse.move(box!.x + box!.width * 0.92, box!.y + box!.height / 2, { steps: 14 });
   await page.mouse.up();
 
-  await expect(page.getByTestId('foto-print')).toBeVisible({ timeout: 90_000 });
+  // On the street the strip waits in the slot until it is taken; without WebGL it prints flat.
+  const take = page.getByTestId('foto-take');
+  await expect(take.or(page.getByTestId('foto-print'))).toBeVisible({ timeout: 90_000 });
+  if (await take.isVisible()) {
+    await take.click();
+    await expect(stage).toHaveAttribute('data-strip', 'held');
+  } else {
+    const sheetBox = await page.getByTestId('foto-print').locator('img.foto-sheet').boundingBox();
+    expect(sheetBox).toBeTruthy();
+    expect(sheetBox!.height).toBeGreaterThan(sheetBox!.width * 1.6);
+  }
   await expect(page.getByTestId('foto-download')).toBeVisible();
-  const sheetBox = await page.getByTestId('foto-print').locator('img.foto-sheet').boundingBox();
-  expect(sheetBox).toBeTruthy();
-  expect(sheetBox!.height).toBeGreaterThan(sheetBox!.width * 1.6);
+  const download = page.waitForEvent('download');
+  await page.getByTestId('foto-download').click();
+  expect((await download).suggestedFilename()).toBe('photoautomat-strip.png');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth > window.innerWidth + 2);
   expect(overflow).toBe(false);
 });
