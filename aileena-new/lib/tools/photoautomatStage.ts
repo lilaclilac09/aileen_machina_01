@@ -8,6 +8,8 @@ import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js'
 import { composeSheet, simulationFrame } from './photoautomat';
 import { BOOTH, bathAt } from './photoautomatData';
 import {
+  CABIN_INKS,
+  STREET_INKS,
   paintGlow,
   paintGraffiti,
   paintLabel,
@@ -395,11 +397,10 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
   add(new THREE.CylinderGeometry(0.014, 0.014, 0.01, 20), chrome, X0 - 0.005, 1.0, 0.3).rotation.z = Math.PI / 2;
 
   // Tags and stickers.
-  const metalInks = ['rgba(170,140,78,0.7)', 'rgba(74,80,90,0.55)', 'rgba(18,18,20,0.8)', 'rgba(214,218,224,0.5)'];
-  decal(paintGraffiti(900, 1200, 3, metalInks, 6), 0.8, X0 + 0.46, 0.68, Z1 + 0.0005, 'front', { roughness: 0.6 });
-  decal(paintGraffiti(1000, 1300, 17, metalInks, 8), 0.86, X1 + 0.0005, 1.02, 0, 'right', { roughness: 0.6 });
-  decal(paintGraffiti(1500, 1100, 29, metalInks, 11), 1.6, 0, 1.05, Z0 - 0.0005, 'back', { roughness: 0.6 });
-  decal(paintGraffiti(700, 1200, 43, metalInks, 5), 0.62, X0 - 0.0045, 1.28, 0.05, 'left', { roughness: 0.6 });
+  decal(paintGraffiti(900, 1200, 3, STREET_INKS, 22), 0.8, X0 + 0.46, 0.68, Z1 + 0.0005, 'front', { roughness: 0.6 });
+  decal(paintGraffiti(1000, 1300, 17, STREET_INKS, 26), 0.86, X1 + 0.0005, 1.02, 0, 'right', { roughness: 0.6 });
+  decal(paintGraffiti(1500, 1100, 29, STREET_INKS, 32), 1.6, 0, 1.05, Z0 - 0.0005, 'back', { roughness: 0.6 });
+  decal(paintGraffiti(700, 1200, 43, STREET_INKS, 20), 0.62, X0 - 0.0045, 1.28, 0.05, 'left', { roughness: 0.6 });
   const stuck: Array<[StickerKind, number, number, number, number, 'front' | 'right' | 'left' | 'back']> = [
     ['berlin', X0 + 0.24, 1.16, 0.17, -0.09, 'front'],
     ['orb', SLOT_X + 0.13, 1.21, 0.07, 0.2, 'front'],
@@ -432,16 +433,21 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
   // Seat bay.
   const seatW = X1 - T - (PART_X + T / 2);
   const seatMid = (X1 - T + PART_X + T / 2) / 2;
-  const redWall = paintRedWall(1024);
+  const redWall = paintRedWall(1536);
   const red = keep(new THREE.MeshStandardMaterial({ map: texture(redWall, true), roughness: 0.62, metalness: 0 }));
   const backWall = add(new THREE.PlaneGeometry(seatW, H - T - FLOOR), red, seatMid, (FLOOR + H - T) / 2, Z0 + T + 0.001);
   backWall.receiveShadow = true;
   const endWall = add(new THREE.PlaneGeometry(D - T * 2, H - T - FLOOR), red, X1 - T - 0.001, (FLOOR + H - T) / 2, 0);
   endWall.rotation.y = -Math.PI / 2;
   endWall.receiveShadow = true;
-  const wallInks = ['rgba(26,4,8,0.78)', 'rgba(60,8,14,0.6)', 'rgba(236,224,206,0.5)'];
-  decal(paintGraffiti(900, 1300, 61, wallInks, 9), seatW * 0.94, seatMid, 0.95, Z0 + T + 0.002, 'front');
-  decal(paintGraffiti(800, 1300, 73, wallInks, 6), 0.8, X1 - T - 0.002, 1.0, 0, 'left');
+  decal(paintGraffiti(1400, 1800, 61, CABIN_INKS, 40), seatW * 0.96, seatMid, 1.05, Z0 + T + 0.002, 'front');
+  decal(paintGraffiti(1400, 1800, 67, CABIN_INKS, 28), seatW * 0.9, seatMid + 0.02, 0.82, Z0 + T + 0.003, 'front', {}, -0.04, 2);
+  decal(paintGraffiti(1100, 1600, 73, CABIN_INKS, 36), 0.92, X1 - T - 0.002, 1.02, 0, 'left');
+  decal(paintGraffiti(900, 1400, 79, CABIN_INKS, 22), 0.7, X1 - T - 0.003, 0.78, -0.08, 'left', {}, 0.08, 2);
+  const wallX = PART_X + T / 2;
+  decal(paintGraffiti(1000, 1500, 91, CABIN_INKS, 24), 0.42, wallX + 0.003, 0.72, 0.22, 'right');
+  decal(paintGraffiti(800, 1100, 97, CABIN_INKS, 16), 0.32, wallX + 0.003, 1.58, -0.2, 'right', {}, 0.1, 2);
+  decal(paintGraffiti(700, 900, 103, CABIN_INKS, 12), 0.28, wallX + 0.003, 0.7, -0.24, 'right', {}, -0.12, 2);
   const mat = add(
     new THREE.BoxGeometry(seatW, FLOOR - PLINTH, D - T * 2),
     keep(
@@ -457,9 +463,25 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
     0,
   );
   mat.receiveShadow = true;
+  (
+    [
+      ['heart', seatMid - 0.22, 1.48, 0.08, -0.18, 'front'],
+      ['kotti', seatMid + 0.2, 0.86, 0.16, 0.1, 'front'],
+      ['smile', seatMid - 0.3, 0.7, 0.09, 0.22, 'front'],
+      ['name', seatMid + 0.04, 1.62, 0.18, -0.05, 'front'],
+      ['four', seatMid + 0.28, 1.28, 0.07, 0.28, 'front'],
+      ['berlin', 0.18, 1.4, 0.2, 0.06, 'left'],
+      ['orb', -0.22, 0.72, 0.08, -0.2, 'left'],
+      ['soft', 0.12, 1.58, 0.16, 0.08, 'right'],
+    ] as Array<[StickerKind, number, number, number, number, 'front' | 'left' | 'right']>
+  ).forEach(([kind, a, y, width, turn, facing], index) => {
+    const canvas = paper.get(kind)!;
+    if (facing === 'front') decal(canvas, width, a, y, Z0 + T + 0.004, facing, {}, turn, 3 + (index % 2));
+    else if (facing === 'left') decal(canvas, width, X1 - T - 0.004, y, a, facing, {}, turn, 3);
+    else decal(canvas, width, wallX + 0.004, y, a, facing, {}, turn, 3);
+  });
 
   // Camera wall: glass, lens, flash panels, card slot.
-  const wallX = PART_X + T / 2;
   const glassFrame = add(new THREE.BoxGeometry(0.012, 0.34, 0.34), enamel, wallX + 0.006, GLASS_Y, 0);
   glassFrame.receiveShadow = true;
   const window_ = add(
@@ -800,7 +822,7 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
   const signLight = new THREE.PointLight(0xffe6b8, 2.2, 5, 2);
   signLight.position.set(0, 1.7, Z1 + 1.0);
   scene.add(signLight);
-  const cabinLight = new THREE.PointLight(0xffd0b0, 3.2, 2.6, 2);
+  const cabinLight = new THREE.PointLight(0xffd0b0, 4.2, 2.8, 2);
   cabinLight.position.set(seatMid, H - 0.2, 0.05);
   scene.add(cabinLight);
   const spill = new THREE.PointLight(0xff3038, 1.4, 2.6, 2);
