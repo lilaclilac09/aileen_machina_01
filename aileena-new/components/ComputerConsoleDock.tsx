@@ -8,6 +8,23 @@ import { SHARED_ROOM_HELP } from '../lib/computer/helpText';
 import { SHARED_COMPUTER_ROOM_PATH, sharedRoomFromQuery } from '../lib/computer/workspaceName';
 import { COMPUTER_CLI_EVENT, isSpokenVcode, spokenToCli } from '../lib/computer/spokenCli';
 import { hasActiveTask, nextBackoff, nextPollDelay, POLL_MIN_MS, taskSignature } from '../lib/computer/pollSchedule';
+import dynamic from 'next/dynamic';
+import { Bomb, History, NotebookPen, Terminal, Worm, type LucideIcon } from 'lucide-react';
+
+const NotesApp = dynamic(() => import('./computer/NotesApp'), { ssr: false });
+const MinesweeperApp = dynamic(() => import('./computer/MinesweeperApp'), { ssr: false });
+const SnakeApp = dynamic(() => import('./computer/SnakeApp'), { ssr: false });
+const TimeMachineApp = dynamic(() => import('./computer/TimeMachineApp'), { ssr: false });
+
+type ComputerAppTab = 'terminal' | 'notes' | 'mines' | 'snake' | 'timemachine';
+
+const COMPUTER_APPS: { id: ComputerAppTab; label: string; Icon: LucideIcon }[] = [
+  { id: 'terminal', label: 'Terminal', Icon: Terminal },
+  { id: 'notes', label: 'Notes', Icon: NotebookPen },
+  { id: 'mines', label: 'Mines', Icon: Bomb },
+  { id: 'snake', label: 'Snake', Icon: Worm },
+  { id: 'timemachine', label: 'Wayback', Icon: History },
+];
 
 function roomFromWindow(): boolean {
   if (typeof window === 'undefined') return false;
@@ -217,9 +234,15 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
   const [termMode, setTermMode] = useState(ownerPad || roomFromWindow());
   const [shareFlash, setShareFlash] = useState('');
   const [padHelp, setPadHelp] = useState('');
+  const [app, setApp] = useState<ComputerAppTab>('terminal');
   const prevStatus = useRef<Record<string, string>>({});
   const logRef = useRef<HTMLPreElement | null>(null);
   const lineRef = useRef<HTMLTextAreaElement | null>(null);
+  const appPanelRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    appPanelRef.current?.scrollTo({ top: 0 });
+  }, [app]);
 
   const load = useCallback(async (opts: { fresh?: boolean } = {}): Promise<ComputerTask[] | null> => {
     let res: Response;
@@ -464,6 +487,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
     const onCli = (e: Event) => {
       const text = String((e as CustomEvent<{ text?: string }>).detail?.text || '').trim();
       if (!text) return;
+      setApp('terminal');
       setTermMode(true);
       setTab('find');
       void queueRef.current({ taskType: 'shell_exec', instructions: text, phrase: text.split('\n')[0] });
@@ -512,7 +536,9 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
       data-harness={shared ? 'machina-shared-room' : 'machina-owner-prototype'}
       data-room={shared ? 'open' : ''}
       data-open-proof={String(proof.length)}
-      className="border-b border-[#e7e0d6] px-3 py-2 bg-[#fffcf7]/90 min-h-[6.5rem] max-h-[min(38vh,20rem)] overflow-y-auto shrink"
+      className={`border-b border-[#e7e0d6] px-3 py-2 bg-[#fffcf7]/90 min-h-[6.5rem] overflow-y-auto shrink ${
+        app === 'terminal' ? 'max-h-[min(38vh,20rem)]' : 'max-h-[min(66vh,36rem)]'
+      }`}
     >
       {/* Small computer: cream chassis, teal screen, power light, keycaps. */}
       <div className="rounded-[12px] border border-[#d8cfc0] bg-[#f6f0e4] px-2.5 pt-2 pb-2.5 space-y-1.5 shadow-[inset_0_1px_0_#ffffff,0_2px_6px_rgba(27,23,19,0.08)]">
@@ -532,6 +558,42 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
           </span>
         </p>
 
+        <div className="grid grid-cols-5 gap-1" role="tablist" aria-label="Computer apps" data-testid="computer-launcher">
+          {COMPUTER_APPS.map(({ id, label, Icon }) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={app === id}
+              data-testid={`computer-launch-${id}`}
+              onClick={() => setApp(id)}
+              className={`flex min-h-12 min-w-0 flex-col items-center justify-center gap-0.5 rounded-[8px] border px-1 transition-colors ${
+                app === id
+                  ? 'border-[#00a89d] bg-[#0b2422] text-[#8fe6dd] shadow-[inset_0_0_6px_rgba(0,168,157,0.45)]'
+                  : 'border-[#d8cfc0] border-b-2 border-b-[#c2b7a3] bg-white text-[#007d75]'
+              }`}
+            >
+              <Icon size={17} strokeWidth={1.6} aria-hidden />
+              <span className="w-full truncate text-center font-mono text-[0.5rem] uppercase tracking-[0.08em]">{label}</span>
+            </button>
+          ))}
+        </div>
+
+        {app !== 'terminal' ? (
+          <div
+            ref={appPanelRef}
+            role="tabpanel"
+            data-testid="computer-app-panel"
+            className="max-h-[min(46vh,26rem)] overflow-y-auto overscroll-contain rounded-[8px] border border-[#d8cfc0] bg-[#fffcf7] p-2.5"
+          >
+            {(['notes', 'mines', 'snake', 'timemachine'] as const).map((id) => (
+              <div key={id} hidden={app !== id}>
+                {id === 'notes' ? <NotesApp /> : id === 'mines' ? <MinesweeperApp /> : id === 'snake' ? <SnakeApp /> : <TimeMachineApp />}
+              </div>
+            ))}
+          </div>
+        ) : (
+        <>
         <div
           className={`rounded-[8px] border p-1 bg-[#0b2422] shadow-[inset_0_2px_8px_rgba(0,0,0,0.55)] ${
             live ? 'border-[#00a89d]/60' : 'border-[#1b1713]/60'
@@ -765,6 +827,8 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
           </button>
         ))}
       </div>
+        </>
+        )}
 
       <div className="sr-only" data-testid="computer-tabs">
         {APP_TABS.map((id) => (

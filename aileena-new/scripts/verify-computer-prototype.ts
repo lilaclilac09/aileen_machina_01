@@ -21,6 +21,8 @@ import { isComputerPrototypeEnabled, hasComputerWorkerEnv } from '../lib/compute
 import { formatPrompt, isOwnerCliCommand, isWritePath, parseCd, parsePut, resolveCwd } from '../lib/computer/terminal';
 import { OWNER_CLI_EXAMPLES, OWNER_CLI_HELP } from '../lib/computer/helpText';
 import { parseOfficialDemo } from '../lib/computer/officialDemos';
+import { APP_STATE_MAX_BYTES, COMPUTER_APP_IDS, appStatePath, parseAppState } from '../lib/computer/apps';
+import { newMineBoard, newSnakeGame, revealMine, stepSnake, turnSnake } from '../lib/computer/games';
 import { parseVcode, looksLikeSource } from '../lib/computer/voiceScratch';
 import { spokenToCli } from '../lib/computer/spokenCli';
 import { HARNESS_PLUGINS } from '../lib/computer/plugins';
@@ -1319,10 +1321,34 @@ async function liveHttp() {
   assert('visitor note chat says queued', /queued/i.test(visitorNoteText), visitorNoteText.slice(0, 180));
 }
 
+function appChecks() {
+  const dock = readFileSync(join(process.cwd(), 'components/ComputerConsoleDock.tsx'), 'utf8');
+  const route = readFileSync(join(process.cwd(), 'app/api/agent/computer/apps/[app]/route.ts'), 'utf8');
+  const games = readFileSync(join(process.cwd(), 'lib/computer/games.ts'), 'utf8');
+  assert('apps launcher lists every app', COMPUTER_APP_IDS.every((id) => dock.includes(`id: '${id}'`)));
+  assert('apps launcher keeps terminal', /id: 'terminal'/.test(dock) && /computer-launch-\$\{id\}/.test(dock));
+  assert('app saves live in the actor workspace', COMPUTER_APP_IDS.every((id) => appStatePath(id).startsWith('/workspace/scratch/apps/')));
+  assert('app route is actor scoped and rate limited', /computerActorFromRequest/.test(route) && /COMPUTER_APP_STATE_RATE/.test(route));
+  assert('app route caps payload size', /APP_STATE_MAX_BYTES/.test(route) && APP_STATE_MAX_BYTES <= 64 * 1024);
+  assert('app state rejects junk', parseAppState('mines', { wins: -1, losses: 0, bestSeconds: null }) === null);
+  assert('app state rejects javascript urls', parseAppState('timemachine', { visits: [{ id: 'a', url: 'javascript:alert(1)', year: 2005, timestamp: '20050101000000', note: '', savedAt: 'x' }] }) === null);
+  assert('app state accepts a real note', parseAppState('notes', { notes: [{ id: 'n', title: 't', body: 'b', updatedAt: 'u' }] }) !== null);
+  assert('app state files are written through cfClient', /cfPutFile/.test(route) && /cfGetFile/.test(route));
+
+  // Game rules: first tap is safe, flood fill never opens a mine, snake cannot reverse.
+  const mine = revealMine(newMineBoard(), 40, () => 0.5);
+  assert('mines first tap is safe', mine.status !== 'lost' && mine.cells[40].adjacent === 0);
+  assert('mines flood fill never opens a mine', !mine.cells.some((c) => c.open && c.mine));
+  assert('snake ignores a reversal', turnSnake(newSnakeGame(8, () => 0), 'left').nextDir === 'right');
+  assert('snake dies on a wall', stepSnake({ size: 8, snake: [0, 1, 2], dir: 'left', nextDir: 'left', food: 63, score: 0, status: 'playing' }).status === 'over');
+  assert('game rules stay pure', !/Date\.now|Math\.random/.test(games.replace(/rand: \(\) => number = Math\.random/g, '')));
+}
+
 async function main() {
   loadEnvLocal();
   if (!process.env.COMPUTER_PROTOTYPE) process.env.COMPUTER_PROTOTYPE = '1';
   sourceChecks();
+  appChecks();
   flagUnit();
   unitChecks();
   await keyshieldUnit();
