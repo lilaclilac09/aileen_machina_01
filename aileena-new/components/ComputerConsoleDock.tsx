@@ -220,7 +220,8 @@ function chipKey(alias: string): string {
  */
 export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOwner: boolean; voiceOn?: boolean }) {
   const [flash, setFlash] = useState('');
-  const [cloudflare, setCloudflare] = useState(false);
+  /** null until the first poll answers; never claim a backend we have not seen. */
+  const [cloudflare, setCloudflare] = useState<boolean | null>(null);
   const [busy, setBusy] = useState(false);
   const [tasks, setTasks] = useState<ComputerTask[]>([]);
   const [proof, setProof] = useState<ProofItem[]>([]);
@@ -369,7 +370,7 @@ export default function ComputerConsoleDock({ isOwner, voiceOn = false }: { isOw
     tasks.find((t) => t.taskType === 'files_search' || t.taskType === 'files_tree') ??
     null;
 
-  const backend = cloudflare ? 'worker-shell' : 'local shim';
+  const backend = cloudflare === null ? 'computer' : cloudflare ? 'worker-shell' : 'local shim';
   const live = selectedTask?.status === 'queued' || selectedTask?.status === 'running';
 
   const chips = useMemo(() => {
