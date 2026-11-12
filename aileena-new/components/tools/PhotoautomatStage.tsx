@@ -11,6 +11,9 @@ export type StageLabels = {
   xray: string;
   spin: string;
   download: string;
+  save: string;
+  again: string;
+  inspect: string;
   flash: string;
   flashValue: string;
   baths: string;
@@ -20,30 +23,35 @@ export type StageLabels = {
   seatValue: string;
 };
 
-const IDLE: BoothStageState = { curtain: false, spin: false, xray: false, bath: -1, clock: 0, strip: false };
+const IDLE: BoothStageState = { curtain: false, spin: false, xray: false, bath: -1, clock: 0, strip: 'none' };
 
 export default function PhotoautomatStage({
   hidden,
   labels,
+  speed,
   onReady,
   onUnsupported,
   onEntered,
-  onTakeStrip,
+  onSave,
+  onAgain,
 }: {
   hidden: boolean;
   labels: StageLabels;
+  /** How many times faster than the real booth the shot clock runs here. */
+  speed: number;
   onReady: (stage: BoothStageHandle | null) => void;
   onUnsupported: () => void;
   onEntered: () => void;
-  onTakeStrip: () => void;
+  onSave: () => void;
+  onAgain: () => void;
 }) {
   const hostRef = useRef<HTMLDivElement>(null);
   const stageRef = useRef<BoothStageHandle | null>(null);
-  const callbacks = useRef({ onReady, onUnsupported, onEntered, onTakeStrip });
+  const callbacks = useRef({ onReady, onUnsupported, onEntered });
   const [state, setState] = useState<BoothStageState>(IDLE);
 
   useEffect(() => {
-    callbacks.current = { onReady, onUnsupported, onEntered, onTakeStrip };
+    callbacks.current = { onReady, onUnsupported, onEntered };
   });
 
   useEffect(() => {
@@ -54,7 +62,6 @@ export default function PhotoautomatStage({
       stage = mountBoothStage(host, {
         onState: setState,
         onEntered: () => callbacks.current.onEntered(),
-        onTakeStrip: () => callbacks.current.onTakeStrip(),
       });
     } catch {
       // No WebGL: there is no street to stand on, so the booth opens straight onto the cabin.
@@ -81,14 +88,14 @@ export default function PhotoautomatStage({
       data-spin={state.spin ? 'yes' : 'no'}
       data-xray={state.xray ? 'yes' : 'no'}
       data-bath={developing ? BOOTH.baths[state.bath] : 'none'}
-      data-strip={state.strip ? 'yes' : 'no'}
+      data-strip={state.strip}
       hidden={hidden}
     >
       <div className="foto-gl" ref={hostRef} />
       <dl className="foto-readout" data-testid="foto-readout">
         <dt>{labels.flash}</dt>
         <dd>
-          {labels.flashValue.replace('{first}', String(BOOTH.firstFlashS)).replace('{gap}', String(BOOTH.flashGapS))}
+          {labels.flashValue.replace('{first}', String(BOOTH.firstFlashS)).replace('{gap}', String(BOOTH.flashGapS)).replace('{speed}', String(speed))}
         </dd>
         <dt>{labels.seat}</dt>
         <dd>{labels.seatValue.replace('{cm}', String(seatCm))}</dd>
@@ -103,15 +110,26 @@ export default function PhotoautomatStage({
         </dd>
         <dt>{labels.clock}</dt>
         <dd className={developing ? 'is-now' : undefined} data-testid="foto-clock">
-          {clockLabel(state.strip ? BOOTH.developS : state.clock)} / {clockLabel(BOOTH.developS)}
+          {clockLabel(state.strip === 'none' ? state.clock : BOOTH.developS)} / {clockLabel(BOOTH.developS)}
         </dd>
       </dl>
-      {developing || state.strip ? null : <p className="foto-hint">{labels.hint}</p>}
+      {developing || state.strip === 'slot' ? null : (
+        <p className="foto-hint">{state.strip === 'held' ? labels.inspect : labels.hint}</p>
+      )}
       <div className="foto-stage-actions">
-        {state.strip ? (
-          <button type="button" data-testid="foto-take" onClick={onTakeStrip}>
+        {state.strip === 'slot' ? (
+          <button type="button" data-testid="foto-take" onClick={() => stageRef.current?.takeStrip()}>
             {labels.download}
           </button>
+        ) : state.strip === 'held' ? (
+          <>
+            <button type="button" data-testid="foto-download" onClick={onSave}>
+              {labels.save}
+            </button>
+            <button type="button" data-testid="foto-again" onClick={onAgain}>
+              {labels.again}
+            </button>
+          </>
         ) : (
           <>
             <button

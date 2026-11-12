@@ -11,14 +11,15 @@ import {
   DEVELOP_WALL_MS,
   FLASH_MS,
   SHOT_COUNT,
-  SIMULATION_SPEED,
-  STRIP_HOLD_MS,
+  SHOT_CLOCK_SPEED,
   SWIPE_COMMIT,
   attachCameraStream,
   captureFrame,
   composeSheet,
   downloadCanvas,
+  listCameras,
   requestUserCamera,
+  type CameraChoice,
   simulationFrame,
   squareCrop,
   applyFilmStill,
@@ -44,7 +45,8 @@ export default function PhotoautomatTool() {
   const liveRef = useRef(true);
   const gradedOnce = useRef(false);
   const stageRef = useRef<BoothStageHandle | null>(null);
-  const takeRef = useRef<(() => void) | null>(null);
+  const [cameras, setCameras] = useState<CameraChoice[]>([]);
+  const [cameraId, setCameraId] = useState<string | null>(null);
   const [street, setStreet] = useState(true);
   const [phase, setPhase] = useState<Phase>('outside');
   const [drag, setDrag] = useState(0);
@@ -122,13 +124,16 @@ export default function PhotoautomatTool() {
     return () => window.cancelAnimationFrame(raf);
   }, [live]);
 
-  const openCamera = useCallback(async () => {
-    if (streamRef.current) return streamRef.current;
+  const openCamera = useCallback(async (deviceId?: string) => {
+    if (streamRef.current && !deviceId) return streamRef.current;
     try {
-      const stream = await requestUserCamera();
+      const stream = await requestUserCamera(deviceId);
+      streamRef.current?.getTracks().forEach((track) => track.stop());
       streamRef.current = stream;
       const video = videoRef.current;
       if (video) await attachCameraStream(video, stream);
+      setCameraId(stream.getVideoTracks()[0]?.getSettings().deviceId ?? deviceId ?? null);
+      setCameras(await listCameras());
       setLive(true);
       setPhase('ready');
       return stream;
@@ -138,6 +143,13 @@ export default function PhotoautomatTool() {
       return null;
     }
   }, []);
+
+  /** Steps to the next camera the browser can see: phone back camera, USB webcam, capture card. */
+  async function nextCamera() {
+    if (cameras.length < 2) return;
+    const at = cameras.findIndex((camera) => camera.deviceId === cameraId);
+    await openCamera(cameras[(at + 1) % cameras.length].deviceId);
+  }
 
   async function onAllow() {
     await openCamera();
@@ -153,11 +165,10 @@ export default function PhotoautomatTool() {
     try {
       framesRef.current = [];
       setShots(0);
-      const speed = mode === 'simulate' ? SIMULATION_SPEED : 1;
       const flashes = flashTimesMs(SHOT_COUNT);
       const started = performance.now();
       const until = (ms: number) =>
-        new Promise((r) => window.setTimeout(r, Math.max(0, started + ms / speed - performance.now())));
+        new Promise((r) => window.setTimeout(r, Math.max(0, started + ms / SHOT_CLOCK_SPEED - performance.now())));
       for (let n = 0; n < SHOT_COUNT && liveRef.current; n += 1) {
         for (const beat of [3, 2, 1]) {
           await until(flashes[n] - beat * COUNT_BEAT_MS);
@@ -185,14 +196,6 @@ export default function PhotoautomatTool() {
       if (stage) {
         setPhase('develop');
         await stage.develop(sheet, DEVELOP_WALL_MS);
-        await new Promise<void>((resolve) => {
-          const id = window.setTimeout(resolve, STRIP_HOLD_MS);
-          takeRef.current = () => {
-            window.clearTimeout(id);
-            resolve();
-          };
-        });
-        takeRef.current = null;
       }
       const blob = await new Promise<Blob | null>((resolve) => sheet.toBlob(resolve, 'image/png'));
       if (!blob || !liveRef.current) return;
@@ -290,7 +293,7 @@ export default function PhotoautomatTool() {
   }
 
   const shooting = phase === 'count' || phase === 'flash' || phase === 'armed';
-  const onStreet = phase === 'outside' || phase === 'develop';
+  const onStreet = phase === 'outside' || phase === 'develop' || (street && phase === 'print');
   const canLeave = street && (phase === 'idle' || phase === 'ready' || phase === 'blocked');
   const status =
     phase === 'blocked'
@@ -323,6 +326,7 @@ export default function PhotoautomatTool() {
         <PhotoautomatStage
           hidden={!onStreet}
           labels={tx}
+          speed={SHOT_CLOCK_SPEED}
           onReady={(stage) => {
             stageRef.current = stage;
           }}
@@ -331,7 +335,8 @@ export default function PhotoautomatTool() {
             setPhase((now) => (now === 'outside' ? 'idle' : now));
           }}
           onEntered={() => setPhase('idle')}
-          onTakeStrip={() => takeRef.current?.()}
+          onSave={() => void onDownload()}
+          onAgain={onAgain}
         />
       ) : null}
       {onStreet ? null : phase === 'print' && sheetUrl ? (
@@ -394,6 +399,12 @@ export default function PhotoautomatTool() {
             ) : null}
             {count != null ? <div className="foto-count">{count}</div> : null}
           </div>
+          {phase === 'ready' && cameras.length > 1 ? (
+            <button type="button" className="foto-lens" data-testid="foto-lens" onClick={() => void nextCamera()}>
+              {tx.lens} {cameras.findIndex((camera) => camera.deviceId === cameraId) + 1}/{cameras.length} ·{' '}
+              {cameras.find((camera) => camera.deviceId === cameraId)?.label ?? ''}
+            </button>
+          ) : null}
           <div className={`foto-flash${phase === 'flash' ? ' is-on' : ''}`} />
           {shooting ? (
             <p className="foto-status" data-testid="foto-status">

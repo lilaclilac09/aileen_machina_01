@@ -8,14 +8,13 @@ export const STRIP_FOOTER = 48;
 /** Square, matching the booth glass. h / w. */
 export const FRAME_RATIO = 1;
 export const SWIPE_COMMIT = 0.72;
-/** One-second countdown beats into each flash. The flash times themselves come from the booth data. */
+/** Countdown beats into each flash, in booth time. The flash times themselves come from the booth data. */
 export const COUNT_BEAT_MS = 1000;
 export const FLASH_MS = 90;
-/** The simulation runs the same shot clock this many times faster. */
-export const SIMULATION_SPEED = 4;
-/** Wall time for the four-minute chemistry, then how long the finished strip waits in the slot. */
+/** The page runs the booth's shot clock this many times faster, for the camera and the simulation alike. */
+export const SHOT_CLOCK_SPEED = 4;
+/** Wall time for the four-minute chemistry. */
 export const DEVELOP_WALL_MS = 9000;
-export const STRIP_HOLD_MS = 2600;
 const MAX_FRAME = 960;
 
 export const CAMERA_CONSTRAINTS: MediaStreamConstraints[] = [
@@ -40,12 +39,16 @@ function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise
   });
 }
 
-export async function requestUserCamera(): Promise<MediaStream> {
+/** Opens the front camera, or the exact device the visitor picked. */
+export async function requestUserCamera(deviceId?: string): Promise<MediaStream> {
   if (typeof navigator === 'undefined' || !navigator.mediaDevices?.getUserMedia) {
     throw new Error('no camera');
   }
+  const tries: MediaStreamConstraints[] = deviceId
+    ? [{ audio: false, video: { deviceId: { exact: deviceId } } }]
+    : CAMERA_CONSTRAINTS;
   let last: unknown;
-  for (const constraints of CAMERA_CONSTRAINTS) {
+  for (const constraints of tries) {
     try {
       return await withTimeout(navigator.mediaDevices.getUserMedia(constraints), 3500, 'camera timeout');
     } catch (err) {
@@ -53,6 +56,17 @@ export async function requestUserCamera(): Promise<MediaStream> {
     }
   }
   throw last instanceof Error ? last : new Error('camera blocked');
+}
+
+export type CameraChoice = { deviceId: string; label: string };
+
+/** Every camera the browser can see: built-in, USB, capture cards. Labels appear once permission is granted. */
+export async function listCameras(): Promise<CameraChoice[]> {
+  if (typeof navigator === 'undefined' || !navigator.mediaDevices?.enumerateDevices) return [];
+  const devices = await navigator.mediaDevices.enumerateDevices();
+  return devices
+    .filter((device) => device.kind === 'videoinput' && device.deviceId)
+    .map((device, index) => ({ deviceId: device.deviceId, label: device.label || `camera ${index + 1}` }));
 }
 
 export async function attachCameraStream(
@@ -110,8 +124,8 @@ function clampByte(v: number): number {
 }
 
 /**
- * Night film-still grade: lifted blacks, cool shadows, warm practicals, grain, vignette.
- * Color stays — this is not the old black-and-white booth.
+ * Booth print grade: black and white, hard contrast, grain, corner falloff.
+ * The paper has no colour, so r, g and b always leave equal.
  */
 export function applyFilmStill(data: Uint8ClampedArray, width: number, height: number): void {
   const cx = width / 2;
@@ -120,33 +134,15 @@ export function applyFilmStill(data: Uint8ClampedArray, width: number, height: n
   for (let y = 0; y < height; y += 1) {
     for (let x = 0; x < width; x += 1) {
       const i = (y * width + x) * 4;
-      let r = data[i] / 255;
-      let g = data[i + 1] / 255;
-      let b = data[i + 2] / 255;
-      r = Math.min(1, (r * 0.9 + 0.045) * (1.04 - 0.1 * r));
-      g = Math.min(1, (g * 0.9 + 0.045) * (1.04 - 0.1 * g));
-      b = Math.min(1, (b * 0.9 + 0.05) * (1.04 - 0.1 * b));
-      const yL = 0.299 * r + 0.587 * g + 0.114 * b;
-      const sat = 0.7;
-      r = yL + (r - yL) * sat;
-      g = yL + (g - yL) * sat;
-      b = yL + (b - yL) * sat;
-      const shadow = Math.max(0, Math.min(1, (0.55 - yL) / 0.55));
-      const high = Math.max(0, Math.min(1, (yL - 0.42) / 0.58));
-      r += high * 0.08 - shadow * 0.035;
-      g += high * 0.025 + shadow * 0.012;
-      b += shadow * 0.1 - high * 0.045;
       let h = Math.imul(x, 374761393) + Math.imul(y, 668265263);
       h = (h ^ (h >>> 13)) >>> 0;
       h = Math.imul(h, 1274126177);
-      const n = ((((h >>> 0) % 31) - 15) / 255);
-      r += n;
-      g += n * 0.85;
-      b += n * 0.7;
+      const grain = ((h >>> 0) % 31) - 15;
       const fall = 1 - Math.max(0, Math.hypot(x - cx, y - cy) / maxd - 0.5) * 0.55;
-      data[i] = clampByte(r * fall * 255);
-      data[i + 1] = clampByte(g * fall * 255);
-      data[i + 2] = clampByte(b * fall * 255);
+      const v = clampByte(Math.round((analogLuma(data[i], data[i + 1], data[i + 2]) + grain) * fall));
+      data[i] = v;
+      data[i + 1] = v;
+      data[i + 2] = v;
     }
   }
 }
@@ -297,7 +293,7 @@ export function composeSheet(frames: HTMLCanvasElement[]): HTMLCanvasElement {
   canvas.height = height;
   const ctx = canvas.getContext('2d');
   if (!ctx) return canvas;
-  ctx.fillStyle = '#f7f3ea';
+  ctx.fillStyle = '#f5f4f0';
   ctx.fillRect(0, 0, width, height);
   const cells = stripCells();
   frames.slice(0, SHOT_COUNT).forEach((frame, i) => {
@@ -309,11 +305,11 @@ export function composeSheet(frames: HTMLCanvasElement[]): HTMLCanvasElement {
     ctx.clip();
     coverDraw(ctx, frame, cell.x, cell.y, cell.w, cell.h, frame.width, frame.height);
     ctx.restore();
-    ctx.strokeStyle = 'rgba(40, 32, 24, 0.16)';
+    ctx.strokeStyle = 'rgba(30, 30, 30, 0.16)';
     ctx.lineWidth = 1.5;
     ctx.strokeRect(cell.x + 0.5, cell.y + 0.5, cell.w - 1, cell.h - 1);
   });
-  ctx.fillStyle = 'rgba(40, 32, 24, 0.42)';
+  ctx.fillStyle = 'rgba(30, 30, 30, 0.42)';
   ctx.font = '22px "Courier New", ui-monospace, monospace';
   ctx.fillText('PHOTOAUTOMAT  ·  BERLIN', STRIP_MARGIN, height - 22);
   return canvas;

@@ -34,14 +34,13 @@ export type BoothStageState = {
   bath: number;
   /** Machine seconds since the strip left the camera. */
   clock: number;
-  /** A finished strip is waiting in the delivery slot. */
-  strip: boolean;
+  /** Where the finished strip is: still in the machine, waiting in the delivery slot, or in the visitor's hand. */
+  strip: 'none' | 'slot' | 'held';
 };
 
 export type BoothStageOptions = {
   onState: (state: BoothStageState) => void;
   onEntered: () => void;
-  onTakeStrip: () => void;
 };
 
 export type BoothStageHandle = {
@@ -51,6 +50,8 @@ export type BoothStageHandle = {
   enter: () => void;
   /** Runs the strip through the baths in `wallMs`, then leaves it in the slot. */
   develop: (sheet: HTMLCanvasElement, wallMs: number) => Promise<void>;
+  /** Lifts the strip out of the slot and holds it up to look at. */
+  takeStrip: () => void;
   reset: () => void;
   dispose: () => void;
 };
@@ -711,7 +712,9 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
   const strip = new THREE.Group();
   strip.visible = false;
   body.add(strip);
-  const printMaterial = keep(new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0 }));
+  const printMaterial = keep(
+    new THREE.MeshStandardMaterial({ color: 0xffffff, roughness: 0.42, metalness: 0, emissive: 0xffffff, emissiveIntensity: 0.28 }),
+  );
   const blankMaterial = keep(
     new THREE.MeshStandardMaterial({ color: 0xefe9da, roughness: 0.5, transparent: true, opacity: 1, depthWrite: false }),
   );
@@ -813,7 +816,7 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
   composer.addPass(new OutputPass());
 
   // Looking around.
-  const state: BoothStageState = { curtain: false, spin: false, xray: false, bath: -1, clock: 0, strip: false };
+  const state: BoothStageState = { curtain: false, spin: false, xray: false, bath: -1, clock: 0, strip: 'none' };
   let sent = '';
   /** A strip is in the machine: the booth is not to be operated. */
   const busy = () => state.bath >= 0;
@@ -890,7 +893,7 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
     const atHome = !flight && !inside && camera.position.distanceTo(homePosition) < 0.01;
     homeDistance = next;
     homePosition.copy(HOME_TARGET).addScaledVector(HOME_DIR, homeDistance);
-    controls.maxDistance = homeDistance * 1.2;
+    if (state.strip !== 'held') controls.maxDistance = homeDistance * 1.2;
     if (atHome || camera.position.lengthSq() === 0) {
       camera.position.copy(homePosition);
       controls.target.copy(HOME_TARGET);
@@ -979,7 +982,7 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
       const { done } = run;
       run = null;
       state.bath = -1;
-      state.strip = true;
+      state.strip = 'slot';
       picks.push(printFace);
       setXray(false);
       const slot = new THREE.Vector3(SLOT_X, SLOT_Y, Z1);
@@ -988,18 +991,47 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
     return true;
   }
 
+  // Taking the strip: it leaves the slot and is held where the header lights it, free to turn and zoom.
+  const HAND = new THREE.Vector3(SLOT_X + 0.04, 1.34, Z1 + 0.7);
+  let lift: { t0: number; from: THREE.Vector3 } | null = null;
+  function looseLimits(held: boolean) {
+    controls.minDistance = held ? 0.1 : 0.4;
+    controls.maxDistance = held ? 0.9 : homeDistance * 1.2;
+    controls.minPolarAngle = Math.PI * (held ? 0.2 : 0.16);
+    controls.maxPolarAngle = Math.PI * (held ? 0.8 : 0.53);
+  }
+  function takeStrip() {
+    if (state.strip !== 'slot' || flight) return;
+    state.strip = 'held';
+    emit();
+    lift = { t0: performance.now(), from: strip.position.clone() };
+    looseLimits(true);
+    fly(vantage(HAND, new THREE.Vector3(0.12, 0.04, 1), 0.07, stripH * 1.5), HAND, 800);
+  }
+  function stepLift(now: number) {
+    if (!lift) return false;
+    const k = ease(clamp01((now - lift.t0) / 800));
+    strip.position.lerpVectors(lift.from, HAND, k);
+    strip.rotation.set(-0.08 * k, 0, 0.03 * k);
+    if (k >= 1) lift = null;
+    return true;
+  }
+
   function clearStrip() {
     run = null;
+    lift = null;
+    looseLimits(false);
     strip.visible = false;
     state.bath = -1;
     state.clock = 0;
-    state.strip = false;
+    state.strip = 'none';
     const at = picks.indexOf(printFace);
     if (at >= 0) picks.splice(at, 1);
     if (stripTexture) {
       stripTexture.dispose();
       stripTexture = null;
       printMaterial.map = null;
+      printMaterial.emissiveMap = null;
       printMaterial.needsUpdate = true;
     }
   }
@@ -1088,7 +1120,8 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
   }
 
   function tap(role: Role | null) {
-    if (role === 'strip') options.onTakeStrip();
+    if (role === 'strip') takeStrip();
+    else if (state.strip !== 'none') return;
     else if (role === 'door' && !busy()) {
       if (curtain.open) enter();
       else setCurtainTarget(true);
@@ -1138,7 +1171,7 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
   }
 
   function toggleSpin() {
-    if (flight || inside || busy()) return;
+    if (flight || inside || busy() || state.strip !== 'none') return;
     state.spin = !state.spin;
     controls.autoRotate = state.spin;
     emit();
@@ -1219,13 +1252,16 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
         done?.();
       }
     } else if (!inside) {
-      if (camera.position.distanceTo(controls.target) > homeDistance * 0.72) controls.target.lerp(HOME_TARGET, 1 - Math.exp(-dt * 3));
+      if (state.strip !== 'held' && camera.position.distanceTo(controls.target) > homeDistance * 0.72) {
+        controls.target.lerp(HOME_TARGET, 1 - Math.exp(-dt * 3));
+      }
       moving = controls.update(dt) || moving;
       keepOutside();
     }
     moving = stepCurtain(dt, now / 1000) || moving;
     moving = stepXray(dt) || moving;
     moving = stepRun(now) || moving;
+    moving = stepLift(now) || moving;
     drew = moving || now < awakeUntil;
     if (!drew) return;
     if (lite) renderer.render(scene, camera);
@@ -1252,6 +1288,7 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
       stripTexture.colorSpace = THREE.SRGBColorSpace;
       stripTexture.anisotropy = maxAniso;
       printMaterial.map = stripTexture;
+      printMaterial.emissiveMap = stripTexture;
       printMaterial.needsUpdate = true;
       blankMaterial.opacity = 1;
       strip.visible = true;
@@ -1268,6 +1305,7 @@ export function mountBoothStage(host: HTMLElement, options: BoothStageOptions): 
         });
       });
     },
+    takeStrip,
     reset() {
       clearStrip();
       stopSpin();
