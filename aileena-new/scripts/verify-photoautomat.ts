@@ -150,6 +150,9 @@ assert('strip mesh uses the published width', stage.includes('BOOTH.stripWidthM'
 assert('tanks come from the bath list', stage.includes('BOOTH.baths.forEach'));
 const paint = readFileSync(join(root, 'lib/tools/photoautomatPaint.ts'), 'utf8');
 assert('header is not the red wordmark', /fillStyle = '#0e4f4f';[\s\S]{0,400}PHOTOAUTOMAT/.test(paint));
+assert('red cabin bakes in graffiti', /paintRedWall[\s\S]*paintGraffiti/.test(paint));
+assert('sit-down cabin is painted', paint.includes('paintCabinInterior') && page.includes('paintCabinInterior'));
+assert('interior walls carry many tags', /paintGraffiti\([^)]*, 4[0-9]\)/.test(stage) || /CABIN_INKS, 40/.test(stage));
 assert('stage loads no photographs', !/\.(jpg|jpeg|png|webp)/.test(stage + paint));
 assert('EN and DE stage copy match', Object.keys(t.EN.tools.photoAutomat).join() === Object.keys(t.DE.tools.photoAutomat).join());
 assert('EN stage copy is English', t.EN.tools.photoAutomat.sit === 'sit down' && t.EN.tools.photoAutomat.bathNames.length === BOOTH.baths.length);
