@@ -27,7 +27,7 @@ DeFi propagation research & hardware supply chain analysis. Writing about why th
 ---
 
 ### Recently Updated
-<!-- profile:synced-at 2026-11-13T17:30:24.017Z -->
+<!-- profile:synced-at 2026-11-14T16:23:00.574Z -->
 <!-- profile:recently-updated:start -->
 * **Cafe Cursor**: Credits distribution and user support tooling at [cursor-cafe.aileena.xyz](https://cursor-cafe.aileena.xyz).
 <!-- profile:recently-updated:end -->
