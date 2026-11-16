@@ -115,6 +115,14 @@ assert('EN item', t.EN.tools.items.photoautomat.title === 'Photoautomat');
 assert('DE item', t.DE.tools.items.photoautomat.title === 'Photoautomat');
 assert('EN allow copy', t.EN.tools.photoAutomat.allow === 'allow camera');
 assert('DE allow copy', t.DE.tools.photoAutomat.allow === 'kamera an');
+assert(
+  'EN press-here highlights allow camera',
+  t.EN.tools.photoAutomat.pressHere === 'Press here to {allow} from your device',
+);
+assert(
+  'DE press-here keeps the allow token',
+  t.DE.tools.photoAutomat.pressHere.includes('{allow}') && t.DE.tools.photoAutomat.pressHere.includes('Gerät'),
+);
 assert('EN simulate', t.EN.tools.photoAutomat.simulate === 'simulate');
 assert('DE simulate', t.DE.tools.photoAutomat.simulate === 'simulation');
 assert('EN page copy', t.EN.tools.photoAutomat.download === 'take strip');
@@ -130,6 +138,7 @@ assert('page exists', existsSync(join(root, 'app/tools/photoautomat/page.tsx')))
 const page = readFileSync(join(root, 'components/tools/PhotoautomatTool.tsx'), 'utf8');
 assert('uses live camera', page.includes('requestUserCamera'));
 assert('allow tap exists', page.includes('foto-allow'));
+assert('sit-down prompt exists', page.includes('foto-sit') && page.includes('foto-vibrate'));
 assert('simulate tap exists', page.includes('foto-simulate'));
 assert('film still grade', page.includes('applyFilmStill'));
 assert('visitor can pick another camera', page.includes('listCameras') && page.includes('foto-lens'));
