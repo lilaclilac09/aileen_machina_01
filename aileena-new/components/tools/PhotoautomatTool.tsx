@@ -32,6 +32,44 @@ const PhotoautomatStage = dynamic(() => import('./PhotoautomatStage'), { ssr: fa
 
 type Phase = 'outside' | 'idle' | 'ready' | 'armed' | 'count' | 'flash' | 'develop' | 'print' | 'blocked';
 
+function AllowPrompt({
+  template,
+  allow,
+}: {
+  template: string;
+  allow: string;
+}) {
+  const mark = '{allow}';
+  const at = template.indexOf(mark);
+  const before = at === -1 ? template : template.slice(0, at);
+  const after = at === -1 ? '' : template.slice(at + mark.length);
+  return (
+    <span className="foto-sit-copy">
+      {before}
+      <em className="foto-sit-allow">{allow}</em>
+      {after}
+    </span>
+  );
+}
+
+function VibrateSign() {
+  return (
+    <svg
+      className="foto-vibrate"
+      data-testid="foto-vibrate"
+      viewBox="0 0 48 48"
+      aria-hidden="true"
+      focusable="false"
+    >
+      <rect x="18" y="8" width="12" height="32" rx="2.4" />
+      <path d="M13 16c-2.4 2.8-2.4 13.2 0 16" />
+      <path d="M8 12c-4 4.6-4 19.4 0 24" />
+      <path d="M35 16c2.4 2.8 2.4 13.2 0 16" />
+      <path d="M40 12c4 4.6 4 19.4 0 24" />
+    </svg>
+  );
+}
+
 export default function PhotoautomatTool() {
   const { language } = useLanguage();
   const tx = t[language].tools.photoAutomat;
@@ -373,32 +411,39 @@ export default function PhotoautomatTool() {
               className={`foto-preview${graded ? ' is-on' : ''}`}
               data-testid="foto-preview"
             />
-            {phase === 'idle' || phase === 'blocked' ? (
-              <div className="foto-gates">
-                <button
-                  type="button"
-                  className={`foto-allow${phase === 'blocked' ? ' is-blocked' : ''}`}
-                  data-testid="foto-allow"
-                  onClick={() => {
-                    void onAllow();
-                  }}
-                >
-                  {phase === 'blocked' ? tx.blocked : tx.allow}
-                </button>
-                <button
-                  type="button"
-                  className="foto-sim"
-                  data-testid="foto-simulate"
-                  onClick={() => {
-                    void startSimulation();
-                  }}
-                >
-                  {tx.simulate}
-                </button>
-              </div>
-            ) : null}
             {count != null ? <div className="foto-count">{count}</div> : null}
           </div>
+          {phase === 'idle' || phase === 'blocked' ? (
+            <div className="foto-sit" data-testid="foto-sit">
+              <button
+                type="button"
+                className={`foto-allow${phase === 'blocked' ? ' is-blocked' : ''}`}
+                data-testid="foto-allow"
+                aria-label={tx.pressHere.replace('{allow}', tx.allow)}
+                onClick={() => {
+                  void onAllow();
+                }}
+              >
+                <VibrateSign />
+                {phase === 'blocked' ? (
+                  <span className="foto-sit-blocked" role="alert">
+                    {tx.blocked}
+                  </span>
+                ) : null}
+                <AllowPrompt template={tx.pressHere} allow={tx.allow} />
+              </button>
+              <button
+                type="button"
+                className="foto-sim"
+                data-testid="foto-simulate"
+                onClick={() => {
+                  void startSimulation();
+                }}
+              >
+                {tx.simulate}
+              </button>
+            </div>
+          ) : null}
           {phase === 'ready' && cameras.length > 1 ? (
             <button type="button" className="foto-lens" data-testid="foto-lens" onClick={() => void nextCamera()}>
               {tx.lens} {cameras.findIndex((camera) => camera.deviceId === cameraId) + 1}/{cameras.length} ·{' '}

@@ -38,8 +38,15 @@ test('tools hub lists Photoautomat; allow camera then swipe to a local strip', a
     await enter.click();
   }
   await expect(page.getByTestId('foto-cabin')).toBeVisible({ timeout: 20_000 });
-  await expect(page.getByTestId('foto-allow')).toBeVisible();
-  await page.getByTestId('foto-allow').click();
+  await expect(page.getByTestId('foto-sit')).toBeVisible();
+  await expect(page.getByTestId('foto-vibrate')).toBeVisible();
+  const allow = page.getByTestId('foto-allow');
+  await expect(allow).toBeVisible();
+  await expect(allow).toContainText(/press here/i);
+  await expect(allow).toContainText(/allow camera/i);
+  await expect(allow).toHaveCSS('color', 'rgb(255, 255, 255)');
+  await expect(page.locator('.foto-sit-copy')).toHaveCSS('font-style', 'italic');
+  await allow.click();
   await expect(page.getByTestId('foto-root')).toHaveAttribute('data-live', 'yes', { timeout: 15_000 });
   await page.waitForFunction(() => {
     const video = document.querySelector('[data-testid="foto-video"]');
