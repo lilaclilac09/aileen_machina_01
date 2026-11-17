@@ -12,7 +12,7 @@ import { chromium } from 'playwright';
 import { readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { DJ_SET_TRACKS, PINNED_DECK_A_ID, PINNED_DECK_B_ID, allDeckTracks } from '../lib/djSetlist';
+import { DECK_LIBRARY_TRACKS, DJ_SET_TRACKS, PINNED_DECK_A_ID, PINNED_DECK_B_ID, allDeckTracks } from '../lib/djSetlist';
 
 /** Original handoff five — carousel must keep this chronological head. */
 const CURATED_CHRONO_HEAD = ['DAYDRM', 'RAINFR', 'HIGHTD', 'INTOUCH', 'RNDVZ'] as const;
@@ -246,6 +246,30 @@ function checkChronologicalSource(): Check[] {
     {
       name: 'addmusic appends (does not prepend / newest-first)',
       ok: /Append the entry/.test(addmusic) && /oldest first/.test(addmusic) && !/newest-first/.test(addmusic),
+    },
+    ...checkFourLovers04Source(),
+  ];
+}
+
+const FOUR_LOVERS_04_HREF = 'https://hardwax.com/44444/four-lovers/4/';
+
+function checkFourLovers04Source(): Check[] {
+  const fl04 = allDeckTracks().find((t) => t.id === 'FL04');
+  const inLibrary = DECK_LIBRARY_TRACKS.some((t) => t.id === 'FL04');
+  return [
+    {
+      name: 'Four Lovers 04 is in the deck library',
+      ok: inLibrary && fl04?.title === 'Four Lovers 04',
+      detail: fl04 ? `${fl04.id} · ${fl04.title}` : 'missing',
+    },
+    {
+      name: 'FL04 is Hardwax 44444, not a Spotify id',
+      ok:
+        !!fl04 &&
+        fl04.href === FOUR_LOVERS_04_HREF &&
+        !fl04.spotifyId &&
+        !/^[a-zA-Z0-9]{22}$/.test(fl04.id),
+      detail: `id=${fl04?.id ?? 'missing'} href=${fl04?.href ?? ''} spotifyId=${fl04?.spotifyId ?? ''}`,
     },
   ];
 }

@@ -261,6 +261,31 @@ test.describe('DJ double-click vocals + covers → decks', () => {
       .toBe('23OBmlZUnRpatDl4q2RoIQ');
   });
 
+  test('Four Lovers 04 list row loads Hardwax, not Spotify', async ({ page }) => {
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('dj-deck-a-title')).toBeVisible();
+    const switcher = page.getByTestId('dj-view-list');
+    await switcher.scrollIntoViewIfNeeded();
+    await switcher.evaluate((el) => (el as HTMLButtonElement).click());
+    await expect(page.getByTestId('dj-list-row').first()).toBeVisible({ timeout: 15_000 });
+    await page.getByPlaceholder('SEARCH TITLE · BPM · KEY').fill('Four Lovers 04');
+    const row = page.locator('[data-testid="dj-list-row"][data-track-id="FL04"]');
+    await expect(row).toBeVisible();
+    await row.dblclick();
+    await expect
+      .poll(async () => (await page.getByTestId('dj-deck-a-title').getAttribute('data-track-id')) || '', {
+        timeout: 8_000,
+      })
+      .toBe('FL04');
+    await expect(page.getByTestId('dj-deck-a-title')).toContainText(/four lovers 04/i);
+    await expect(page.getByTestId('dj-deck-a-embed')).toHaveAttribute('data-spotify-id', '');
+    await expect(page.getByTestId('dj-deck-a-nospotify')).toBeVisible();
+    await expect(page.getByTestId('dj-deck-a-source')).toHaveAttribute(
+      'href',
+      'https://hardwax.com/44444/four-lovers/4/',
+    );
+  });
+
   test('double-click a carousel cover still loads the next open deck', async ({ page }) => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     const deckA = page.getByTestId('dj-deck-a-title');
