@@ -248,6 +248,7 @@ function checkChronologicalSource(): Check[] {
       ok: /Append the entry/.test(addmusic) && /oldest first/.test(addmusic) && !/newest-first/.test(addmusic),
     },
     ...checkFourLovers04Source(),
+    ...checkCowboyBebopSpotifySource(),
   ];
 }
 
@@ -271,6 +272,41 @@ function checkFourLovers04Source(): Check[] {
         !/^[a-zA-Z0-9]{22}$/.test(fl04.id),
       detail: `id=${fl04?.id ?? 'missing'} href=${fl04?.href ?? ''} spotifyId=${fl04?.spotifyId ?? ''}`,
     },
+  ];
+}
+
+const COWBOY_BEBOP_SPOTIFY = [
+  { id: '2Wi5ubKr8zSk8L3CLemyS4', title: 'Tank!', artist: 'SEATBELTS' },
+  { id: '5Cmf3LmbLd9g79rS55X7qK', title: 'The Real Folk Blues', artist: 'Mai Yamane' },
+  { id: '6X1yT94KVkmAgIGJoCRLFw', title: 'Pearls', artist: 'SEATBELTS' },
+] as const;
+
+function checkCowboyBebopSpotifySource(): Check[] {
+  const libraryIds = DECK_LIBRARY_TRACKS.map((t) => t.id);
+  const fl04 = libraryIds.indexOf('FL04');
+  const indexes = COWBOY_BEBOP_SPOTIFY.map((t) => libraryIds.indexOf(t.id));
+  const appendedAfterFl04 =
+    fl04 >= 0 &&
+    indexes.every((i, n) => i > fl04 && (n === 0 || i > indexes[n - 1]));
+  return [
+    {
+      name: 'Cowboy Bebop Spotify tracks append after FL04 in user order',
+      ok: appendedAfterFl04,
+      detail: `FL04@${fl04} · ${indexes.join(' · ')}`,
+    },
+    ...COWBOY_BEBOP_SPOTIFY.map((spec) => {
+      const t = allDeckTracks().find((x) => x.id === spec.id);
+      return {
+        name: `${spec.title} is Spotify ${spec.id}`,
+        ok:
+          !!t &&
+          t.title === spec.title &&
+          t.artist === spec.artist &&
+          !t.href &&
+          /^[a-zA-Z0-9]{22}$/.test(t.id),
+        detail: `id=${t?.id ?? 'missing'} title=${t?.title ?? ''} artist=${t?.artist ?? ''} href=${t?.href ?? ''}`,
+      };
+    }),
   ];
 }
 
