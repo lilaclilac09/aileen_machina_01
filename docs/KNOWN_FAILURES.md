@@ -15,6 +15,7 @@
 - [2026-08-11] 全仓 `pnpm lint` 在 `main` 上约 ~180 errors → **不要**用全仓 lint 作 automerge gate；只 eslint **本 PR 触及文件**（见 `QA.md`）
 - [2026-08-11] CI 里裸跑 `next build` 缺 index JSON（`agentArticleIndex` / `dataDocIndex` / `memoryIndex`）→ 用 **`pnpm build`**
 - [2026-08-11] `actions/upload-artifact@v4` 默认跳过点目录 → 上传 `aileena-new/.next` 必须 **`include-hidden-files: true`**，否则 playwright 下不到 artifact
+- [2026-11-12] `playwright-dnd` `install --with-deps` 死在 apt `Temporary failure resolving azure.archive.ubuntu.com`（#626 / #627，测试未跑）→ 只 `playwright install chromium`，不要 `--with-deps`
 
 ## GitHub / automerge / Bugbot
 
