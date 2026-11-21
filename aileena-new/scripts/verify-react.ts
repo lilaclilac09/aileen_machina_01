@@ -19,6 +19,7 @@ import {
   applyToolRoute,
   toolsBlockedByRoute,
   isToolAllowed,
+  forcedMemoryQuery,
 } from '../lib/toolRouter';
 
 type Check = { name: string; ok: boolean; detail?: string };
@@ -162,9 +163,44 @@ async function main() {
     /latest content/i.test(updatesZh.hint),
     updatesZh.hint.slice(0, 80),
   );
+  assert(
+    '更新 hint quotes exact latest content',
+    updatesZh.hint.includes('"latest content"'),
+    updatesZh.hint.slice(0, 120),
+  );
 
   const updatesEn = routeToolsForQuestion("what's new?");
   assert("what's new → latest_updates", updatesEn.route === 'latest_updates', updatesEn.route);
+
+  assert(
+    'forcedMemoryQuery(更新了什么吗) === latest content',
+    forcedMemoryQuery('更新了什么吗') === 'latest content',
+    String(forcedMemoryQuery('更新了什么吗')),
+  );
+  assert(
+    "forcedMemoryQuery(what's new?) === latest content",
+    forcedMemoryQuery("what's new?") === 'latest content',
+    String(forcedMemoryQuery("what's new?")),
+  );
+  assert(
+    "forcedMemoryQuery(what's on her dj set) === setlist query",
+    forcedMemoryQuery("what's on her dj set") === 'setlist curated tracks Ion IONPST',
+    String(forcedMemoryQuery("what's on her dj set")),
+  );
+
+  // searchMemories tokenize (lib/memorySearch.ts): split on non [a-z0-9 + CJK].
+  // 更新了什么吗 has no separators, so it is one query token. English
+  // latest-content.md never contains that token → TF-IDF score 0. That is
+  // why prefetch + hint must use forcedMemoryQuery → "latest content".
+  const cjkTokens = '更新了什么吗'
+    .toLowerCase()
+    .split(/[^a-z0-9\u4e00-\u9fff]+/)
+    .filter((t) => t.length > 1);
+  assert(
+    '更新了什么吗 is one CJK token (English TF-IDF misses)',
+    cjkTokens.length === 1 && cjkTokens[0] === '更新了什么吗',
+    cjkTokens.join(','),
+  );
 
   const failed = checks.filter((c) => !c.ok);
   console.log(`\nResult: ${checks.length - failed.length}/${checks.length} passed`);

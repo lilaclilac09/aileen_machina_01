@@ -38,10 +38,7 @@ import {
 import {
   routeToolsForQuestion,
   applyToolRoute,
-  isLatestUpdatesQuestion,
-  isDjSetQuestion,
-  LATEST_CONTENT_MEMORY_QUERY,
-  SETLIST_MEMORY_QUERY,
+  forcedMemoryQuery,
 } from '../../../lib/toolRouter';
 import {
   routeModel,
@@ -508,16 +505,10 @@ export async function POST(req: Request) {
 
   const lastQ = lastUserQuery(trimmed);
   // Chinese "更新了吗" misses TF-IDF — force English shelf query for prefetch.
+  // Same helper as the tool hint so a later edit cannot fix only one side.
+  const forcedQ = lastQ ? forcedMemoryQuery(lastQ) : null;
   const memoryPrefetch = lastQ
-    ? searchMemories(
-        isLatestUpdatesQuestion(lastQ)
-          ? LATEST_CONTENT_MEMORY_QUERY
-          : isDjSetQuestion(lastQ)
-            ? SETLIST_MEMORY_QUERY
-            : lastQ,
-        isLatestUpdatesQuestion(lastQ) || isDjSetQuestion(lastQ) ? 4 : 2,
-        { publicOnly: !owner },
-      )
+    ? searchMemories(forcedQ ?? lastQ, forcedQ ? 4 : 2, { publicOnly: !owner })
     : [];
   const memMeta = memoryIndexMeta();
 
