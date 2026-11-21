@@ -25,6 +25,7 @@ import {
   applyFilmStill,
 } from '../../lib/tools/photoautomat';
 import { flashTimesMs } from '../../lib/tools/photoautomatData';
+import { paintCabinInterior } from '../../lib/tools/photoautomatPaint';
 import type { BoothStageHandle } from '../../lib/tools/photoautomatStage';
 import './photoautomat.css';
 
@@ -93,6 +94,7 @@ export default function PhotoautomatTool() {
   const [live, setLive] = useState(false);
   const [graded, setGraded] = useState(false);
   const [sheetUrl, setSheetUrl] = useState<string | null>(null);
+  const [cabinWall, setCabinWall] = useState('/tools/photoautomat/interior.jpg');
 
   const stopStream = useCallback(() => {
     streamRef.current?.getTracks().forEach((track) => track.stop());
@@ -122,6 +124,14 @@ export default function PhotoautomatTool() {
       stopStream();
     };
   }, [stopStream]);
+
+  useEffect(() => {
+    try {
+      setCabinWall(paintCabinInterior().toDataURL('image/jpeg', 0.9));
+    } catch {
+      /* keep the still */
+    }
+  }, []);
 
   useEffect(() => {
     if (!live) return;
@@ -394,7 +404,7 @@ export default function PhotoautomatTool() {
         <div
           className="foto-cabin"
           data-testid="foto-cabin"
-          style={{ backgroundImage: "url('/tools/photoautomat/interior.jpg')" }}
+          style={{ backgroundImage: `url(${cabinWall})` }}
         >
           <div className="foto-glass">
             <video

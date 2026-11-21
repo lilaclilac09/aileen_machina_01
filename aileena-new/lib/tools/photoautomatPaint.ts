@@ -231,7 +231,71 @@ export function paintGlow() {
   return canvas;
 }
 
-/** Cabin wall: red gloss paint, scuffed pale where shoulders and bags rub. */
+export const CABIN_INKS = [
+  'rgba(18,8,10,0.88)',
+  'rgba(244,236,214,0.84)',
+  'rgba(250,250,248,0.8)',
+  'rgba(232,196,64,0.82)',
+  'rgba(14,79,79,0.78)',
+  'rgba(12,12,14,0.86)',
+  'rgba(210,40,48,0.7)',
+  'rgba(186,196,204,0.72)',
+];
+
+export const STREET_INKS = ['rgba(170,140,78,0.7)', 'rgba(74,80,90,0.55)', 'rgba(18,18,20,0.8)', 'rgba(214,218,224,0.5)'];
+
+const TAGS = ['KOTTI', '36', 'KT', '4', 'A', 'xxx', 'BERLIN'];
+
+function withAlpha(ink: string, alpha: number) {
+  return ink.replace(/[\d.]+\)$/, `${alpha})`);
+}
+
+function dripFrom(ctx: CanvasRenderingContext2D, rand: () => number, ink: string, x: number, y: number, weight: number) {
+  const len = 18 + rand() * 90;
+  ctx.strokeStyle = ink;
+  ctx.lineWidth = Math.max(1.2, weight * 0.28);
+  ctx.beginPath();
+  ctx.moveTo(x, y);
+  ctx.quadraticCurveTo(x + (rand() - 0.5) * 8, y + len * 0.5, x + (rand() - 0.5) * 6, y + len);
+  ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(x + (rand() - 0.5) * 4, y + len, 1.4 + rand() * 2.4, 0, Math.PI * 2);
+  ctx.fillStyle = ink;
+  ctx.fill();
+}
+
+function sprayCloud(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, ink: string, alpha: number) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+  g.addColorStop(0, withAlpha(ink, alpha));
+  g.addColorStop(0.55, withAlpha(ink, alpha * 0.35));
+  g.addColorStop(1, withAlpha(ink, 0));
+  ctx.fillStyle = g;
+  ctx.fillRect(x - r, y - r, r * 2, r * 2);
+}
+
+function heartPath(ctx: CanvasRenderingContext2D, x: number, y: number, s: number) {
+  ctx.beginPath();
+  ctx.moveTo(x, y + s * 0.28);
+  ctx.bezierCurveTo(x, y - s * 0.15, x - s, y - s * 0.1, x - s, y + s * 0.28);
+  ctx.bezierCurveTo(x - s, y + s * 0.7, x, y + s * 0.95, x, y + s);
+  ctx.bezierCurveTo(x, y + s * 0.95, x + s, y + s * 0.7, x + s, y + s * 0.28);
+  ctx.bezierCurveTo(x + s, y - s * 0.1, x, y - s * 0.15, x, y + s * 0.28);
+}
+
+function starPath(ctx: CanvasRenderingContext2D, x: number, y: number, r: number, points: number) {
+  ctx.beginPath();
+  for (let i = 0; i < points * 2; i += 1) {
+    const a = (i * Math.PI) / points - Math.PI / 2;
+    const rad = i % 2 === 0 ? r : r * 0.42;
+    const px = x + Math.cos(a) * rad;
+    const py = y + Math.sin(a) * rad;
+    if (i === 0) ctx.moveTo(px, py);
+    else ctx.lineTo(px, py);
+  }
+  ctx.closePath();
+}
+
+/** Cabin wall: red gloss paint, scuffed pale where shoulders and bags rub, then years of tags. */
 export function paintRedWall(size: number) {
   const { canvas, ctx } = surface(size, size);
   const rand = seeded(131);
@@ -260,37 +324,109 @@ export function paintRedWall(size: number) {
     ctx.lineTo(x + Math.cos(angle) * len, y + Math.sin(angle) * len);
     ctx.stroke();
   }
+  ctx.drawImage(paintGraffiti(size, size, 88, CABIN_INKS, 36), 0, 0);
+  ctx.drawImage(paintGraffiti(size, size, 201, CABIN_INKS, 18), 0, 0);
   return canvas;
 }
 
-/** Marker and spray tags: loops and strokes, never letters. */
+/** Layered marker, throw-ups, drips and tags. */
 export function paintGraffiti(width: number, height: number, seed: number, inks: string[], count: number) {
   const { canvas, ctx } = surface(width, height);
   const rand = seeded(seed);
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
+  const min = Math.min(width, height);
+
+  for (let n = 0; n < Math.ceil(count * 0.45); n += 1) {
+    const ink = inks[Math.floor(rand() * inks.length)];
+    sprayCloud(ctx, rand() * width, rand() * height, min * (0.08 + rand() * 0.18), ink, 0.12 + rand() * 0.18);
+  }
+
   for (let n = 0; n < count; n += 1) {
     const ink = inks[Math.floor(rand() * inks.length)];
-    const reach = Math.min(width, height) * (0.12 + rand() * 0.24);
-    const cx = reach * 0.7 + rand() * (width - reach * 1.4);
-    const cy = reach * 0.7 + rand() * (height - reach * 1.4);
-    const weight = 4 + rand() * 11;
-    const points: Array<[number, number]> = [];
-    let x = cx - reach * 0.6;
-    let y = cy + (rand() - 0.5) * reach;
-    const strokes = 5 + Math.floor(rand() * 6);
-    for (let i = 0; i < strokes; i += 1) {
-      points.push([x, y]);
-      x += (reach * 1.3) / strokes + (rand() - 0.5) * reach * 0.5;
-      y = cy + (rand() - 0.5) * reach * 1.2;
-    }
-    for (const [scale, alpha] of [
-      [1.8, 0.22],
-      [1, 0.9],
-    ]) {
-      ctx.globalAlpha = alpha;
+    const outline = inks[Math.floor(rand() * inks.length)];
+    const kind = rand();
+    const cx = min * 0.08 + rand() * (width - min * 0.16);
+    const cy = min * 0.08 + rand() * (height - min * 0.16);
+    ctx.globalAlpha = 0.72 + rand() * 0.28;
+
+    if (kind < 0.16) {
+      const word = TAGS[Math.floor(rand() * TAGS.length)];
+      const size = min * (0.028 + rand() * 0.055);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate((rand() - 0.5) * 0.4);
+      ctx.font = `600 ${Math.round(size)}px "Segoe Script", "Comic Sans MS", cursive, sans-serif`;
+      ctx.lineWidth = Math.max(1.4, size * 0.07);
       ctx.strokeStyle = ink;
-      ctx.lineWidth = weight * scale;
+      ctx.strokeText(word, 0, 0);
+      ctx.globalAlpha *= 0.45;
+      ctx.fillStyle = ink;
+      ctx.fillText(word, 0, 0);
+      ctx.restore();
+    } else if (kind < 0.34) {
+      const size = min * (0.07 + rand() * 0.11);
+      const glyphs = 2 + Math.floor(rand() * 3);
+      ctx.save();
+      ctx.translate(cx, cy);
+      ctx.rotate((rand() - 0.5) * 0.22);
+      ctx.globalAlpha *= 0.55 + rand() * 0.3;
+      for (let i = 0; i < glyphs; i += 1) {
+        const gx = (i - (glyphs - 1) / 2) * size * (0.55 + rand() * 0.2);
+        const gy = (rand() - 0.5) * size * 0.18;
+        ctx.beginPath();
+        ctx.moveTo(gx - size * 0.2, gy);
+        ctx.quadraticCurveTo(gx - size * 0.05, gy - size * (0.38 + rand() * 0.12), gx + size * 0.18, gy);
+        ctx.quadraticCurveTo(gx - size * 0.02, gy + size * (0.32 + rand() * 0.12), gx - size * 0.18, gy + size * 0.04);
+        ctx.closePath();
+        ctx.fillStyle = withAlpha(ink, 0.55);
+        ctx.fill();
+        ctx.strokeStyle = outline;
+        ctx.lineWidth = size * 0.045;
+        ctx.stroke();
+        if (rand() > 0.55) dripFrom(ctx, rand, ink, gx, gy + size * 0.28, size * 0.1);
+      }
+      ctx.restore();
+    } else if (kind < 0.46) {
+      const s = min * (0.035 + rand() * 0.06);
+      heartPath(ctx, cx, cy, s);
+      ctx.fillStyle = ink;
+      ctx.fill();
+      ctx.strokeStyle = outline;
+      ctx.lineWidth = Math.max(2, s * 0.12);
+      ctx.stroke();
+    } else if (kind < 0.54) {
+      starPath(ctx, cx, cy, min * (0.022 + rand() * 0.03), 5);
+      ctx.fillStyle = withAlpha(ink, 0.7);
+      ctx.fill();
+      ctx.strokeStyle = outline;
+      ctx.lineWidth = 1.5 + rand() * 2;
+      ctx.stroke();
+    } else if (kind < 0.66) {
+      const s = min * (0.08 + rand() * 0.12);
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = 3 + rand() * 7;
+      ctx.beginPath();
+      ctx.moveTo(cx - s, cy);
+      ctx.lineTo(cx + s * 0.55, cy);
+      ctx.moveTo(cx + s * 0.2, cy - s * 0.28);
+      ctx.lineTo(cx + s * 0.55, cy);
+      ctx.lineTo(cx + s * 0.2, cy + s * 0.28);
+      ctx.stroke();
+    } else {
+      const reach = min * (0.1 + rand() * 0.2);
+      const weight = 3 + rand() * 9;
+      const points: Array<[number, number]> = [];
+      let x = cx - reach * 0.55;
+      let y = cy + (rand() - 0.5) * reach;
+      const strokes = 5 + Math.floor(rand() * 5);
+      for (let i = 0; i < strokes; i += 1) {
+        points.push([x, y]);
+        x += (reach * 1.25) / strokes + (rand() - 0.5) * reach * 0.4;
+        y = cy + (rand() - 0.5) * reach;
+      }
+      ctx.strokeStyle = ink;
+      ctx.lineWidth = weight;
       ctx.beginPath();
       ctx.moveTo(points[0][0], points[0][1]);
       for (let i = 1; i < points.length - 1; i += 1) {
@@ -298,38 +434,139 @@ export function paintGraffiti(width: number, height: number, seed: number, inks:
       }
       ctx.lineTo(points[points.length - 1][0], points[points.length - 1][1]);
       ctx.stroke();
-    }
-    if (rand() > 0.4) {
-      const [dx, dy] = points[1 + Math.floor(rand() * (points.length - 2))];
-      ctx.globalAlpha = 0.55;
-      ctx.lineWidth = weight * 0.3;
-      ctx.beginPath();
-      ctx.moveTo(dx, dy);
-      ctx.lineTo(dx + (rand() - 0.5) * 3, dy + 30 + rand() * 120);
-      ctx.stroke();
-    }
-    if (rand() > 0.6) {
-      ctx.globalAlpha = 0.8;
-      ctx.lineWidth = weight * 0.8;
-      ctx.beginPath();
-      ctx.ellipse(cx + (rand() - 0.5) * reach, cy - reach * 0.5, reach * 0.16, reach * 0.22, rand(), 0, Math.PI * 2);
-      ctx.stroke();
+      if (rand() > 0.4) dripFrom(ctx, rand, ink, points[points.length - 1][0], points[points.length - 1][1], weight);
     }
   }
+
   ctx.globalAlpha = 1;
-  // Wear: rubbed patches take the ink back off.
   ctx.globalCompositeOperation = 'destination-out';
-  for (let i = 0; i < 140; i += 1) {
+  for (let i = 0; i < 36; i += 1) {
     const x = rand() * width;
     const y = rand() * height;
-    const r = 6 + rand() * 46;
+    const r = 8 + rand() * 36;
     const g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, `rgba(0,0,0,${0.2 + rand() * 0.5})`);
+    g.addColorStop(0, `rgba(0,0,0,${0.12 + rand() * 0.28})`);
     g.addColorStop(1, 'rgba(0,0,0,0)');
     ctx.fillStyle = g;
     ctx.fillRect(x - r, y - r, r * 2, r * 2);
   }
   ctx.globalCompositeOperation = 'source-over';
+  return canvas;
+}
+
+function punch(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r = 0) {
+  ctx.save();
+  ctx.globalCompositeOperation = 'destination-out';
+  if (r > 0) {
+    roundedPath(ctx, x, y, w, h, r);
+    ctx.fillStyle = '#000';
+    ctx.fill();
+  } else {
+    ctx.fillStyle = '#000';
+    ctx.fillRect(x, y, w, h);
+  }
+  ctx.restore();
+}
+
+/**
+ * What the sitter faces: steel camera wall, red tagged cabin on either side.
+ * Glass, slot and stool sit on the same percentages as `.foto-glass` / `.foto-slot`.
+ */
+export function paintCabinInterior() {
+  const w = 1200;
+  const h = 1600;
+  const { canvas, ctx } = surface(w, h);
+  const steel = paintSteel(512);
+  const red = paintRedWall(1024);
+
+  ctx.drawImage(red, 0, 0, w * 0.2, h);
+  ctx.drawImage(red, w * 0.8, 0, w * 0.2, h);
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.moveTo(w * 0.145, 0);
+  ctx.lineTo(w * 0.855, 0);
+  ctx.lineTo(w * 0.88, h);
+  ctx.lineTo(w * 0.12, h);
+  ctx.closePath();
+  ctx.clip();
+  ctx.drawImage(steel.color, w * 0.12, 0, w * 0.76, h);
+  ctx.restore();
+
+  const gx = w * 0.323;
+  const gy = h * 0.272;
+  const gw = w * 0.354;
+  const gh = h * 0.253;
+  ctx.fillStyle = '#141618';
+  ctx.fillRect(gx - 10, gy - 10, gw + 20, gh + 20);
+  const glass = ctx.createLinearGradient(gx, gy, gx + gw, gy + gh);
+  glass.addColorStop(0, '#d5d8dc');
+  glass.addColorStop(1, '#9aa0a6');
+  ctx.fillStyle = glass;
+  ctx.fillRect(gx, gy, gw, gh);
+  const lx = gx + gw / 2;
+  const ly = gy + gh / 2;
+  ctx.fillStyle = '#0c0d0e';
+  ctx.beginPath();
+  ctx.arc(lx, ly, gh * 0.16, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1a1428';
+  ctx.beginPath();
+  ctx.arc(lx, ly, gh * 0.09, 0, Math.PI * 2);
+  ctx.fill();
+
+  const sx = w * 0.31;
+  const sy = h * 0.624;
+  const sw = w * 0.38;
+  const sh = h * 0.028;
+  ctx.fillStyle = '#0b0c0d';
+  ctx.fillRect(sx, sy, sw, sh);
+
+  ctx.fillStyle = '#2a2a2c';
+  ctx.beginPath();
+  ctx.ellipse(w / 2, h * 0.965, w * 0.16, h * 0.045, 0, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.fillStyle = '#1c1c1e';
+  ctx.beginPath();
+  ctx.ellipse(w / 2, h * 0.94, w * 0.145, h * 0.032, 0, 0, Math.PI * 2);
+  ctx.fill();
+
+  const scratch = seeded(19);
+  ctx.save();
+  ctx.strokeStyle = 'rgba(20,22,26,0.18)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i < 70; i += 1) {
+    const x = w * (0.16 + scratch() * 0.68);
+    ctx.beginPath();
+    ctx.moveTo(x, h * 0.05);
+    ctx.lineTo(x + (scratch() - 0.5) * 8, h * 0.9);
+    ctx.stroke();
+  }
+  ctx.restore();
+
+  const tags = paintGraffiti(w, h, 404, CABIN_INKS, 26);
+  const tagCtx = tags.getContext('2d');
+  if (tagCtx) {
+    punch(tagCtx, gx - 28, gy - 28, gw + 56, gh + 56, 8);
+    punch(tagCtx, sx - 10, sy - 10, sw + 20, sh + 20, 2);
+    punch(tagCtx, w * 0.32, h * 0.84, w * 0.36, h * 0.16);
+  }
+  ctx.drawImage(tags, 0, 0);
+  const edge = paintGraffiti(Math.round(w * 0.22), h, 511, CABIN_INKS, 14);
+  ctx.drawImage(edge, 0, 0, w * 0.18, h);
+  ctx.drawImage(edge, w * 0.82, 0, w * 0.18, h);
+
+  [['heart', w * 0.08, h * 0.22, 70] as const, ['kotti', w * 0.86, h * 0.58, 110] as const, ['smile', w * 0.9, h * 0.2, 64] as const, ['four', w * 0.1, h * 0.7, 58] as const].forEach(
+    ([kind, x, y, size], index) => {
+      const sticker = paintSticker(kind);
+      ctx.save();
+      ctx.translate(x, y);
+      ctx.rotate((index - 1.4) * 0.12);
+      ctx.drawImage(sticker, -size / 2, -((size * sticker.height) / sticker.width) / 2, size, (size * sticker.height) / sticker.width);
+      ctx.restore();
+    },
+  );
+
   return canvas;
 }
 
