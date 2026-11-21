@@ -235,6 +235,9 @@ export const DECK_LIBRARY_TRACKS: DeckTrack[] = [
   { id: '3VylpYJ8Fpd4ze68TduAKp', title: '難得有情人', artist: 'Shirley Kwan', album: '關淑怡音樂大全 101', bpm: 84, key: '4A', dur: 225, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e0227ef8776873edf848845549b' },
   { id: '3ZbhLLnCh6IiUaiGQxt7dD', title: 'Ross Ross Ross', artist: 'SebastiAn', bpm: 120, key: '4A', dur: 202, thumb: 'https://image-cdn-ak.spotifycdn.com/image/ab67616d00001e020638bc4cba811f5a8fceb78d' },
   { id: 'FL04', title: 'Four Lovers 04', artist: 'Four Lovers', album: 'Four Lovers 04', bpm: 120, key: '4A', dur: 200, thumb: 'https://media.hardwax.com/images/44444abig.jpg', href: 'https://hardwax.com/44444/four-lovers/4/' },
+  { id: '2Wi5ubKr8zSk8L3CLemyS4', title: 'Tank!', artist: 'SEATBELTS', album: 'COWBOY BEBOP (Original Motion Picture Soundtrack)', bpm: 120, key: '4A', dur: 210, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02e90a54d6e31d9ff3f1d566fa' },
+  { id: '5Cmf3LmbLd9g79rS55X7qK', title: 'The Real Folk Blues', artist: 'Mai Yamane', album: 'COWBOY BEBOP Vitaminless', bpm: 120, key: '4A', dur: 377, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02280bad19713881390e507c5d' },
+  { id: '6X1yT94KVkmAgIGJoCRLFw', title: 'Pearls', artist: 'SEATBELTS', album: 'COWBOY BEBOP Tank! the! Best!', bpm: 120, key: '4A', dur: 285, thumb: 'https://image-cdn-fa.spotifycdn.com/image/ab67616d00001e02a9e63ab423972dd5607cec2e' },
 ];
 
 /** Top /sound decks stay on Kiwi / Only Angel when the carousel library grows. */

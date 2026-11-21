@@ -261,6 +261,40 @@ test.describe('DJ double-click vocals + covers → decks', () => {
       .toBe('23OBmlZUnRpatDl4q2RoIQ');
   });
 
+  test('Cowboy Bebop list rows load Spotify embeds', async ({ page }) => {
+    const tracks = [
+      { id: '2Wi5ubKr8zSk8L3CLemyS4', q: 'Tank!' },
+      { id: '5Cmf3LmbLd9g79rS55X7qK', q: 'The Real Folk Blues' },
+      { id: '6X1yT94KVkmAgIGJoCRLFw', q: 'Pearls' },
+    ] as const;
+    await page.goto('/sound', { waitUntil: 'domcontentloaded' });
+    await expect(page.getByTestId('dj-deck-a-title')).toBeVisible();
+    const switcher = page.getByTestId('dj-view-list');
+    await switcher.scrollIntoViewIfNeeded();
+    await switcher.evaluate((el) => (el as HTMLButtonElement).click());
+    await expect(page.getByTestId('dj-list-row').first()).toBeVisible({ timeout: 15_000 });
+
+    for (const t of tracks) {
+      await page.getByPlaceholder('SEARCH TITLE · BPM · KEY').fill(t.q);
+      await expect(page.locator(`[data-testid="dj-list-row"][data-track-id="${t.id}"]`)).toBeVisible();
+    }
+
+    const last = tracks[2];
+    await page.getByPlaceholder('SEARCH TITLE · BPM · KEY').fill(last.q);
+    const row = page.locator(`[data-testid="dj-list-row"][data-track-id="${last.id}"]`);
+    await row.dblclick();
+    await expect
+      .poll(async () => (await page.getByTestId('dj-deck-a-title').getAttribute('data-track-id')) || '', {
+        timeout: 8_000,
+      })
+      .toBe(last.id);
+    await expect(page.getByTestId('dj-deck-a-title')).toContainText(/pearls/i);
+    await expect(page.getByTestId('dj-deck-a-embed')).toHaveAttribute('data-spotify-id', last.id);
+    await expect
+      .poll(async () => iframeSrc(page, 'dj-deck-a-embed'), { timeout: 15_000 })
+      .toContain(last.id);
+  });
+
   test('Four Lovers 04 list row loads Hardwax, not Spotify', async ({ page }) => {
     await page.goto('/sound', { waitUntil: 'domcontentloaded' });
     await expect(page.getByTestId('dj-deck-a-title')).toBeVisible();
