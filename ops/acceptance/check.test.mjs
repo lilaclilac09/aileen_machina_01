@@ -105,6 +105,17 @@ test('PR template blocked-gate boilerplate is not a real blocker', () => {
   assert.equal(result(text + '\n' + template + '\nDeployment is blocked on permissions.', 'blocker-fields'), false);
 });
 
+test('empty blocker values cannot consume the following field', () => {
+  const fields = ['blocked_on: missing token', 'evidence: API 403', 'impact: blocked',
+    'human_action: admin adds token', 'not_doing: no bypass'];
+  for (const ending of ['\n', '\r\n']) {
+    for (const field of fields) {
+      const empty = fields.map(value => value === field ? value.split(':')[0] + ': \t' : value);
+      assert.equal(result(text + ending + 'blocked' + ending + empty.join(ending), 'blocker-fields'), false, field);
+    }
+  }
+});
+
 test('blocked requires populated fields, valid impact; accepts both source tables', () => {
   assert.equal(result(text + '\nblocked', 'blocker-fields'), false);
   const blocker = '\nblocked_on: missing token\nevidence: gh returned 403\nimpact: blocked\nhuman_action: admin adds token\nnot_doing: no bypass';

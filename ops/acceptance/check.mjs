@@ -63,7 +63,7 @@ function blockerComplete(body) {
   const rows = body.split(/\r?\n/).filter(line => /^\s*\|/.test(line))
     .map(line => line.trim().replace(/^\||\|$/g, '').split('|').map(cell => cell.replace(/[`*]/g, '').trim()));
   for (const name of names) {
-    const text = body.match(new RegExp(`^\\s*${name}:\\s*(.+)$`, 'mi'));
+    const text = body.match(new RegExp(`^[ \\t]*${name}:[ \\t]*([^\\r\\n]*)$`, 'mi'));
     const row = rows.find(cells => cells[0]?.toLowerCase() === name);
     values[name] = text?.[1] ?? row?.[1] ?? '';
   }
