@@ -99,6 +99,12 @@ test('dogfooded PR body passes all checks without changed UI files', () => {
   assert.deepEqual(check(prbody).filter(row => !row.pass), []);
 });
 
+test('PR template blocked-gate boilerplate is not a real blocker', () => {
+  const template = readFileSync(new URL('../../.github/pull_request_template.md', import.meta.url), 'utf8');
+  assert.equal(result(text + '\n' + template, 'blocker-fields'), true);
+  assert.equal(result(text + '\n' + template + '\nDeployment is blocked on permissions.', 'blocker-fields'), false);
+});
+
 test('blocked requires populated fields, valid impact; accepts both source tables', () => {
   assert.equal(result(text + '\nblocked', 'blocker-fields'), false);
   const blocker = '\nblocked_on: missing token\nevidence: gh returned 403\nimpact: blocked\nhuman_action: admin adds token\nnot_doing: no bypass';

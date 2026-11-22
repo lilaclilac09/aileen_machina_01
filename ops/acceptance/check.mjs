@@ -102,7 +102,8 @@ export function check(body, files = null) {
     sources.ui, 'UI requires interaction evidence/explicit steps; quality remains manual');
   add('production-proof', !claims.some(localProductionClaim),
   sources.production, 'no apparent localhost/preview-as-production claim (manual review still required)');
-  const blocked = /\bblocked\b|\bblocked_on\s*[:|]/i.test(clean(body));
+  const blockerClaims = clean(body).replace(/\bAfter merge \(or a blocked gate\)/gi, '');
+  const blocked = /\bblocked\b|\bblocked_on\s*[:|]/i.test(blockerClaims);
   add('blocker-fields', !blocked || blockerComplete(clean(body)), sources.blocker,
     blocked ? 'blocked mentioned: require populated blocker fields/table' : 'no blocked claim');
   const boxes = (parsed['checks run'] ?? '').split(/\r?\n/).filter(line => /^\s*[-*]\s*\[[ xX]\]/.test(line));
