@@ -49,6 +49,13 @@ test('fenced closers do not include fence markers in field values', () => {
   }
 });
 
+test('checked-only manual QA is substantive while unchecked or empty items are not', () => {
+  for (const content of ['- [x] affected route opened', '- [X] specific user flow tested'])
+    assert.equal(result(text.replace('none; command-line only', content), 'closer:manual qa'), true);
+  for (const content of ['- [ ] affected route opened', '- [x] ', '- [X] <!-- fill here -->'])
+    assert.equal(result(text.replace('none; command-line only', content), 'closer:manual qa'), false);
+});
+
 test('safe to merge requires one exact option', () => {
   for (const value of ['yes', 'no', 'yes after manual env/config step'])
     assert.equal(result(text.replace('safe to merge: no', `safe to merge: ${value}`), 'safe-to-merge'), true);

@@ -20,7 +20,8 @@ const aliases = {
 const fields = ['root cause', 'files changed', 'checks run', 'manual qa', 'verification',
   'remaining risks', 'manual steps', 'safe to merge'];
 const clean = value => value.replace(/<!--[^]*?-->/g, '').trim();
-const substantive = value => clean(value).replace(/^\s*[-*]\s*\[[ xX]\].*$/gm, '')
+const substantive = value => clean(value).replace(/^\s*[-*]\s*\[ \].*$/gm, '')
+  .replace(/^\s*[-*]\s*\[[xX]\]\s*/gm, '')
   .replace(/[`*_\s|:~-]/g, '').length > 0;
 const normalize = name => {
   const key = name.replace(/[*`]/g, '').trim().toLowerCase();
