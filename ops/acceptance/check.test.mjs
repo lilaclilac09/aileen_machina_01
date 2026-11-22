@@ -74,6 +74,31 @@ test('speculation is rejected; quoted or prohibited phrases are not claims', () 
   }
 });
 
+test('inline code and quoted phrases are excluded from both claim checks', () => {
+  for (const [open, close] of [['`', '`'], ['``', '``'], ['"', '"'], ['“', '”'], ['‘', '’'], ['「', '」']]) {
+    for (const phrase of ['should work', 'should be fixed', 'looks good', '应该好了', 'Production proof: http://localhost:3000', 'verified on https://preview.example.com']) {
+      const body = text + `\nCheck detects ${open}${phrase}${close} claims.`;
+      assert.equal(result(body, 'evidence-not-speculation'), true, body);
+      assert.equal(result(body, 'production-proof'), true, body);
+    }
+    const actual = text + `\nCheck detects ${open}should work${close}; verified on http://localhost:3000, should work`;
+    assert.equal(result(actual, 'evidence-not-speculation'), false);
+    assert.equal(result(actual, 'production-proof'), false);
+  }
+});
+
+test('production check names are not claims, but localhost verification still fails', () => {
+  for (const description of ['localhost/preview as production proof', 'Checks localhost as production proof', 'production proof check for localhost/preview'])
+    assert.equal(result(text + '\n' + description, 'production-proof'), true, description);
+  for (const claim of ['verified on http://localhost:3000, should work', 'verified on https://preview.example.com', 'Production proof: localhost:3000', 'http://localhost:3000 as production proof'])
+    assert.equal(result(text + '\n' + claim, 'production-proof'), false, claim);
+});
+
+test('dogfooded PR body passes all checks without changed UI files', () => {
+  const prbody = readFileSync(new URL('./fixtures/prbody.md', import.meta.url), 'utf8');
+  assert.deepEqual(check(prbody).filter(row => !row.pass), []);
+});
+
 test('blocked requires populated fields, valid impact; accepts both source tables', () => {
   assert.equal(result(text + '\nblocked', 'blocker-fields'), false);
   const blocker = '\nblocked_on: missing token\nevidence: gh returned 403\nimpact: blocked\nhuman_action: admin adds token\nnot_doing: no bypass';

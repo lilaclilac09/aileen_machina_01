@@ -45,8 +45,16 @@ export const isUI = file => /\.(?:tsx|jsx|css|scss|sass|less|html?|vue|svelte|sw
   || /(?:^|\/)(?:res\/layout\/.*\.xml|[^/]*(?:View|Screen|Activity|Fragment)\.kt)$/i.test(file);
 
 function claimLines(body) {
-  return clean(body).split(/\r?\n/).filter(line => !/^\s*>/.test(line)
+  return clean(body).split(/\r?\n/).map(line => line.replace(/(`+)[^]*?\1|"(?:\\.|[^"\\])*"|“[^”]*”|‘[^’]*’|「[^」]*」/g, ' '))
+    .filter(line => !/^\s*>/.test(line)
     && !/\b(?:not|never|no|cannot|can't|don't|do not|must not)\b|不能|不准|禁止/i.test(line));
+}
+
+function localProductionClaim(line) {
+  if (!/localhost|127\.0\.0\.1|\bpreview\b|https?:\/\/\S+-\S+\.vercel\.app/i.test(line)) return false;
+  const claim = /\b(?:verified|validated|proved|fixed|shipped)\b|(?:production|ship).{0,25}\b(?:done|complete|ready|success)\b|production\s+(?:proof|evidence)\s*:|线上.{0,12}(?:证明|修好|完成)/i.test(line);
+  const url = /https?:\/\/[^\s)]+/i.test(line);
+  return claim || (url && /production\s+(?:proof|evidence)/i.test(line));
 }
 
 function blockerComplete(body) {
@@ -92,8 +100,7 @@ export function check(body, files = null) {
   add('ui-artifact', !ui || image, sources.ui, files === null ? 'UI applicability unknown: --files not supplied' : ui ? 'UI files require an image/screenshot/recording artifact' : 'no detected UI files');
   add('ui-interaction', !ui || /\b(?:click(?:ed|s|-through)?|scroll(?:ed|s)?|snap|drag(?:ged)?|hover|walkthrough|recording)\b|交互|录屏|点击|滚动/i.test(evidence),
     sources.ui, 'UI requires interaction evidence/explicit steps; quality remains manual');
-  add('production-proof', !claims.some(line => /localhost|127\.0\.0\.1|\bpreview\b|https?:\/\/\S+-\S+\.vercel\.app/i.test(line)
-    && /production\s+(?:proof|evidence|verified|ready|success)|(?:proved|verified|fixed|done|shipped).{0,35}\bproduction\b|(?:production|ship).{0,25}\b(?:done|complete|ready)\b|线上.{0,12}(?:证明|修好|完成)/i.test(line)),
+  add('production-proof', !claims.some(localProductionClaim),
   sources.production, 'no apparent localhost/preview-as-production claim (manual review still required)');
   const blocked = /\bblocked\b|\bblocked_on\s*[:|]/i.test(clean(body));
   add('blocker-fields', !blocked || blockerComplete(clean(body)), sources.blocker,
