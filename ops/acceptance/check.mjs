@@ -31,6 +31,7 @@ export function sections(body) {
   const result = {};
   let current;
   for (const line of clean(body).split(/\r?\n/)) {
+    if (/^\s*(?:`{3,}|~{3,})/.test(line)) continue;
     const heading = line.match(/^\s*#{1,6}\s+(.+?)\s*#*$/);
     const key = line.match(/^\s*(?:[-*]\s+)?(?:\*\*)?([\w /?]+?)(?:\*\*)?:\s*(.*)$/);
     if (heading || (key && fields.includes(normalize(key[1])))) {

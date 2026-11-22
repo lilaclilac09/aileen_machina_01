@@ -40,6 +40,15 @@ test('empty/comment-only fields and unchecked-only checks fail', () => {
   assert.equal(result(text.replace('node --test — pass', '- [ ] build — not run: docs only'), 'checks-run-checkboxes'), true);
 });
 
+test('fenced closers do not include fence markers in field values', () => {
+  for (const fence of ['```', '~~~']) {
+    const body = `${fence}txt\n${text}\n${fence}`;
+    assert.equal(sections(body)['safe to merge'], 'no');
+    assert.deepEqual(check(body, []).filter(row => !row.pass), []);
+    assert.equal(result(`${fence}\nroot cause:\n${fence}`, 'closer:root cause'), false);
+  }
+});
+
 test('safe to merge requires one exact option', () => {
   for (const value of ['yes', 'no', 'yes after manual env/config step'])
     assert.equal(result(text.replace('safe to merge: no', `safe to merge: ${value}`), 'safe-to-merge'), true);
