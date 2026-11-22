@@ -1,0 +1,42 @@
+name: acceptance
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened, ready_for_review]
+  workflow_call:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+jobs:
+  acceptance:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: lilaclilac09/aileen_machina_01
+          ref: ${{ github.repository == 'lilaclilac09/aileen_machina_01' && github.event.pull_request.head.sha || 'main' }}
+          path: kit
+          persist-credentials: false
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          path: target
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Read PR body and changed files as data
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          node --input-type=module -e 'import fs from "node:fs"; const event = JSON.parse(fs.readFileSync(process.env.GITHUB_EVENT_PATH, "utf8")); fs.writeFileSync("body.md", event.pull_request.body ?? "");'
+          gh api --paginate --slurp "repos/$GH_REPO/pulls/$PR_NUMBER/files?per_page=100" > files-pages.json
+          node --input-type=module -e 'import fs from "node:fs"; const files = JSON.parse(fs.readFileSync("files-pages.json", "utf8")).flat(); if (files.length >= 3000) throw new Error("GitHub file cap reached; incomplete evidence"); fs.writeFileSync("files.json", JSON.stringify(files));'
+      - name: Check evidence and list target project overlays
+        run: node kit/ops/acceptance/check.mjs --body body.md --files files.json --root target
