@@ -1,0 +1,6 @@
+{
+  "private": true,
+  "type": "module",
+  "main": "check.test.mjs",
+  "engines": { "node": ">=20" }
+}
