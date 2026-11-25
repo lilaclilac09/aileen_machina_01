@@ -16,8 +16,26 @@ export default defineConfig({
     headless: true,
     trace: 'on-first-retry',
     launchOptions: {
-      args: ['--autoplay-policy=no-user-gesture-required'],
+      args: [
+        '--autoplay-policy=no-user-gesture-required',
+        '--use-fake-device-for-media-stream',
+        '--use-fake-ui-for-media-stream',
+      ],
     },
   },
-  projects: [{ name: 'chromium', use: { ...devices['Desktop Chrome'] } }],
+  projects: [
+    {
+      name: 'chromium',
+      use: {
+        ...devices['Desktop Chrome'],
+        launchOptions: {
+          args: [
+            '--autoplay-policy=no-user-gesture-required',
+            '--use-fake-device-for-media-stream',
+            '--use-fake-ui-for-media-stream',
+          ],
+        },
+      },
+    },
+  ],
 });

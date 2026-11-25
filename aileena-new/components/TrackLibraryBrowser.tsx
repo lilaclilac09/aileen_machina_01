@@ -94,10 +94,9 @@ const T = {
   deckB:  '#89a8e0',
 };
 
-export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, onLoadTrack, onLoadNext, onSetDragTrack,
+export default function TrackLibraryBrowser({ tracks, onLoadTrack, onLoadNext, onSetDragTrack,
   playingLeft, playingRight, leftPos, leftDur, rightPos, rightDur }: {
   tracks: Track[];
-  reverseCarousel?: boolean;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
   onLoadNext?: (track: Track) => void;
   onSetDragTrack?: (track: Track) => void;
@@ -134,7 +133,6 @@ export default function TrackLibraryBrowser({ tracks, reverseCarousel = true, on
       ) : (
         <PlaylistCarousel
           tracks={tracks}
-          reverseCarousel={reverseCarousel}
           activeIdx={playlistIdx}
           setActiveIdx={setPlaylistIdx}
           onLoadTrack={onLoadTrack}
@@ -500,8 +498,7 @@ function useFinePointer() {
 
 /* ─── PLAYLIST CAROUSEL ───────────────────────────────────── */
 function PlaylistCarousel({
-  tracks: incomingTracks,
-  reverseCarousel = true,
+  tracks,
   activeIdx,
   setActiveIdx,
   onLoadTrack,
@@ -509,7 +506,6 @@ function PlaylistCarousel({
   onSetDragTrack,
 }: {
   tracks: Track[];
-  reverseCarousel?: boolean;
   activeIdx: number;
   setActiveIdx: (i: number) => void;
   onLoadTrack?: (side: 'left' | 'right', track: Track) => void;
@@ -520,12 +516,7 @@ function PlaylistCarousel({
   const [isDragging, setIsDragging] = useState(false);
   const finePointer = useFinePointer();
 
-  // Carousel renders newest-first. Source order in TRACKS stays append-only
-  // (so /addmusic just pushes to the end), and we reverse for display here.
-  const tracks = useMemo(
-    () => (reverseCarousel ? [...incomingTracks].slice().reverse() : incomingTracks),
-    [incomingTracks, reverseCarousel],
-  );
+  // Chronological display (oldest first). /addmusic appends; newest is last.
 
   // Resolve missing/placeholder covers in the visitor's browser via Spotify
   // oEmbed. The server side can't reach api.spotify.com from the sandbox, but

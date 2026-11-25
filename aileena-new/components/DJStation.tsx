@@ -490,7 +490,6 @@ export default function DJStation() {
       <div id="dj-set" style={{ marginTop: 10 }}>
         <TrackLibraryBrowser
           tracks={DJ_SET}
-          reverseCarousel={true}
           onLoadTrack={loadTrack}
           onLoadNext={loadNextDeck}
           onSetDragTrack={(t) => { dragTrack.current = t; }}

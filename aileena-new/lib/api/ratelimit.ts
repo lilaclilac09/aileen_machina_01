@@ -159,6 +159,14 @@ export const COMPUTER_TASK_RATE: RateLimitConfig = {
   dailyWindowMs: 86_400_000,
 };
 
+/** Computer app saves (notes, scores, time-machine visits). One small JSON file each. */
+export const COMPUTER_APP_STATE_RATE: RateLimitConfig = {
+  shortMax: 30,
+  shortWindowMs: 60_000,
+  dailyMax: 600,
+  dailyWindowMs: 86_400_000,
+};
+
 /** Visitor scratch pad — stricter than owner. Separate bucket scope. */
 export const COMPUTER_VISITOR_TASK_RATE: RateLimitConfig = {
   shortMax: 4,

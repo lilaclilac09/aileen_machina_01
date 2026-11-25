@@ -89,7 +89,7 @@ export function chromeBackForPath(pathname: string): { href: string; label: stri
  */
 export function chromeInkForPath(pathname: string): boolean {
   if (!pathname || pathname === '/') return false;
-  const darkExact = new Set(['/sound', '/works', '/prophecy', '/unlock']);
+  const darkExact = new Set(['/sound', '/works', '/prophecy', '/unlock', '/tools/photoautomat']);
   if (darkExact.has(pathname)) return false;
   if (pathname.startsWith('/research/')) return false;
   return true;

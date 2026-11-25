@@ -18,6 +18,7 @@ export const STATIC_PATHS = [
   '/sound',
   '/works',
   '/tools',
+  '/tools/photoautomat',
   '/tools/tamper-check',
   '/tools/cafe-recap',
   '/tools/ai-factory-sim',
