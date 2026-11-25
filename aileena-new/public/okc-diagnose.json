@@ -2,7 +2,7 @@
   "contest": {
     "gpu": "H200 · 132 SMs",
     "board": "2026-11-01",
-    "note": "Totals 4.83 / 4.599 / 2.92 ms are measured. Stage shares are model estimates until nsys / ncu replace them."
+    "note": "Totals 4.83 / 4.599 / 2.92 ms are the 2026-11-01 board walls. Current okc-check submission is v6b 1.071×. Stage shares are model estimates until nsys / ncu replace them."
   },
   "playbook": {
     "source": "CUDA kernel estimate loop — independent loads, round trips, busiest resource, occupancy, floor gap.",

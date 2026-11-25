@@ -3,7 +3,7 @@ import type { Metadata } from 'next';
 export const metadata: Metadata = {
   title: 'OKC Explorer',
   description:
-    'Where time goes in the Muse kernel pipeline — floor vs gap first, then Copy / Compute / Wait / Launch methods on the hot slice.',
+    'Where time goes in the Muse kernel pipeline — floor vs gap first, then Copy / Compute / Wait / Launch with measured okc checks vs SGLang on H200.',
   alternates: { canonical: '/nsight' },
 };
 
