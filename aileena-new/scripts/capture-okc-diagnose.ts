@@ -46,6 +46,16 @@ async function main() {
   await page.goto(`${BASE}/nsight.html`, { waitUntil: 'networkidle' });
   await page.waitForSelector('[data-testid="okc-open-diagnose"]');
   await page.screenshot({ path: join(OUT, 'okc-overview-desktop.png'), fullPage: true });
+  await page.screenshot({ path: join(OUT, 'nsight-overview-measured.png'), fullPage: true });
+  await page.getByTestId('okc-lever-wait').click();
+  await page.waitForTimeout(200);
+  await page.locator('#effect-widget').scrollIntoViewIfNeeded();
+  await page.screenshot({ path: join(OUT, 'nsight-widget.png') });
+  await page.locator('.tabs button[data-view="declayer"]').click();
+  await page.waitForTimeout(200);
+  await page.screenshot({ path: join(OUT, 'nsight-decode.png'), fullPage: true });
+  await page.locator('.tabs button[data-view="overview"]').click();
+  await page.waitForTimeout(200);
 
   await page.getByTestId('okc-open-diagnose').click();
   await readyDiagnose(page);
@@ -89,6 +99,10 @@ async function main() {
 
   const mobile = await browser.newContext({ viewport: { width: 390, height: 844 } });
   const mpage = await mobile.newPage();
+  await mpage.goto(`${BASE}/nsight.html`, { waitUntil: 'networkidle' });
+  await mpage.waitForSelector('[data-testid="okc-measured"]');
+  await mpage.getByTestId('okc-lever-copy').click();
+  await mpage.screenshot({ path: join(OUT, 'nsight-mobile-390.png'), fullPage: true });
   await mpage.goto(`${BASE}/nsight.html?view=diagnose`, { waitUntil: 'networkidle' });
   await readyDiagnose(mpage);
   await mpage.screenshot({ path: join(OUT, 'okc-diagnose-mobile-390.png'), fullPage: true });
@@ -100,9 +114,13 @@ async function main() {
   const wrapped = await browser.newContext({ viewport: { width: 1280, height: 900 } });
   const wpage = await wrapped.newPage();
   try {
-    await wpage.goto(`${BASE}/nsight?view=diagnose`, { waitUntil: 'networkidle' });
+    await wpage.goto(`${BASE}/nsight`, { waitUntil: 'networkidle' });
     await dismissConsole(wpage);
     const frame = wpage.frameLocator('[data-testid="nsight-frame"] iframe');
+    await frame.getByTestId('okc-measured').waitFor({ timeout: 15_000 });
+    await wpage.screenshot({ path: join(OUT, 'nsight-route-overview.png') });
+    await wpage.goto(`${BASE}/nsight?view=diagnose`, { waitUntil: 'networkidle' });
+    await dismissConsole(wpage);
     await frame.locator('#okc-diagnose-root[data-ready="yes"]').waitFor({ timeout: 15_000 });
     await wpage.screenshot({ path: join(OUT, 'okc-nsight-route-diagnose.png') });
   } catch (err) {

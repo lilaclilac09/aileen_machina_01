@@ -100,6 +100,9 @@ assert('diagnose tab', html.includes('data-view="diagnose"'));
 assert('four steps', ['1 · Separate', '2 · Round trips', '3 · Floor', '4 · Methods'].every((s) => html.includes(s)));
 assert('loads diagnose js', html.includes('src="/okc-diagnose.js"'));
 assert('open diagnose cta', html.includes('data-testid="okc-open-diagnose"'));
+assert('measured v6b 1.071×', html.includes('v6b 1.071×'));
+assert('decode measured 0.015×', html.includes('v4_moe_epi ~0.015×'));
+assert('edit widget', html.includes('id="effect-widget"') && html.includes('id="lever-note"'));
 assert('english diagnose copy', !CJK.test(html));
 assert('no gradient in diagnose css', !/linear-gradient/.test(html));
 

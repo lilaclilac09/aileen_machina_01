@@ -2,7 +2,7 @@
 
 Live demo: [`/nsight?view=diagnose`](/nsight?view=diagnose) · source: `public/nsight.html` + `public/okc-diagnose.json`.
 
-The Overview tab still holds the contest path (v4 4.599 → leader 2.92, M01–M08). Diagnose is the method that decides **whether a slice still has a knob**.
+The Overview tab holds the contest path: **measured okc checks first** (bf16_proj **v6b 1.071×** keep; decode **v4_moe_epi ~0.015×**), then the edit → bar → check widget, then methods. Diagnose is the method that decides **whether a slice still has a knob**. The Diagnose waterline still uses the 2026-11-01 **v4 4.599 ms** capture — do not treat those milliseconds as the current ×.
 
 ## Loop (four steps)
 
@@ -30,7 +30,7 @@ Worked example on **bf16_proj**:
 - Tile tail 1.06 ms → **GAP**, not hardware. `M01` + `M05`. Then pick the Split-K reduction at the crossover.
 - Write drain → **UNKNOWN**. Playbook STG is 32 B/cycle. Measure before writing a store-path kernel.
 
-Shares on the pipeline cards remain model estimates. Totals 4.83 / 4.599 / 2.92 ms are the 2026-11-01 board.
+Shares on the pipeline cards remain model estimates. Totals 4.83 / 4.599 / 2.92 ms are the 2026-11-01 board walls used in Diagnose. Current board submission on Overview is v6b 1.071× (okc check).
 
 ## Playbook formulas (not this board’s capture)
 
