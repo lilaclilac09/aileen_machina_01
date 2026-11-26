@@ -19,6 +19,8 @@ type ArcadeLayoutProps = {
   align?: 'start' | 'center';
   /** Walkthrough on this tool, same player as the intent demo. */
   demoVideo?: string;
+  /** Poster / map pages that need more than the default 980 reading column. */
+  wide?: boolean;
   children: ReactNode;
 };
 
@@ -31,10 +33,12 @@ export default function ArcadeLayout({
   marquee,
   align = 'start',
   demoVideo,
+  wide = false,
   children,
 }: ArcadeLayoutProps) {
   const marqueeText =
     marquee ?? 'TOOLS · AUDIO CLIPPING · MORE TBC';
+  const shellWidth = align === 'center' ? 1100 : wide ? 1280 : 980;
 
   return (
     <div className="arcade-root" style={{ fontFamily: nunito }}>
@@ -54,7 +58,7 @@ export default function ArcadeLayout({
         >
           <div
             style={{
-              maxWidth: align === 'center' ? 1100 : 980,
+              maxWidth: shellWidth,
               margin: '0 auto',
               display: 'flex',
               justifyContent: 'space-between',
@@ -103,7 +107,7 @@ export default function ArcadeLayout({
         <main
           className={align === 'center' ? 'arcade-main arcade-main--center' : 'arcade-main'}
           style={{
-            maxWidth: align === 'center' ? 1100 : 980,
+            maxWidth: shellWidth,
             margin: '0 auto',
             padding: '36px 24px 96px',
           }}

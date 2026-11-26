@@ -2089,6 +2089,122 @@ button.ai-factory-cell {
 .tools-lab-cover--tamper-check {
   background: linear-gradient(180deg, #eef3ef 0%, #dde8e2 100%);
 }
+
+.tools-lab-cover--named-campuses {
+  background-color: #f3efe4;
+  background-size: contain !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+
+.named-campuses {
+  display: grid;
+  gap: 28px;
+}
+
+.named-campuses-plate {
+  margin: 0;
+  overflow-x: auto;
+  overflow-y: visible;
+  background: #f3efe4;
+  -webkit-overflow-scrolling: touch;
+}
+
+.named-campuses-plate img {
+  display: block;
+  width: 100%;
+  min-width: 960px;
+  max-width: none;
+  height: auto;
+}
+
+.named-campuses-plate figcaption,
+.named-campuses-stills figcaption {
+  margin: 10px 0 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  line-height: 1.55;
+  letter-spacing: 0.02em;
+  color: rgba(20, 17, 12, 0.5);
+}
+
+.named-campuses-links {
+  margin: 0;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+}
+
+.named-campuses-links a,
+.named-campuses-sources a {
+  color: #008f86;
+  text-decoration: none;
+  border-bottom: 1px solid rgba(0, 143, 134, 0.35);
+}
+
+.named-campuses-toggle {
+  font: inherit;
+  letter-spacing: inherit;
+  color: #008f86;
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(0, 143, 134, 0.35);
+}
+
+.named-campuses-toggle[aria-pressed='true'] {
+  color: #14110c;
+  border-bottom-color: rgba(20, 17, 12, 0.35);
+}
+
+.named-campuses-kicker {
+  margin: 0 0 8px;
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(20, 17, 12, 0.48);
+}
+
+.named-campuses-stills-kicker,
+.named-campuses-sources {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.55;
+  color: rgba(20, 17, 12, 0.58);
+}
+
+.named-campuses-stills {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr;
+  margin-top: 12px;
+}
+
+.named-campuses-stills figure {
+  margin: 0;
+}
+
+.named-campuses-stills img {
+  width: 100%;
+  height: auto;
+  display: block;
+  background: #111;
+}
+
+@media (min-width: 720px) {
+  .named-campuses-stills {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 719px) {
+  .named-campuses-plate img {
+    width: 1280px;
+    min-width: 1280px;
+  }
+}
 .tools-lab-scale {
   position: absolute;
   inset: 20% 14%;

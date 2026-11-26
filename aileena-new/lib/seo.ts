@@ -22,6 +22,7 @@ export const STATIC_PATHS = [
   '/tools/tamper-check',
   '/tools/cafe-recap',
   '/tools/ai-factory-sim',
+  '/tools/named-campuses',
   '/tools/intent',
   '/tools/machina-college',
   '/tools/agent-gateway',
