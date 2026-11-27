@@ -152,6 +152,23 @@ export const TOOL_DEFINITIONS: ToolDefinition[] = [
     },
   },
   {
+    slug: 'named-campuses',
+    tag: 'MAP',
+    title: 'Named Campuses',
+    body: '2D icon plate of named China/Asia halls. Pins are geography, not a door census.',
+    why: 'The 17 Aug 2026 figure was posted to show where next Chinese neocloud sits.',
+    verdict: 'Original map. Sat stills on this page only. No 3D globe. No invented USD.',
+    href: '/tools/named-campuses',
+    liveUrl: '/tools/named-campuses',
+    screenshot: '/tools/named-campuses/fig-map-icons.png',
+    status: 'useful',
+    tier: 'utility',
+    arcade: {
+      glyph: '⌖',
+      screenGradient: '#f3efe4',
+    },
+  },
+  {
     slug: 'intent',
     tag: 'READ',
     title: 'Intent Aggregator',

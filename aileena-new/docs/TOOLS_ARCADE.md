@@ -98,6 +98,7 @@ Open `/tools` → new tile visible → open tool once end-to-end.
 | `intent` | `/tools/intent` | **Experiment** — English mock demo on the page. Live `/api/analyze` still needs `TYPESAFE_API_KEY`. |
 | `machina-college` | `/tools/machina-college` | **Useful** — one book after hearing. Not a diagnosis. |
 | `computer` | `/tools/computer` | **Experiment** — computer in the site-agent dialog; Cloudflare worker-shell when env is set; no merge. |
+| `named-campuses` | `/tools/named-campuses` | **Useful** — original 17 Aug 2026 2D icon location map. Sat stills on the same page, not extra hub cards. |
 | `feed-flash` | `/tools/feed-flash` | Paused on hub |
 | `chip-guess` | `/tools/chip-guess` | Paused on hub |
 | `pricing-slot` | `/tools/pricing-slot` | Unlisted (hub slot now `tamper-check`, external) |
