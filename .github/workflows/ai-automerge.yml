@@ -181,8 +181,20 @@ jobs:
           name: next-build
           path: aileena-new/.next
 
+      - name: Cache Playwright browsers
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-chromium-${{ runner.os }}-${{ hashFiles('aileena-new/pnpm-lock.yaml') }}
+
       - name: Install Playwright Chromium
-        run: pnpm exec playwright install --with-deps chromium
+        run: |
+          # Browser binary only. Do not pass --with-deps: that apt-installs
+          # Ubuntu fonts via azure.archive.ubuntu.com and failed two PRs on
+          # 2026-11-11 (Temporary failure resolving the mirror) before any
+          # test ran. GitHub's ubuntu-latest image already has the libs
+          # Chromium needs to launch.
+          pnpm exec playwright install chromium
 
       - name: Start Next and run DnD smoke
         env:
